@@ -367,6 +367,7 @@ p {
 /* Positioning */
 .relative { position: relative; }
 .absolute { position: absolute; }
+.fixed { position: fixed; }
 .top-0 { top: 0; }
 .top-4 { top: 1rem; }
 .right-0 { right: 0; }

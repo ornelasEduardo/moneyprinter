@@ -6,7 +6,7 @@ import styled from '@emotion/styled';
 const StyledTextarea = styled.textarea`
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   background: var(--card-bg);
   color: var(--foreground);
   border: var(--border-width) solid var(--card-border);

@@ -48,7 +48,7 @@ interface DashboardClientProps {
 
 const DashboardGrid = styled.div`
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: minmax(400px, 1fr) 2fr;
   gap: 1.5rem;
 
   @media (max-width: 1024px) {

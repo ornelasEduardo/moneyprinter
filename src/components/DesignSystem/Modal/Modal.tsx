@@ -44,7 +44,7 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className="absolute inset-0 z-modal flex items-center justify-center p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-modal flex items-center justify-center p-4 backdrop-blur-sm"
       style={{
         animation: 'fadeIn 0.2s ease-out',
         backgroundColor: 'rgba(0, 0, 0, 0.5)'

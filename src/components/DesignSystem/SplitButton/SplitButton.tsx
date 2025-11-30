@@ -35,7 +35,7 @@ const StyledMainButton = styled.button`
   padding: 0.75rem 1rem;
   padding-right: 0.75rem;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
@@ -81,7 +81,7 @@ const StyledDropdownItem = styled.button`
   color: var(--foreground);
   cursor: pointer;
   border-radius: calc(var(--radius) - 2px);
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 600;
   transition: background-color 0.2s;
 

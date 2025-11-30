@@ -17,7 +17,7 @@ const SelectTrigger = styled.button`
   border: var(--border-width) solid var(--card-border);
   color: var(--foreground);
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   cursor: pointer;
   box-shadow: var(--shadow-hard);
   border-radius: var(--radius);
@@ -73,7 +73,7 @@ const OptionItem = styled.li<{ isSelected?: boolean; isHighlighted?: boolean }>`
   border-radius: calc(var(--radius) - 2px);
   color: ${props => props.isSelected ? 'var(--primary-foreground)' : (props.isHighlighted ? 'var(--primary)' : 'var(--foreground)')};
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: ${props => props.isSelected ? '700' : '400'};
   transition: all 0.1s ease;
   width: 100%;

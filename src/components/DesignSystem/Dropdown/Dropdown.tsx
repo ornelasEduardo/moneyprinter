@@ -25,7 +25,7 @@ const DropdownItem = styled.button`
   color: var(--foreground);
   cursor: pointer;
   border-radius: calc(var(--radius) - 2px);
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   transition: background-color 0.2s;
 
   &:hover {

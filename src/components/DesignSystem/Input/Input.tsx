@@ -22,7 +22,7 @@ const StyledInput = styled.input<{ hasStartAdornment?: boolean; hasEndAdornment?
   padding: 0.75rem 1rem;
   padding-left: ${props => props.hasStartAdornment ? '2rem' : '1rem'};
   padding-right: ${props => props.hasEndAdornment ? '2rem' : '1rem'};
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   background: var(--card-bg);
   color: var(--foreground);
   border: var(--border-width) solid ${props => props.isError ? 'var(--error)' : 'var(--card-border)'};

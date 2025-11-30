@@ -41,7 +41,7 @@ const Toolbar = styled.div`
 const StyledTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
 `;
 
 const getDensityPadding = (density: 'compact' | 'standard' | 'relaxed' = 'standard') => {
