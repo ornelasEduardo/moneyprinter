@@ -1,0 +1,32 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    path {
+      fill: black;
+      stroke: black;
+    }
+    @media (prefers-color-scheme: dark) {
+      path {
+        fill: white;
+        stroke: white;
+      }
+    }
+  </style>
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M 25 25 
+       L 25 15 L 35 15 L 35 25 
+       L 65 25 L 65 15 L 75 15 L 75 25 
+       L 85 25 L 85 55 
+       L 95 55 L 95 75 L 85 75 L 85 85 
+       L 65 85 L 65 75 L 35 75 L 35 85 
+       L 15 85 L 15 75 L 5 75 L 5 55 
+       L 15 55 L 15 25 
+       Z
+       
+       M 32 37 L 48 37 L 48 53 L 32 53 Z
+       M 52 37 L 68 37 L 68 53 L 52 53 Z"
+    stroke-width="6"
+    stroke-linejoin="round"
+  />
+</svg>

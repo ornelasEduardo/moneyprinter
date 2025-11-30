@@ -1,5 +1,7 @@
 'use client';
 
+
+import { Logo } from '@/components/Logo';
 import { logout } from '@/app/actions/auth';
 import { useDashboardStore } from '@/lib/store';
 import { Button, Flex, Select, Text } from '@design-system';
@@ -18,14 +20,15 @@ export default function DashboardHeader({ selectedYear, onYearChange }: Dashboar
     <Flex 
       justify="space-between" 
       align="center" 
-      className="relative z-40 mb-8"
+      className="relative z-40 mb-10"
     >
       <Flex gap="1rem" align="center">
-        <Text variant="h1" className="uppercase">
+        <Logo size={48} />
+        <Text variant="h1" className="uppercase" style={{ margin: 0 }}>
           MoneyPrinter
         </Text>
 
-        <div className="w-32 mt-2 align-self-start">
+        <div className="w-32">
           <Select
             value={selectedYear}
             onChange={(e) => onYearChange(e.target.value)}
