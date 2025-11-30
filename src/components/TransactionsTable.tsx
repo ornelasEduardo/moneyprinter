@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {  ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import {  updateTransaction, deleteTransaction } from '@/app/actions/transactions';
-import { Badge, Button, Card, Flex, Input, Modal, Select, Table, Text, useToast } from '@design-system';
+import { Badge, Button, Card, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Select, Table, Text, useToast } from '@design-system';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 import { Serialized, Transaction as PrismaTransaction } from '@/lib/types';
@@ -252,80 +252,88 @@ export default function TransactionsTable({ transactions, selectedYear, accounts
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title="Edit Transaction"
       >
         {editingTransaction && (
           <form onSubmit={handleUpdate}>
-            <Flex direction="column" gap="1rem">
-              <div>
-                <Input 
-                  label="Name"
-                  name="name" 
-                  defaultValue={editingTransaction.name} 
-                  required 
-                />
-              </div>
+            <ModalHeader>Edit Transaction</ModalHeader>
+            <ModalBody>
+              <Flex direction="column" gap="1rem">
+                <div>
+                  <Input 
+                    label="Name"
+                    name="name" 
+                    defaultValue={editingTransaction.name} 
+                    required 
+                  />
+                </div>
 
-              <div>
-                <Select
-                  label="Type"
-                  name="type"
-                  defaultValue={editingTransaction.type || 'expense'}
-                  options={[
-                    { value: 'expense', label: 'Expense' },
-                    { value: 'income', label: 'Income' }
-                  ]}
-                />
-              </div>
+                <div>
+                  <Select
+                    label="Type"
+                    name="type"
+                    defaultValue={editingTransaction.type || 'expense'}
+                    options={[
+                      { value: 'expense', label: 'Expense' },
+                      { value: 'income', label: 'Income' }
+                    ]}
+                  />
+                </div>
 
-              <div>
-                <Input 
-                  label="Amount"
-                  name="amount" 
-                  type="number" 
-                  step="0.01" 
-                  defaultValue={editingTransaction.amount} 
-                  required 
-                />
-              </div>
+                <div>
+                  <Input 
+                    label="Amount"
+                    name="amount" 
+                    type="number" 
+                    step="0.01" 
+                    defaultValue={editingTransaction.amount} 
+                    required 
+                  />
+                </div>
 
-              <div>
-                <Input 
-                  label="Date"
-                  name="date" 
-                  type="date" 
-                  defaultValue={editingTransaction.date} 
-                  required 
-                />
-              </div>
+                <div>
+                  <Input 
+                    label="Date"
+                    name="date" 
+                    type="date" 
+                    defaultValue={editingTransaction.date} 
+                    required 
+                  />
+                </div>
 
-              <div>
-                <Input 
-                  label="Tags"
-                  name="tags" 
-                  defaultValue={editingTransaction.tags || ''} 
-                  placeholder="e.g. Food, Travel"
-                />
-              </div>
+                <div>
+                  <Input 
+                    label="Tags"
+                    name="tags" 
+                    defaultValue={editingTransaction.tags || ''} 
+                    placeholder="e.g. Food, Travel"
+                  />
+                </div>
 
-              <div>
-                <Select
-                  label="Account"
-                  name="accountId"
-                  defaultValue={editingTransaction.accountId?.toString() || ''}
-                  options={accounts.map(acc => ({ value: acc.id.toString(), label: acc.name }))}
-                />
-              </div>
-
-              <Flex justify="flex-end" gap="1rem" className="mt-4">
-                <Button type="button" variant="secondary" onClick={() => setIsEditModalOpen(false)}>
+                <div>
+                  <Select
+                    label="Account"
+                    name="accountId"
+                    defaultValue={editingTransaction.accountId?.toString() || ''}
+                    options={accounts.map(acc => ({ value: acc.id.toString(), label: acc.name }))}
+                  />
+                </div>
+              </Flex>
+            </ModalBody>
+            <ModalFooter>
+              <Flex justify="flex-end" gap="1rem">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => setIsEditModalOpen(false)}
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? 'Saving...' : 'Save Changes'}
                 </Button>
               </Flex>
-            </Flex>
+            </ModalFooter>
           </form>
         )}
       </Modal>

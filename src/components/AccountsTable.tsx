@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { deleteAccount, updateAccount } from '@/app/actions/accounts';
 import { useRouter } from 'next/navigation';
-import { Badge, Button, Card, Flex, Input, Modal, Select, Table, Text, useToast } from '@design-system';
+import { Badge, Button, Card, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Select, Table, Text, useToast } from '@design-system';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 import { SafeAccount } from '@/lib/types';
@@ -162,71 +162,79 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title="Edit Account"
       >
         {editingAccount && (
           <form onSubmit={handleUpdate}>
-            <Flex direction="column" gap="1rem">
-              <div>
-                <Input 
-                  label="Account Name"
-                  name="name" 
-                  defaultValue={editingAccount.name} 
-                  required 
-                  placeholder="e.g. Chase Checking"
-                />
-              </div>
+            <ModalHeader>Edit Account</ModalHeader>
+            <ModalBody>
+              <Flex direction="column" gap="1rem">
+                <div>
+                  <Input 
+                    label="Account Name"
+                    name="name" 
+                    defaultValue={editingAccount.name} 
+                    required 
+                    placeholder="e.g. Chase Checking"
+                  />
+                </div>
 
-              <div>
-                <Select
-                  label="Type"
-                  name="type"
-                  defaultValue={editingAccount.type}
-                  options={[
-                    { value: 'checking', label: 'Checking' },
-                    { value: 'savings', label: 'Savings' },
-                    { value: 'investment', label: 'Investment' },
-                    { value: 'credit', label: 'Credit Card' },
-                    { value: 'loan', label: 'Loan' },
-                    { value: 'other', label: 'Other' }
-                  ]}
-                />
-              </div>
+                <div>
+                  <Select
+                    label="Type"
+                    name="type"
+                    defaultValue={editingAccount.type}
+                    options={[
+                      { value: 'checking', label: 'Checking' },
+                      { value: 'savings', label: 'Savings' },
+                      { value: 'investment', label: 'Investment' },
+                      { value: 'credit', label: 'Credit Card' },
+                      { value: 'loan', label: 'Loan' },
+                      { value: 'other', label: 'Other' }
+                    ]}
+                  />
+                </div>
 
-              <div>
-                <Input 
-                  label="Current Balance"
-                  name="balance" 
-                  type="number" 
-                  step="0.01" 
-                  defaultValue={editingAccount.balance} 
-                  required 
-                />
-              </div>
+                <div>
+                  <Input 
+                    label="Current Balance"
+                    name="balance" 
+                    type="number" 
+                    step="0.01" 
+                    defaultValue={editingAccount.balance} 
+                    required 
+                  />
+                </div>
 
-              <div>
-                <Text as="label" weight="bold" className="mb-2 block">Currency</Text>
-                <Select
-                  name="currency"
-                  defaultValue={editingAccount.currency || 'USD'}
-                  options={[
-                    { value: 'USD', label: 'USD ($)' },
-                    { value: 'EUR', label: 'EUR (€)' },
-                    { value: 'GBP', label: 'GBP (£)' },
-                    { value: 'CAD', label: 'CAD ($)' },
-                  ]}
-                />
-              </div>
-
-              <Flex justify="flex-end" gap="1rem" className="mt-4">
-                <Button type="button" variant="secondary" onClick={() => setIsEditModalOpen(false)}>
+                <div>
+                  <Text as="label" weight="bold" className="mb-2 block">Currency</Text>
+                  <Select
+                    name="currency"
+                    defaultValue={editingAccount.currency || 'USD'}
+                    options={[
+                      { value: 'USD', label: 'USD ($)' },
+                      { value: 'EUR', label: 'EUR (€)' },
+                      { value: 'GBP', label: 'GBP (£)' },
+                      { value: 'CAD', label: 'CAD ($)' },
+                    ]}
+                  />
+                </div>
+              </Flex>
+            </ModalBody>
+            <ModalFooter>
+              <Flex justify="flex-end" gap="1rem">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => setIsEditModalOpen(false)}
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? 'Saving...' : 'Save Changes'}
                 </Button>
               </Flex>
-            </Flex>
+            </ModalFooter>
           </form>
         )}
       </Modal>

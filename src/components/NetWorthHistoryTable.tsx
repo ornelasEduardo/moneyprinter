@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ColumnDef } from '@tanstack/react-table';
 import { updateNetWorthEntry, deleteNetWorthEntry, createNetWorthEntry } from '@/app/actions/networth';
-import { Button, Flex, Input, Modal, Table, Text, useToast } from '@design-system';
+import { Button, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Table, Text, useToast } from '@design-system';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 interface NetWorthEntry {
@@ -199,34 +199,37 @@ export default function NetWorthHistoryTable({ entries }: NetWorthHistoryTablePr
       <Modal 
         isOpen={isEditModalOpen} 
         onClose={() => setIsEditModalOpen(false)} 
-        title="Edit Net Worth Entry"
       >
         {editingEntry && (
           <form onSubmit={handleUpdate}>
-            <Flex direction="column" gap="1rem">
-              <div>
-                <Input
-                  label="Date"
-                  type="date"
-                  name="date"
-                  defaultValue={editingEntry.date}
-                  required
-                />
-              </div>
+            <ModalHeader>Edit Net Worth Entry</ModalHeader>
+            <ModalBody>
+              <Flex direction="column" gap="1rem">
+                <div>
+                  <Input
+                    label="Date"
+                    type="date"
+                    name="date"
+                    defaultValue={editingEntry.date}
+                    required
+                  />
+                </div>
 
-              <div>
-                <Input
-                  label="Net Worth"
-                  type="number"
-                  step="0.01"
-                  name="netWorth"
-                  defaultValue={editingEntry.netWorth}
-                  startAdornment="$"
-                  required
-                />
-              </div>
-
-              <Flex gap="0.5rem" justify="flex-end">
+                <div>
+                  <Input
+                    label="Net Worth"
+                    type="number"
+                    step="0.01"
+                    name="netWorth"
+                    defaultValue={editingEntry.netWorth}
+                    startAdornment="$"
+                    required
+                  />
+                </div>
+              </Flex>
+            </ModalBody>
+            <ModalFooter>
+              <Flex gap="1rem" justify="flex-end">
                 <Button 
                   type="button" 
                   variant="ghost" 
@@ -239,7 +242,7 @@ export default function NetWorthHistoryTable({ entries }: NetWorthHistoryTablePr
                   {isLoading ? 'Saving...' : 'Save Changes'}
                 </Button>
               </Flex>
-            </Flex>
+            </ModalFooter>
           </form>
         )}
       </Modal>
@@ -248,33 +251,36 @@ export default function NetWorthHistoryTable({ entries }: NetWorthHistoryTablePr
       <Modal 
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
-        title="Add Net Worth Entry"
       >
         <form onSubmit={handleCreate}>
-          <Flex direction="column" gap="1rem">
-            <div>
-              <Input
-                label="Date"
-                type="date"
-                name="date"
-                defaultValue={new Date().toISOString().split('T')[0]}
-                required
-              />
-            </div>
+          <ModalHeader>Add Net Worth Entry</ModalHeader>
+          <ModalBody>
+            <Flex direction="column" gap="1rem">
+              <div>
+                <Input
+                  label="Date"
+                  type="date"
+                  name="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  required
+                />
+              </div>
 
-            <div>
-              <Input
-                label="Net Worth"
-                type="number"
-                step="0.01"
-                name="netWorth"
-                startAdornment="$"
-                placeholder="0.00"
-                required
-              />
-            </div>
-
-            <Flex gap="0.5rem" justify="flex-end">
+              <div>
+                <Input
+                  label="Net Worth"
+                  type="number"
+                  step="0.01"
+                  name="netWorth"
+                  startAdornment="$"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </Flex>
+          </ModalBody>
+          <ModalFooter>
+            <Flex gap="1rem" justify="flex-end">
               <Button 
                 type="button" 
                 variant="ghost" 
@@ -287,7 +293,7 @@ export default function NetWorthHistoryTable({ entries }: NetWorthHistoryTablePr
                 {isLoading ? 'Creating...' : 'Create Entry'}
               </Button>
             </Flex>
-          </Flex>
+          </ModalFooter>
         </form>
       </Modal>
     </>
