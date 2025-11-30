@@ -1,11 +1,8 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React from 'react';
 import styled from '@emotion/styled';
-import { themes, ThemeKey } from '@/lib/themes';
-import { setThemePreference } from '@/lib/themes/actions';
-import { Text, Card } from '@design-system';
-import { useRouter } from 'next/navigation';
+import { Text, Card, useTheme, ThemeKey } from '@design-system';
 
 const SettingsContainer = styled.div`
   display: flex;
@@ -81,24 +78,8 @@ const PreviewSwatch = styled.div<{ colors?: string[] }>`
   }
 `;
 
-export default function SettingsView({ currentTheme }: { currentTheme?: ThemeKey }) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [optimisticTheme, setOptimisticTheme] = useState(currentTheme);
-
-  const handleThemeChange = async (theme: ThemeKey) => {
-    setOptimisticTheme(theme);
-    
-    startTransition(async () => {
-      await setThemePreference(theme);
-      router.refresh();
-    });
-  };
-
-  // Fallback to 'default' if the current theme doesn't exist (e.g., after renaming)
-  const activeTheme = (optimisticTheme && themes[optimisticTheme]) ? optimisticTheme : 
-                      (currentTheme && themes[currentTheme]) ? currentTheme : 
-                      'default';
+export default function SettingsView() {
+  const { theme: currentTheme, setTheme, availableThemes } = useTheme();
 
   return (
     <SettingsContainer>
@@ -111,12 +92,11 @@ export default function SettingsView({ currentTheme }: { currentTheme?: ThemeKey
         </div>
 
         <ThemeGrid>
-          {Object.entries(themes).map(([key, theme]) => (
+          {Object.entries(availableThemes).map(([key, theme]) => (
             <ThemeCard 
               key={key} 
-              isActive={activeTheme === key}
-              onClick={() => handleThemeChange(key as ThemeKey)}
-              disabled={isPending}
+              isActive={currentTheme === key}
+              onClick={() => setTheme(key as ThemeKey)}
             >
               <Text weight="bold" variant="h6">{theme.name}</Text>
               

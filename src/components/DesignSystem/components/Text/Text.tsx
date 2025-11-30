@@ -122,7 +122,7 @@ const StyledText = styled.span<StyledTextProps>`
       case 'warning':
         return 'color: var(--warning);';
       default:
-        return '';
+        return 'color: var(--foreground);';
     }
   }}
 

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import styled from '@emotion/styled';
 import { Card, Button, Flex } from '@design-system';
 
 interface ModalProps {
@@ -15,45 +16,86 @@ interface ModalProps {
 
 const ModalContext = React.createContext<{ onClose: () => void }>({ onClose: () => {} });
 
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+
+const ContentContainer = styled.div`
+  width: 100%;
+  max-width: 28rem;
+  animation: slideUp 0.3s ease-out;
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+`;
+
+const StyledHeader = styled(Flex)`
+  padding: 1.5rem;
+  border-bottom: var(--border-width) solid var(--card-border);
+  background: var(--background);
+  
+  h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin: 0;
+  }
+`;
+
+const StyledBody = styled.div`
+  padding: 1.5rem;
+`;
+
+const StyledFooter = styled.div`
+  padding: 1.5rem;
+  border-top: var(--border-width) solid var(--card-border);
+  background: var(--background);
+`;
+
 export function ModalHeader({ children, className }: { children: React.ReactNode; className?: string }) {
   const { onClose } = React.useContext(ModalContext);
   return (
-    <Flex 
+    <StyledHeader 
       justify="space-between" 
       align="center" 
-      className={`p-6 ${className || ''}`}
-      style={{
-        borderBottom: 'var(--border-width) solid var(--card-border)',
-        background: 'var(--background)'
-      }}
+      className={className}
     >
-      <div className="text-xl font-bold m-0">{children}</div>
+      <h2>{children}</h2>
       <Button variant="ghost" size="sm" onClick={onClose}>
         <X size={20} strokeWidth={2.5} />
       </Button>
-    </Flex>
+    </StyledHeader>
   );
 }
 
 export function ModalBody({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`p-6 ${className || ''}`}>
+    <StyledBody className={className}>
       {children}
-    </div>
+    </StyledBody>
   );
 }
 
 export function ModalFooter({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div 
-      className={`p-6 ${className || ''}`}
-      style={{
-        borderTop: 'var(--border-width) solid var(--card-border)',
-        background: 'var(--background)'
-      }}
-    >
+    <StyledFooter className={className}>
       {children}
-    </div>
+    </StyledFooter>
   );
 }
 
@@ -86,22 +128,12 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
 
   return createPortal(
     <ModalContext.Provider value={{ onClose }}>
-      <div
+      <Overlay
         ref={overlayRef}
         onClick={handleOverlayClick}
-        className="fixed inset-0 z-modal flex items-center justify-center p-4 backdrop-blur-sm"
-        style={{
-          animation: 'fadeIn 0.2s ease-out',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)'
-        }}
       >
-        <div 
-          className="w-full max-w-md"
-          style={{ 
-            animation: 'slideUp 0.3s ease-out'
-          }}
-        >
-          <Card className="p-0 overflow-hidden" style={{ padding: 0 }}>
+        <ContentContainer>
+          <Card style={{ padding: 0, overflow: 'hidden' }}>
             {title ? (
               <>
                 <ModalHeader>{title}</ModalHeader>
@@ -112,18 +144,8 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
               children
             )}
           </Card>
-        </div>
-        <style jsx global>{`
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-          @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-          }
-        `}</style>
-      </div>
+        </ContentContainer>
+      </Overlay>
     </ModalContext.Provider>,
     document.body
   );

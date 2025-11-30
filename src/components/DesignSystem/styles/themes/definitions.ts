@@ -1,7 +1,40 @@
+const baseVariables = {
+  // Typography Scale
+  '--text-xs': '0.75rem',
+  '--text-sm': '0.875rem',
+  '--text-base': '1rem',
+  '--text-lg': '1.125rem',
+  '--text-xl': '1.25rem',
+  '--text-2xl': '1.5rem',
+  '--text-3xl': '1.875rem',
+  '--text-4xl': '2.25rem',
+  '--text-5xl': '3rem',
+  '--text-6xl': '3.75rem',
+
+  // Font Weights
+  '--font-thin': '100',
+  '--font-extralight': '200',
+  '--font-light': '300',
+  '--font-regular': '400',
+  '--font-medium': '500',
+  '--font-semibold': '600',
+  '--font-bold': '700',
+  '--font-extrabold': '800',
+  '--font-black': '900',
+
+  // Z-Indices
+  '--z-base': '0',
+  '--z-elevated': '10',
+  '--z-header': '40',
+  '--z-dropdown': '50',
+  '--z-modal': '100',
+};
+
 export const themes = {
   default: {
     name: 'Fun fun finance',
     variables: {
+      ...baseVariables,
       '--background': '#e0e7ff',
       '--foreground': '#000000',
       '--card-bg': '#ffffff',
@@ -29,6 +62,7 @@ export const themes = {
   doom: {
     name: 'DOOMSDAY',
     variables: {
+      ...baseVariables,
       '--background': '#020617', // Slate-950 (Dark Void)
       '--foreground': '#e2e8f0', // Slate-200 (Silver Armor)
       '--card-bg': '#0f172a', // Slate-900 (Dark Metal Plating)
@@ -48,7 +82,7 @@ export const themes = {
       '--radius': '2px', // Sharp, angular, metallic feel
       '--shadow-hard': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)', // Soft dark shadows (Dark Knight style)
       '--shadow-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
-      '--font-heading': 'var(--font-oswald)',
+      '--font-heading': 'var(--font-montserrat)',
       '--heading-transform': 'uppercase',
       '--heading-weight': '700',
     }
@@ -56,6 +90,7 @@ export const themes = {
   neighbor: {
     name: 'FRIENDLY NEIGHBOR',
     variables: {
+      ...baseVariables,
       '--background': '#FFFFFF',
       '--foreground': '#1A1A1A',
       '--card-bg': '#FFFFFF',
@@ -83,6 +118,7 @@ export const themes = {
   vigilante: {
     name: 'DARK KNIGHT',
     variables: {
+      ...baseVariables,
       '--background': '#0F1419', // Deep blue-black (like Gotham night sky)
       '--foreground': '#E8E9ED', // Soft white for excellent readability
       '--card-bg': '#1A1F29', // Slightly lighter than background for depth
@@ -102,7 +138,7 @@ export const themes = {
       '--radius': '6px', // Slightly rounded for modern feel
       '--shadow-hard': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)', // Softer shadow
       '--shadow-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
-      '--font-heading': 'var(--font-oswald)',
+      '--font-heading': 'var(--font-montserrat)',
       '--heading-transform': 'uppercase',
       '--heading-weight': '700',
     }

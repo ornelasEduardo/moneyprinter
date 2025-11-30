@@ -1,5 +1,5 @@
-import SettingsViewWrapper from '@/components/SettingsViewWrapper';
+import SettingsView from '@/components/SettingsView';
 
 export default function SettingsPage() {
-  return <SettingsViewWrapper />;
+  return <SettingsView />;
 }

@@ -17,7 +17,6 @@ import { ActionRow, Card, Flex, Grid, Tabs, TabsBody, TabsContent, TabsList, Tab
 import { Banknote, PieChart } from 'lucide-react';
 
 import { Serialized, User, Account, Transaction, SafeUser, SafeAccount } from '@/lib/types';
-import { ThemeKey } from '@/lib/themes';
 
 interface DashboardTransaction extends Serialized<Pick<Transaction, 'id' | 'name' | 'amount' | 'date' | 'tags' | 'type'>> {
   accountId: number | null;
@@ -42,7 +41,6 @@ interface DashboardClientProps {
   availableYears: number[];
   projectedNetWorthHistory?: { id?: number; date: string; netWorth: number }[];
   selectedYear?: number;
-  currentTheme: ThemeKey;
   initialTab?: string;
 }
 
@@ -292,7 +290,7 @@ export default function DashboardClient(props: DashboardClientProps) {
             </TabsContent>
 
             <TabsContent value="settings">
-              <SettingsView currentTheme={props.currentTheme} />
+              <SettingsView />
             </TabsContent>
           </TabsBody>
         </Tabs>

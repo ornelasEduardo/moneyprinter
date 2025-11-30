@@ -3,14 +3,14 @@ import SettingsPage from './page';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 
-// Mock SettingsViewWrapper
-vi.mock('@/components/SettingsViewWrapper', () => ({
-  default: () => <div data-testid="settings-wrapper">Settings Content</div>,
+// Mock SettingsView
+vi.mock('@/components/SettingsView', () => ({
+  default: () => <div data-testid="settings-view">Settings Content</div>,
 }));
 
 describe('SettingsPage', () => {
-  it('should render settings wrapper', () => {
+  it('should render settings view', () => {
     render(<SettingsPage />);
-    expect(screen.getByTestId('settings-wrapper')).toBeInTheDocument();
+    expect(screen.getByTestId('settings-view')).toBeInTheDocument();
   });
 });

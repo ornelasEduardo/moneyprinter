@@ -34,10 +34,6 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
 }));
 
-vi.mock('@/lib/themes/actions', () => ({
-  getThemePreference: vi.fn(),
-}));
-
 vi.mock('@design-system', () => ({
   Page: ({ children }: any) => <div data-testid="page">{children}</div>,
 }));
@@ -56,7 +52,6 @@ import * as dataLib from '@/lib/data';
 import * as authLib from '@/lib/auth';
 import * as authActions from '@/app/actions/auth';
 import * as goalActions from '@/app/actions/goals';
-import * as themeActions from '@/lib/themes/actions';
 import { redirect } from 'next/navigation';
 
 describe('Home Page', () => {
@@ -94,7 +89,7 @@ describe('Home Page', () => {
     (dataLib.getAvailableYears as any).mockResolvedValue([2024]);
     (goalActions.getPrimaryGoal as any).mockResolvedValue(null);
     (goalActions.getEmergencyFundAmount as any).mockResolvedValue(0);
-    (themeActions.getThemePreference as any).mockResolvedValue('default');
+    (goalActions.getEmergencyFundAmount as any).mockResolvedValue(0);
 
     const jsx = await Home({ searchParams: Promise.resolve({}) });
     render(jsx);

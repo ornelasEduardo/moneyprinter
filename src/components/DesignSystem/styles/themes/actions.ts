@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { ThemeKey } from './index';
+import { ThemeKey } from './definitions';
 
 const THEME_COOKIE_NAME = 'theme-preference';
 

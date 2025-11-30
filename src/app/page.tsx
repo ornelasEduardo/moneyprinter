@@ -15,8 +15,6 @@ import { getCurrentUser } from "@/lib/auth";
 import { getUser } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
 import { Page } from '@design-system';
-import { getThemePreference } from "@/lib/themes/actions";
-
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ timeframe?: string; year?: string; tab?: string }> }) {
@@ -38,7 +36,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const emergencyFund = await getEmergencyFundAmount();
   const accounts = await getAccounts();
   const availableYears = await getAvailableYears();
-  const currentTheme = await getThemePreference();
 
   // Get timeframe/year/tab from URL params
   const yearParam = params.year;
@@ -86,7 +83,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
         accounts={accounts}
         availableYears={availableYears}
         selectedYear={selectedYear}
-        currentTheme={currentTheme}
         initialTab={initialTab}
       />
     </Page>
