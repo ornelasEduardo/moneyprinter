@@ -32,7 +32,7 @@ export default function DashboardHeader({ selectedYear, onYearChange }: Dashboar
           <Select
             value={selectedYear}
             onChange={(e) => onYearChange(e.target.value)}
-            options={availableYears.map(year => ({ value: year, label: year.toString() }))}
+            options={[...availableYears].sort((a, b) => a - b).map(year => ({ value: year, label: year.toString() }))}
           />
         </div>
       </Flex>
