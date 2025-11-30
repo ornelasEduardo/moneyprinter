@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createTransaction } from '@/app/actions/transactions';
 import { X, Receipt, Plus } from 'lucide-react';
-import { Button, Card, Form, FormGroup, Input, Label, Page, Select } from '@design-system';
+import { Button, Card, Flex, Form, FormGroup, Input, Label, Page, Select, Text } from '@design-system';
 
 interface Account {
   id: number;
@@ -57,20 +57,20 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
               width: '48px', 
               height: '48px', 
               background: 'var(--primary)', 
-              color: '#fff', 
+              color: 'var(--primary-foreground)', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
               borderRadius: '8px',
               fontSize: '1.5rem',
               margin: '0 auto 1rem auto',
-              border: '2px solid #000',
-              boxShadow: '4px 4px 0 #000'
+              border: 'var(--border-width) solid var(--card-border)',
+              boxShadow: 'var(--shadow-hard)'
             }}>
               <Receipt size={24} strokeWidth={2.5} />
             </div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Add Transaction</h1>
-            <p className="text-muted">Record a new expense or income</p>
+            <Text variant="h1" align="center" className="mb-2">Add Transaction</Text>
+            <Text color="muted" align="center">Record a new expense or income</Text>
           </div>
         </header>
 
@@ -102,24 +102,14 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
 
             <FormGroup>
               <Label>Amount</Label>
-              <div style={{ position: 'relative' }}>
-                <span style={{ 
-                  position: 'absolute', 
-                  left: '1rem', 
-                  top: '50%', 
-                  transform: 'translateY(-50%)',
-                  fontWeight: 700,
-                  color: 'var(--muted-foreground)'
-                }}>$</span>
                 <Input 
                   name="amount" 
                   type="number" 
                   step="0.01" 
                   placeholder="0.00"
                   required
-                  style={{ paddingLeft: '2rem' }}
+                  startAdornment="$"
                 />
-              </div>
             </FormGroup>
 
             <FormGroup>
@@ -151,7 +141,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
               />
             </FormGroup>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
+            <Flex justify="space-between" className="mt-8">
               <Button 
                 type="button"
                 variant="ghost"
@@ -163,7 +153,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
                 <Plus size={16} strokeWidth={2.5} style={{ marginRight: '0.5rem' }} />
                 Add Transaction
               </Button>
-            </div>
+            </Flex>
           </Form>
         </Card>
       </div>

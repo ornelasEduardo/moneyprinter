@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { saveIncomeBudgets, getBudgetsForIncomeSource, getIncomeSources } from '@/app/actions/budgets';
 import { X, Pencil } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Button, Card, Flex, Grid, Input, Page, Select, Table, Tabs, TabsBody, TabsContent, TabsList, TabsTrigger, Textarea } from '@design-system';
+import { Button, Card, Flex, Grid, Input, Page, Select, Table, Tabs, TabsBody, TabsContent, TabsList, TabsTrigger, Text, Textarea } from '@design-system';
 
 interface Budget {
   id: string;
@@ -348,8 +348,8 @@ export default function IncomeBudgetPage() {
           <X size={20} strokeWidth={2.5} />
         </Button>
         <div style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Income Budget</h1>
-          <p className="text-muted">Define how your paycheck is distributed</p>
+          <Text variant="h1" weight="bold" align="center" className="mb-2">Income Budget</Text>
+          <Text color="muted" align="center">Define how your paycheck is distributed</Text>
         </div>
       </header>
 
@@ -358,7 +358,7 @@ export default function IncomeBudgetPage() {
         <Flex direction="column" gap="2rem">
           {incomeSources.length > 0 && (
             <Card>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Income Source</h2>
+              <Text variant="h4" className="mb-4">Income Source</Text>
               <Select
                 value={selectedIncomeSourceId}
                 onChange={(e) => setSelectedIncomeSourceId(e.target.value)}
@@ -371,7 +371,7 @@ export default function IncomeBudgetPage() {
           )}
 
           <Card>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Paycheck Amount</h2>
+            <Text variant="h4" className="mb-4">Paycheck Amount</Text>
             <div ref={paycheckRef}>
               {isEditingPaycheck ? (
                 <Input
@@ -440,7 +440,7 @@ export default function IncomeBudgetPage() {
 
           <Tabs value={viewMode} onValueChange={(val) => setViewMode(val as 'table' | 'csv')} className="w-full">
             <Flex justify="space-between" align="center" style={{ marginBottom: '-2px', paddingLeft: '0.5rem', position: 'relative' }}>
-              <h2 style={{ fontSize: '1.25rem' }}>Budgets</h2>
+              <Text variant="h4">Budgets</Text>
               <TabsList>
                 <TabsTrigger value="table">Table View</TabsTrigger>
                 <TabsTrigger value="csv">CSV Editor</TabsTrigger>
@@ -461,7 +461,7 @@ export default function IncomeBudgetPage() {
                   onClick={addBudget} 
                   variant="ghost" 
                   style={{ 
-                    border: '2px dashed var(--card-border)',
+                    border: 'var(--border-width) dashed var(--card-border)',
                     borderRadius: 'var(--radius)',
                     justifyContent: 'center'
                   }}
@@ -473,12 +473,12 @@ export default function IncomeBudgetPage() {
               <TabsContent value="csv">
                 <Card style={{ borderTopLeftRadius: 0 }}>
                   <div style={{ padding: '1rem' }}>
-                    <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                    <Text color="muted" variant="small" className="mb-2 block">
                       Edit your budgets as CSV. Format: <code>Name, Amount, Type</code>
-                    </p>
-                    <p className="text-muted" style={{ fontSize: '0.75rem', marginBottom: '1rem' }}>
+                    </Text>
+                    <Text color="muted" variant="small" className="mb-4 block">
                       Example: <code>401k, 20%, savings</code> or <code>Netflix, $15, expense</code>
-                    </p>
+                    </Text>
                     <Textarea
                       value={csvContent}
                       onChange={(e) => setCsvContent(e.target.value)}
@@ -501,30 +501,30 @@ export default function IncomeBudgetPage() {
         {/* Right Column: Sticky Summary */}
         <div style={{ position: 'sticky', top: '2rem' }}>
           <Card>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', borderBottom: 'var(--border-width) solid var(--card-border)', paddingBottom: '0.5rem' }}>Summary</h2>
+            <Text variant="h4" className="mb-6 pb-2" style={{ borderBottom: 'var(--border-width) solid var(--card-border)' }}>Summary</Text>
             
             <Flex direction="column" gap="1.5rem" style={{ marginBottom: '2rem' }}>
               <Flex justify="space-between" align="center">
-                <span className="text-muted">Total Paycheck</span>
-                <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                <Text color="muted">Total Paycheck</Text>
+                <Text weight="bold" variant="h5">
                   ${parseFloat(paycheckAmount || '0').toFixed(2)}
-                </span>
+                </Text>
               </Flex>
               
               <Flex justify="space-between" align="center">
-                <span className="text-muted">Net Worth +</span>
-                <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }} className="text-success">
+                <Text color="muted">Net Worth +</Text>
+                <Text weight="bold" variant="h5" color="success">
                   +${netWorthIncrease.toFixed(2)}
-                </span>
+                </Text>
               </Flex>
               
               <div style={{ height: '1px', background: 'var(--card-border)' }} />
 
               <Flex justify="space-between" align="center">
-                <span className="text-muted">Remaining</span>
-                <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }} className={remaining < 0 ? 'text-error' : ''}>
+                <Text color="muted">Remaining</Text>
+                <Text weight="bold" style={{ fontSize: '1.5rem' }} color={remaining < 0 ? 'error' : undefined}>
                   ${remaining.toFixed(2)}
-                </span>
+                </Text>
               </Flex>
             </Flex>
             

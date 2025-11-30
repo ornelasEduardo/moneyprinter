@@ -2,7 +2,7 @@
 
 import {  useRouter, useSearchParams } from 'next/navigation';
 import { createIncomeSource } from '@/app/actions/income';
-import { Button, Card, Flex, Input, Page, Select } from '@design-system';
+import { Button, Card, Flex, Input, Page, Select, Text } from '@design-system';
 import { X, Banknote, Plus } from 'lucide-react';
 
 
@@ -44,20 +44,20 @@ export default function AddIncomePage() {
               width: '48px', 
               height: '48px', 
               background: 'var(--primary)', 
-              color: '#fff', 
+              color: 'var(--primary-foreground)', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
               borderRadius: '8px',
               fontSize: '1.5rem',
               margin: '0 auto 1rem auto',
-              border: '2px solid #000',
-              boxShadow: '4px 4px 0 #000'
+              border: 'var(--border-width) solid var(--card-border)',
+              boxShadow: 'var(--shadow-hard)'
             }}>
               <Banknote size={24} strokeWidth={2.5} />
             </div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Add Income Source</h1>
-            <p className="text-muted">Track your recurring income</p>
+            <Text variant="h1" align="center" className="mb-2">Add Income Source</Text>
+            <Text color="muted" align="center">Track your recurring income</Text>
           </div>
         </header>
 
@@ -65,7 +65,7 @@ export default function AddIncomePage() {
           <form action={createIncomeSource} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <input type="hidden" name="year" value={year || ''} />
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700 }}>Income Name</label>
+              <Text as="label" weight="bold" className="mb-2 block">Income Name</Text>
               <Input 
                 name="name" 
                 type="text" 
@@ -75,29 +75,19 @@ export default function AddIncomePage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700 }}>Amount</label>
-              <div style={{ position: 'relative' }}>
-                <span style={{ 
-                  position: 'absolute', 
-                  left: '1rem', 
-                  top: '50%', 
-                  transform: 'translateY(-50%)',
-                  fontWeight: 700,
-                  color: 'var(--muted-foreground)'
-                }}>$</span>
-                <Input 
-                  name="amount" 
-                  type="number" 
-                  step="0.01" 
-                  placeholder="0.00"
-                  required
-                  style={{ paddingLeft: '2rem' }}
-                />
-              </div>
+              <Text as="label" weight="bold" className="mb-2 block">Amount</Text>
+              <Input 
+                name="amount" 
+                type="number" 
+                step="0.01" 
+                placeholder="0.00"
+                required
+                startAdornment="$"
+              />
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700 }}>Type</label>
+              <Text as="label" weight="bold" className="mb-2 block">Type</Text>
               <Select 
                 name="type"
                 required
@@ -113,7 +103,7 @@ export default function AddIncomePage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700 }}>Frequency</label>
+              <Text as="label" weight="bold" className="mb-2 block">Frequency</Text>
               <Select 
                 name="frequency"
                 required
@@ -131,7 +121,7 @@ export default function AddIncomePage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700 }}>Next Payment Date (Optional)</label>
+              <Text as="label" weight="bold" className="mb-2 block">Next Payment Date (Optional)</Text>
               <Input 
                 name="next_date" 
                 type="date" 

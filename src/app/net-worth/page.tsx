@@ -15,14 +15,14 @@ export default async function NetWorthPage() {
 
   return (
     <Page>
-      <header style={{ marginBottom: '2rem' }}>
-        <Text variant="h2" weight="bold" style={{ marginBottom: '0.5rem' }}>
+      <div className="mb-8">
+        <Text variant="h2" weight="bold" className="mb-2">
           Net Worth History
         </Text>
-        <p className="text-muted">
+        <Text color="muted">
           Track your net worth over time
-        </p>
-      </header>
+        </Text>
+      </div>
 
       <NetWorthHistoryTable entries={entries} />
     </Page>

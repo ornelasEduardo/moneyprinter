@@ -18,11 +18,13 @@ const StyledCard = styled.div`
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  as?: React.ElementType;
+  disabled?: boolean;
 }
 
-export function Card({ children, className, ...props }: CardProps) {
+export function Card({ children, className, as, ...props }: CardProps) {
   return (
-    <StyledCard className={className} {...props}>
+    <StyledCard as={as} className={className} {...props}>
       {children}
     </StyledCard>
   );

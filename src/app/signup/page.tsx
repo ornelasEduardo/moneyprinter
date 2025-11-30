@@ -15,9 +15,9 @@ const sheen = keyframes`
 
 const HeaderContainer = styled.div`
   background: var(--primary);
-  color: #000000;
+  color: var(--primary-foreground);
   padding: 1.5rem;
-  border-bottom: 3px solid #000000;
+  border-bottom: var(--border-width) solid var(--card-border);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -85,10 +85,10 @@ export default function SignupPage() {
         justify="center"
         style={{
           minHeight: '100vh',
-          backgroundColor: '#f3f4f6',
+          backgroundColor: 'var(--background)',
           backgroundImage: `
-            linear-gradient(#e5e7eb 1px, transparent 1px),
-            linear-gradient(90deg, #e5e7eb 1px, transparent 1px)
+            linear-gradient(var(--muted) 1px, transparent 1px),
+            linear-gradient(90deg, var(--muted) 1px, transparent 1px)
           `,
           backgroundSize: '20px 20px',
           padding: '2rem'
@@ -99,8 +99,8 @@ export default function SignupPage() {
           maxWidth: '500px',
           padding: '0',
           overflow: 'hidden',
-          boxShadow: '8px 8px 0px 0px #000000',
-          border: '3px solid #000000'
+          boxShadow: 'var(--shadow-hard)',
+          border: 'var(--border-width) solid var(--card-border)'
         }}>
           {/* Header Section */}
           <HeaderContainer>
@@ -111,7 +111,7 @@ export default function SignupPage() {
               style={{ marginBottom: '0.5rem' }}
             >
               <Text variant="h3" weight="black" style={{ 
-                color: '#000000', 
+                color: 'var(--primary-foreground)', 
                 letterSpacing: '-0.02em',
                 margin: 0,
                 textTransform: 'uppercase'
@@ -119,7 +119,7 @@ export default function SignupPage() {
                 New Account
               </Text>
             </Flex>
-            <Text variant="small" style={{ color: '#000000', display: 'block', fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>
+            <Text variant="small" style={{ color: 'var(--primary-foreground)', display: 'block', fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>
               Initialize Financial Profile
             </Text>
           </HeaderContainer>
@@ -134,9 +134,9 @@ export default function SignupPage() {
                     gap="0.5rem"
                     style={{
                       padding: '0.75rem',
-                      background: '#fee2e2',
-                      border: '2px solid #ef4444',
-                      color: '#b91c1c',
+                      background: 'color-mix(in srgb, var(--error), transparent 90%)',
+                      border: 'var(--border-width) solid var(--error)',
+                      color: 'var(--error)',
                       fontWeight: 700,
                       fontSize: '0.875rem'
                     }}
@@ -243,7 +243,7 @@ export default function SignupPage() {
                 </Button>
 
                 <div style={{
-                  borderTop: '2px dashed #e5e7eb',
+                  borderTop: '2px dashed var(--muted)',
                   paddingTop: '1.5rem',
                   marginTop: '0.5rem',
                   textAlign: 'center'

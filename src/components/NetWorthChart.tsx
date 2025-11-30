@@ -154,7 +154,7 @@ export default function NetWorthChart({ data }: NetWorthChartProps) {
       .style('padding', '0.75rem')
       .style('pointer-events', 'none')
       .style('z-index', '1000')
-      .style('box-shadow', '0 4px 6px rgba(0, 0, 0, 0.3)');
+      .style('box-shadow', 'var(--shadow-hard)');
 
     // Formatters
     const formatCurrency = (value: number) => 

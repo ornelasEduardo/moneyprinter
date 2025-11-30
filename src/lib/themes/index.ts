@@ -29,25 +29,25 @@ export const themes = {
   doom: {
     name: 'DOOMSDAY',
     variables: {
-      '--background': '#F3F4F6',
-      '--foreground': '#111827',
-      '--card-bg': '#FFFFFF',
-      '--card-border': '#000000',
-      '--primary': '#15803D',
-      '--primary-hover': '#14532D',
-      '--primary-foreground': '#FFFFFF',
-      '--secondary': '#475569',
-      '--secondary-foreground': '#FFFFFF',
-      '--accent': '#B45309',
-      '--muted': '#9CA3AF',
-      '--muted-foreground': '#4B5563',
-      '--success': '#059669',
-      '--warning': '#d97706',
-      '--error': '#DC2626',
-      '--border-width': '3px',
-      '--radius': '4px',
-      '--shadow-hard': '4px 4px 0px 0px #000000',
-      '--shadow-hover': '6px 6px 0px 0px #000000',
+      '--background': '#020617', // Slate-950 (Dark Void)
+      '--foreground': '#e2e8f0', // Slate-200 (Silver Armor)
+      '--card-bg': '#0f172a', // Slate-900 (Dark Metal Plating)
+      '--card-border': '#1e293b', // Slate-800 (Panel Lines)
+      '--primary': '#10b981', // Emerald-500 (Latverian Cloak Green)
+      '--primary-hover': '#059669', // Emerald-600
+      '--primary-foreground': '#ffffff',
+      '--secondary': '#334155', // Slate-700 (Gunmetal)
+      '--secondary-foreground': '#f8fafc',
+      '--accent': '#fbbf24', // Amber-400 (Gold Accents/Magic)
+      '--muted': '#64748b', // Slate-500
+      '--muted-foreground': '#94a3b8', // Slate-400
+      '--success': '#10b981',
+      '--warning': '#fbbf24',
+      '--error': '#ef4444',
+      '--border-width': '2px',
+      '--radius': '2px', // Sharp, angular, metallic feel
+      '--shadow-hard': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)', // Soft dark shadows (Dark Knight style)
+      '--shadow-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
       '--font-heading': 'var(--font-oswald)',
       '--heading-transform': 'uppercase',
       '--heading-weight': '700',
