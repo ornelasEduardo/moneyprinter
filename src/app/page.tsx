@@ -1,66 +1,94 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { 
+  getNetWorth,
+  getUpcomingWindfalls,
+  getProjectedNetWorthHistory,
+  calculateMonthlyNetWorthIncrease,
+  getWindfalls,
+  getTransactionsForYear,
+  getNetWorthHistoryForYear,
+  getAccounts,
+  getAvailableYears
+} from "@/lib/data";
+import DashboardClient from "./DashboardClient";
+import { getPrimaryGoal, getEmergencyFundAmount } from "@/app/actions/goals";
+import { getCurrentUser } from "@/lib/auth";
+import { getUser } from "@/app/actions/auth";
+import { redirect } from "next/navigation";
+import { Page } from '@design-system';
+import { getThemePreference } from "@/lib/themes/actions";
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function Home({ searchParams }: { searchParams: Promise<{ timeframe?: string; year?: string; tab?: string }> }) {
+  // Check authentication
+  const userId = await getCurrentUser();
+  if (!userId) {
+    redirect('/login');
+  }
+
+  // Await searchParams in Next.js 15
+  const params = await searchParams;
+
+  const user = await getUser();
+  const netWorth = await getNetWorth();
+  const upcomingWindfalls = await getUpcomingWindfalls();
+  const monthlyNetWorthIncrease = await calculateMonthlyNetWorthIncrease();
+  const windfalls = await getWindfalls();
+  const primaryGoal = await getPrimaryGoal();
+  const emergencyFund = await getEmergencyFundAmount();
+  const accounts = await getAccounts();
+  const availableYears = await getAvailableYears();
+  const currentTheme = await getThemePreference();
+
+  // Get timeframe/year/tab from URL params
+  const yearParam = params.year;
+  const tabParam = params.tab;
+  const currentYear = new Date().getFullYear();
+  const selectedYear = yearParam ? parseInt(yearParam) : currentYear;
+  const initialTab = tabParam || 'home';
+
+  const transactions = await getTransactionsForYear(selectedYear);
+
+  const timeframe = params.timeframe || '30';
+
+  // Always get history for the selected year (defaults to current year)
+  const netWorthHistory = await getNetWorthHistoryForYear(selectedYear);
+
+  // Placeholder budget for now (Yearly)
+  const budget = 30_000;
+  
+  const yearlySpending = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const spendingPercentage = Math.min((yearlySpending / budget) * 100, 100);
+
+  // Fetch projected history
+  const projectedHistory = await getProjectedNetWorthHistory();
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <Page>
+      <DashboardClient
+        user={user}
+        netWorth={netWorth}
+        yearlySpending={yearlySpending}
+        upcomingWindfalls={upcomingWindfalls}
+        projectedNetWorthHistory={projectedHistory}
+        spendingPercentage={spendingPercentage}
+        budget={budget}
+        currentTimeframe={timeframe}
+        monthlyNetWorthIncrease={monthlyNetWorthIncrease}
+        windfalls={windfalls}
+        transactions={transactions}
+        netWorthHistory={netWorthHistory}
+        primaryGoal={primaryGoal}
+        emergencyFund={emergencyFund}
+        accounts={accounts}
+        availableYears={availableYears}
+        selectedYear={selectedYear}
+        currentTheme={currentTheme}
+        initialTab={initialTab}
+      />
+    </Page>
   );
 }

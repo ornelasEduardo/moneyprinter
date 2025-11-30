@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: moneyprinter-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: moneyprinter
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Shadow database used by Atlas to calculate schema diffs and validate migrations
+  # This is NOT the application database. It is an empty instance used for safety checks.
+  atlas-shadow-db:
+    image: postgres:15-alpine
+    container_name: moneyprinter-atlas-shadow-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: moneyprinter
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  atlas:
+    image: arigaio/atlas:latest-alpine
+    volumes:
+      - ./:/project
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /project
+    depends_on:
+      db:
+        condition: service_healthy
+    command: migrate apply --env docker
+
+volumes:
+  postgres_data:

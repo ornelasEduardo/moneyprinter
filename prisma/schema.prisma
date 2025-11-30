@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model accounts {
+  id           Int            @id @default(autoincrement())
+  plaid_id     String?        @unique @db.VarChar(255)
+  name         String         @db.VarChar(255)
+  type         String         @db.VarChar(50)
+  balance      Decimal        @default(0) @db.Decimal(12, 2)
+  currency     String?        @default("USD") @db.VarChar(3)
+  last_updated DateTime?      @default(now()) @db.Timestamptz(6)
+  user_id      Int?
+  users        users?         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  transactions transactions[]
+}
+
+model budget_limits {
+  id           Int     @id @default(autoincrement())
+  category     String  @db.VarChar(255)
+  limit_amount Decimal @db.Decimal(12, 2)
+  user_id      Int
+  users        users   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([user_id, category])
+}
+
+model goals {
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(255)
+  target_amount  Decimal   @db.Decimal(12, 2)
+  current_amount Decimal?  @default(0) @db.Decimal(12, 2)
+  is_primary     Boolean?  @default(false)
+  target_date    DateTime? @db.Date
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  user_id        Int?
+  users          users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model income_budgets {
+  id                  Int             @id @default(autoincrement())
+  user_id             Int?
+  income_source_id    Int?
+  name                String          @db.VarChar(255)
+  unit                String          @db.VarChar(50)
+  value               Decimal         @db.Decimal(12, 2)
+  type                String          @db.VarChar(50)
+  increases_net_worth Boolean?        @default(true)
+  created_at          DateTime?       @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?       @default(now()) @db.Timestamptz(6)
+  income_sources      income_sources? @relation(fields: [income_source_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users               users?          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model income_sources {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(255)
+  type           String?          @default("paycheck") @db.VarChar(50)
+  amount         Decimal          @db.Decimal(12, 2)
+  frequency      String           @db.VarChar(50)
+  next_date      DateTime?        @db.Date
+  user_id        Int?
+  updated_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  income_budgets income_budgets[]
+  users          users?           @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model net_worth_history {
+  id         Int       @id @default(autoincrement())
+  date       DateTime  @db.Date
+  net_worth  Decimal   @db.Decimal(12, 2)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  user_id    Int
+  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([user_id, date])
+}
+
+model transactions {
+  id                   Int       @id @default(autoincrement())
+  plaid_transaction_id String?   @unique @db.VarChar(255)
+  account_id           Int?
+  amount               Decimal   @db.Decimal(12, 2)
+  date                 DateTime  @db.Date
+  name                 String    @db.VarChar(255)
+  tags                 String?   @db.VarChar(255)
+  pending              Boolean?  @default(false)
+  user_id              Int?
+  type                 String?   @default("expense") @db.VarChar(50)
+  accounts             accounts? @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user_settings {
+  id         Int       @id @default(autoincrement())
+  key        String    @db.VarChar(255)
+  value      String
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  user_id    Int
+  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([user_id, key])
+}
+
+model users {
+  id                 Int                 @id @default(autoincrement())
+  username           String              @unique @db.VarChar(255)
+  display_name       String?             @db.VarChar(255)
+  is_sandbox         Boolean?            @default(false)
+  created_at         DateTime?           @default(now()) @db.Timestamptz(6)
+  session_token      String?             @db.VarChar(255)
+  session_expires_at DateTime?           @db.Timestamptz(6)
+  accounts           accounts[]
+  budget_limits      budget_limits[]
+  goals              goals[]
+  income_budgets     income_budgets[]
+  income_sources     income_sources[]
+  net_worth_history  net_worth_history[]
+  transactions       transactions[]
+  user_passwords     user_passwords?
+  user_settings      user_settings[]
+}
+
+model user_passwords {
+  user_id       Int       @id
+  password_hash String    @db.VarChar(255)
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+  users         users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
