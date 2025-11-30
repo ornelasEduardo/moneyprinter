@@ -12,7 +12,7 @@ echo -e "${BLUE}⏳ Waiting for database to initialize...${NC}"
 sleep 3
 
 echo -e "${BLUE}🔄 Running database migrations...${NC}"
-node scripts/init-db.js
+npx prisma db push
 
 echo -e "${GREEN}🚀 Starting Next.js development server...${NC}"
 npm run dev

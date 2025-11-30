@@ -68,7 +68,11 @@ These rules must be followed for all code generation and modification tasks with
 
 
 ## 12. Database Migrations
-*   **Atlas**: Use Atlas for all database schema changes.
-*   **Workflow**: Modify `src/lib/schema.sql` first, then run the Atlas migration command (see `/atlas_setup`).
-*   **No Manual SQL**: Do not run manual `ALTER TABLE` commands or ad-hoc scripts.
+*   **Source of Truth**: `src/lib/schema.sql` is the SINGLE source of truth for the database schema.
+*   **Workflow**:
+    1.  Modify `src/lib/schema.sql`.
+    2.  Run `./scripts/atlas.sh migrate apply`.
+    3.  This script will automatically run `prisma db pull` and `prisma generate` to keep Prisma in sync.
+*   **Prisma**: Do NOT edit `schema.prisma` manually for schema changes. It is a derivative of the database state.
+*   **Dev**: Use `scripts/dev.sh` which uses `prisma db push` to sync the local dev DB with the current Prisma schema.
 
