@@ -76,3 +76,13 @@ These rules must be followed for all code generation and modification tasks with
 *   **Prisma**: Do NOT edit `schema.prisma` manually for schema changes. It is a derivative of the database state.
 *   **Dev**: Use `scripts/dev.sh` which uses `prisma db push` to sync the local dev DB with the current Prisma schema.
 
+
+## 13. Accessibility Standards
+*   **Color Contrast**: Ensure all text and UI components meet **WCAG 2.1 AAA** standards.
+    *   Normal Text: 7:1 ratio
+    *   Large Text: 4.5:1 ratio
+    *   UI Components (Borders/Icons): 3:1 ratio
+*   **Semantic HTML**: Use appropriate HTML tags (`<button>`, `<nav>`, `<main>`, `<h1>`-`<h6>`) instead of generic `<div>`s where possible.
+*   **ARIA**: Use ARIA attributes (`aria-label`, `aria-expanded`, etc.) only when semantic HTML is insufficient.
+*   **Focus Management**: Ensure all interactive elements are focusable and have visible focus states.
+*   **Audit**: When modifying themes or colors, run `node scripts/audit-colors.js` to verify compliance.

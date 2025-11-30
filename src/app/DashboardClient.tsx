@@ -13,10 +13,10 @@ import AccountsTable from '@/components/AccountsTable';
 import NetWorthHistoryTable from '@/components/NetWorthHistoryTable';
 import { DashboardStoreProvider } from '@/lib/store';
 import SettingsView from '@/components/SettingsView';
-import { ActionRow, Card, Flex, Grid, Tabs, TabsBody, TabsContent, TabsList, TabsTrigger, Text } from '@design-system';
+import { ActionRow, Card, Flex, Tabs, TabsBody, TabsContent, TabsList, TabsTrigger, Text } from '@design-system';
 import { Banknote, PieChart } from 'lucide-react';
 
-import { Serialized, User, Account, Transaction, SafeUser, SafeAccount } from '@/lib/types';
+import { Serialized, Transaction, SafeUser, SafeAccount } from '@/lib/types';
 
 interface DashboardTransaction extends Serialized<Pick<Transaction, 'id' | 'name' | 'amount' | 'date' | 'tags' | 'type'>> {
   accountId: number | null;

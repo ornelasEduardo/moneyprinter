@@ -112,7 +112,7 @@ export default function SettingsView() {
                 {key === 'doom' ? 'Authoritative & Regal' : 
                  key === 'neighbor' ? 'Bold & Heroic' : 
                  key === 'vigilante' ? 'Dark & Mysterious' :
-                 'Clean & Friendly'}
+                 'The MONEYPRINTER'}
               </Text>
             </ThemeCard>
           ))}

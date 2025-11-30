@@ -32,7 +32,7 @@ const baseVariables = {
 
 export const themes = {
   default: {
-    name: 'Fun fun finance',
+    name: 'Default',
     variables: {
       ...baseVariables,
       '--background': '#e0e7ff',
@@ -69,7 +69,7 @@ export const themes = {
       '--card-border': '#1e293b', // Slate-800 (Panel Lines)
       '--primary': '#10b981', // Emerald-500 (Latverian Cloak Green)
       '--primary-hover': '#059669', // Emerald-600
-      '--primary-foreground': '#ffffff',
+      '--primary-foreground': '#020617',
       '--secondary': '#334155', // Slate-700 (Gunmetal)
       '--secondary-foreground': '#f8fafc',
       '--accent': '#fbbf24', // Amber-400 (Gold Accents/Magic)
@@ -80,39 +80,39 @@ export const themes = {
       '--error': '#ef4444',
       '--border-width': '2px',
       '--radius': '2px', // Sharp, angular, metallic feel
-      '--shadow-hard': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)', // Soft dark shadows (Dark Knight style)
-      '--shadow-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
+      '--shadow-hard': '5px 5px 0px 0px #000000', // Hard shadow for neubrutalist feel
+      '--shadow-hover': '7px 7px 0px 0px #000000',
       '--font-heading': 'var(--font-montserrat)',
       '--heading-transform': 'uppercase',
       '--heading-weight': '700',
     }
   },
   neighbor: {
-    name: 'FRIENDLY NEIGHBOR',
+    name: 'THE CAPTAIN',
     variables: {
       ...baseVariables,
-      '--background': '#FFFFFF',
-      '--foreground': '#1A1A1A',
+      '--background': '#F8FAFC', // Clean white/silver background
+      '--foreground': '#0F172A', // Dark slate text
       '--card-bg': '#FFFFFF',
-      '--card-border': '#000000',
-      '--primary': '#E31B23', // Friendly neighbor red
-      '--primary-hover': '#B91419',
+      '--card-border': '#002D72', // Patriotic Blue border
+      '--primary': '#002D72', // Patriotic Blue
+      '--primary-hover': '#1E3A8A',
       '--primary-foreground': '#FFFFFF',
-      '--secondary': '#0D47A1', // Friendly neighbor blue
+      '--secondary': '#B91C1C', // Vibrant Red
       '--secondary-foreground': '#FFFFFF',
-      '--accent': '#FFD700', // Friendly neighbor gold accent
-      '--muted': '#78909C',
-      '--muted-foreground': '#546E7A',
-      '--success': '#2E7D32',
-      '--warning': '#F57C00',
-      '--error': '#C62828',
+      '--accent': '#C0C0C0', // Silver (Shield)
+      '--muted': '#64748B',
+      '--muted-foreground': '#475569',
+      '--success': '#15803D',
+      '--warning': '#B45309',
+      '--error': '#B91C1C',
       '--border-width': '3px', // Extra bold borders
       '--radius': '8px',
-      '--shadow-hard': '6px 6px 0px 0px #000000', // Comic book shadow
-      '--shadow-hover': '8px 8px 0px 0px #000000',
+      '--shadow-hard': '6px 6px 0px 0px #0F172A', // Dark Slate shadow (easier on eyes)
+      '--shadow-hover': '8px 8px 0px 0px #0F172A',
       '--font-heading': 'var(--font-montserrat)',
       '--heading-transform': 'uppercase',
-      '--heading-weight': '900', // Extra bold for comic book feel
+      '--heading-weight': '900', // Extra bold
     }
   },
   vigilante: {
@@ -136,8 +136,8 @@ export const themes = {
       '--error': '#F56565', // Softer red (not harsh)
       '--border-width': '2px',
       '--radius': '6px', // Slightly rounded for modern feel
-      '--shadow-hard': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)', // Softer shadow
-      '--shadow-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
+      '--shadow-hard': '5px 5px 0px 0px #000000', // Hard shadow
+      '--shadow-hover': '7px 7px 0px 0px #000000',
       '--font-heading': 'var(--font-montserrat)',
       '--heading-transform': 'uppercase',
       '--heading-weight': '700',
