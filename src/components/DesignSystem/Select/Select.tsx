@@ -16,7 +16,7 @@ const SelectTrigger = styled.button`
   background: var(--card-bg);
   border: var(--border-width) solid var(--card-border);
   color: var(--foreground);
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: var(--text-base);
   cursor: pointer;
   box-shadow: var(--shadow-hard);

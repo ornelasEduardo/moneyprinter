@@ -69,7 +69,7 @@ const Th = styled.th<{ isSortable?: boolean; $density?: 'compact' | 'standard' |
   ${props => props.isSortable && `
     &:hover {
       filter: brightness(0.95);
-      color: var(--primary-foreground);
+      color: var(--secondary-foreground);
     }
   `}
 `;

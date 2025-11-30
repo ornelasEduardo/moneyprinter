@@ -117,7 +117,7 @@ export default function LoginPage() {
               </Text>
             </Flex>
             <Text variant="small" style={{ color: '#000000', display: 'block', fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>
-              Secure Financial Terminal
+              Your Personal Financial Terminal
             </Text>
           </HeaderContainer>
 
