@@ -40,9 +40,10 @@ const ToastContainer = styled.div`
 
 const ToastItem = styled.div<{ type: ToastType; isExiting?: boolean }>`
   min-width: 300px;
-  background: white;
-  border: 3px solid black;
-  box-shadow: 5px 5px 0px 0px rgba(0,0,0,1);
+  background: var(--card-bg);
+  border: var(--border-width) solid var(--card-border);
+  color: var(--foreground);
+  box-shadow: var(--shadow-hard);
   padding: 1rem;
   display: flex;
   align-items: center;
@@ -87,6 +88,7 @@ const CloseButton = styled.button`
   margin-left: auto;
   cursor: pointer;
   font-size: 1.25rem;
+  color: var(--foreground);
   opacity: 0.5;
   transition: opacity 0.2s;
   &:hover { opacity: 1; }
@@ -131,10 +133,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         <ToastContainer>
           {toasts.map(t => (
             <ToastItem key={t.id} type={t.type} isExiting={t.isExiting}>
-              {t.type === 'success' && <CheckCircle2 size={20} strokeWidth={2.5} className="text-success" />}
-              {t.type === 'error' && <XCircle size={20} strokeWidth={2.5} className="text-error" />}
-              {t.type === 'warning' && <AlertTriangle size={20} strokeWidth={2.5} className="text-warning" />}
-              {t.type === 'info' && <Info size={20} strokeWidth={2.5} className="text-primary" />}
+              {t.type === 'success' && <CheckCircle2 size={20} strokeWidth={2.5} color="var(--success)" />}
+              {t.type === 'error' && <XCircle size={20} strokeWidth={2.5} color="var(--error)" />}
+              {t.type === 'warning' && <AlertTriangle size={20} strokeWidth={2.5} color="var(--warning)" />}
+              {t.type === 'info' && <Info size={20} strokeWidth={2.5} color="var(--primary)" />}
               <span className="font-semibold">{t.message}</span>
               <CloseButton onClick={() => removeToast(t.id)}>
                 <X size={16} strokeWidth={2.5} />

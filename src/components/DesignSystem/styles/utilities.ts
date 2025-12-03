@@ -57,7 +57,8 @@ export const utilityStyles = css`
       '10': 'var(--z-elevated)',
       '40': 'var(--z-header)',
       '50': 'var(--z-dropdown)',
-      'modal': 'var(--z-modal)'
+      'modal': 'var(--z-modal)',
+      'tooltip': 'var(--z-tooltip)'
     };
     Object.entries(zIndices).forEach(([key, value]) => {
       utils.push(`.z-${key} { z-index: ${value}; }`);

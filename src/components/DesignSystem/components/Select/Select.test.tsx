@@ -3,6 +3,15 @@ import { Select } from './Select';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 
+// Mock next/font/google
+vi.mock('next/font/google', () => ({
+  Montserrat: () => ({
+    style: { fontFamily: 'mocked' },
+    className: 'mocked-font',
+    variable: '--font-mocked',
+  }),
+}));
+
 // Mock Popover since it might be complex or rely on portals
 vi.mock('@design-system', async () => {
   const actual = await vi.importActual('@design-system');
@@ -51,5 +60,15 @@ describe('Select Component', () => {
     fireEvent.click(option1);
     
     expect(handleChange).toHaveBeenCalled();
+  });
+
+  it('should have required attribute on hidden input when required prop is true', () => {
+    const { container } = render(<Select options={options} required name="test-select" />);
+    // Select the input that has the name "test-select"
+    // Note: We changed type="hidden" to type="text" with opacity 0, so we query by name
+    const input = container.querySelector('input[name="test-select"]');
+    expect(input).toHaveAttribute('required');
+    expect(input).toHaveAttribute('type', 'text'); // Verify it's text type for validation
+    expect(input).toHaveStyle({ opacity: '0' }); // Verify it's visually hidden
   });
 });

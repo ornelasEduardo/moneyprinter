@@ -9,6 +9,7 @@ const SelectContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
+  position: relative;
 `;
 
 const SelectTrigger = styled.button`
@@ -103,7 +104,23 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
   placeholder?: string;
 }
 
-export function Select({ options, className, label, style, value, defaultValue, onChange, placeholder, id, ...props }: SelectProps) {
+export function Select({ 
+  options, 
+  className, 
+  label, 
+  style, 
+  value, 
+  defaultValue, 
+  onChange, 
+  placeholder, 
+  id, 
+  required,
+  disabled,
+  name,
+  form,
+  autoFocus,
+  ...props 
+}: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [internalValue, setInternalValue] = useState(defaultValue || '');
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -131,8 +148,8 @@ export function Select({ options, className, label, style, value, defaultValue, 
     
     if (onChange) {
       const syntheticEvent = {
-        target: { value: newValue, name: props.name },
-        currentTarget: { value: newValue, name: props.name },
+        target: { value: newValue, name: name },
+        currentTarget: { value: newValue, name: name },
         preventDefault: () => {},
         stopPropagation: () => {},
       } as unknown as React.ChangeEvent<HTMLSelectElement>;
@@ -218,6 +235,8 @@ export function Select({ options, className, label, style, value, defaultValue, 
             aria-expanded={isOpen}
             aria-controls={listboxId}
             aria-labelledby={label ? labelId : undefined}
+            disabled={disabled}
+            autoFocus={autoFocus}
             {...props as any}
           >
             <span>{selectedOption ? selectedOption.label : (placeholder || 'Select...')}</span>
@@ -255,9 +274,22 @@ export function Select({ options, className, label, style, value, defaultValue, 
         }
       />
       <input 
-        type="hidden" 
-        name={props.name} 
+        type="text" 
+        name={name} 
         value={currentValue} 
+        required={required}
+        form={form}
+        tabIndex={-1}
+        readOnly
+        style={{
+          opacity: 0,
+          height: '1px',
+          width: '1px',
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          pointerEvents: 'none',
+        }}
       />
     </SelectContainer>
   );

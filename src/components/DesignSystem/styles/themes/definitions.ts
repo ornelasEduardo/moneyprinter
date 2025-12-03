@@ -28,6 +28,7 @@ const baseVariables = {
   '--z-header': '40',
   '--z-dropdown': '50',
   '--z-modal': '100',
+  '--z-tooltip': '200',
 };
 
 export const themes = {
