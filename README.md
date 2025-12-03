@@ -2,8 +2,6 @@
 
 **MoneyPrinter** is a local-first, privacy-focused personal finance dashboard designed to give you complete control over your financial data. Built with a neubrutalist design philosophy and a focus on functionality and simplicity.
 
-![MoneyPrinter Dashboard](https://via.placeholder.com/800x400?text=MoneyPrinter+Dashboard+Preview)
-
 ## ✨ Features
 
 -   **📊 Comprehensive Dashboard**: Real-time view of your Net Worth, Monthly Spending, and Budget status.
