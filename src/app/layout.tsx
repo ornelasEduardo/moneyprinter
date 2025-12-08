@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 
 import { Providers } from "@/components/Providers";
-import { DesignSystemProvider, getThemePreference } from "doom-design-system";
+import { DesignSystemProvider } from "doom-design-system";
+import { getThemePreference } from "@/lib/theme";
+
+import { Montserrat } from "next/font/google";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "MoneyPrinter",
@@ -19,7 +28,7 @@ export default async function RootLayout({
     <html lang="en">
       <head suppressHydrationWarning>
       </head>
-      <DesignSystemProvider initialTheme={theme} withBody>
+      <DesignSystemProvider initialTheme={theme} withBody fontClassName={montserrat.variable}>
         <Providers>
           {children}
         </Providers>
