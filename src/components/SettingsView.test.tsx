@@ -5,7 +5,7 @@ import React from 'react';
 
 // Mock Design System
 const mockSetTheme = vi.fn();
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Card: ({ children, className }: any) => <div className={className}>{children}</div>,
   Text: ({ children }: any) => <span>{children}</span>,
   useTheme: () => ({

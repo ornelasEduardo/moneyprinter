@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { Providers } from "@/components/Providers";
-import { DesignSystemProvider, getThemePreference } from "@design-system";
+import { DesignSystemProvider, getThemePreference } from "doom-design-system";
 
 export const metadata: Metadata = {
   title: "MoneyPrinter",

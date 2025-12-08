@@ -18,7 +18,7 @@ vi.mock('@/app/actions/income', () => ({
   createIncomeSource: vi.fn(),
 }));
 
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Button: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
   Card: ({ children }: any) => <div>{children}</div>,
   Flex: ({ children }: any) => <div>{children}</div>,

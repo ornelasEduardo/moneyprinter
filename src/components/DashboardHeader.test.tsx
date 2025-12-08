@@ -11,7 +11,7 @@ vi.mock('@/app/actions/auth', () => ({
 }));
 
 // Mock Design System
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Button: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
   Flex: ({ children }: any) => <div>{children}</div>,
   Select: ({ value, onChange, options }: any) => (

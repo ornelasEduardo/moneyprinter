@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ColumnDef } from '@tanstack/react-table';
 import { updateNetWorthEntry, deleteNetWorthEntry, createNetWorthEntry } from '@/app/actions/networth';
-import { Button, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Table, Text, useToast } from '@design-system';
+import { Button, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Table, Text, useToast } from 'doom-design-system';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 interface NetWorthEntry {

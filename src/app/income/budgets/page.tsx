@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { saveIncomeBudgets, getBudgetsForIncomeSource, getIncomeSources } from '@/app/actions/budgets';
 import { X, Pencil } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Button, Card, Flex, Grid, Input, Page, Select, Table, Tabs, TabsBody, TabsContent, TabsList, TabsTrigger, Text, Textarea } from '@design-system';
+import { Button, Card, Flex, Grid, Input, Page, Select, Table, Tabs, TabsBody, TabsContent, TabsList, TabsTrigger, Text, Textarea } from 'doom-design-system';
 
 interface Budget {
   id: string;

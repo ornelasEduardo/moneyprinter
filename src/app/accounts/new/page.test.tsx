@@ -14,7 +14,7 @@ vi.mock('@/app/actions/accounts', () => ({
   createAccount: vi.fn(),
 }));
 
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Badge: ({ children }: any) => <span>{children}</span>,
   Button: ({ children, onClick, disabled }: any) => (
     <button onClick={onClick} disabled={disabled}>{children}</button>

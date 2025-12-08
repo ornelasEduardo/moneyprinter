@@ -14,7 +14,7 @@ import { getPrimaryGoal, getEmergencyFundAmount } from "@/app/actions/goals";
 import { getCurrentUser } from "@/lib/auth";
 import { getUser } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
-import { Page } from '@design-system';
+import { Page } from 'doom-design-system';
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ timeframe?: string; year?: string; tab?: string }> }) {

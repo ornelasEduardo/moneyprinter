@@ -13,7 +13,7 @@ import AccountsTable from '@/components/AccountsTable';
 import NetWorthHistoryTable from '@/components/NetWorthHistoryTable';
 import { DashboardStoreProvider } from '@/lib/store';
 import SettingsView from '@/components/SettingsView';
-import { ActionRow, Card, Flex, Tabs, TabsBody, TabsContent, TabsList, TabsTrigger, Text } from '@design-system';
+import { ActionRow, Card, Flex, Tabs, TabsBody, TabsContent, TabsList, TabsTrigger, Text } from 'doom-design-system';
 import { Banknote, PieChart } from 'lucide-react';
 
 import { Serialized, Transaction, SafeUser, SafeAccount } from '@/lib/types';

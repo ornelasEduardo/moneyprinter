@@ -21,7 +21,7 @@ vi.mock('@/app/actions/transactions', () => ({
   createTransaction: vi.fn(),
 }));
 
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Button: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
   Card: ({ children }: any) => <div>{children}</div>,
   Form: ({ children, action }: any) => <form action={action}>{children}</form>,

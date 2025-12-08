@@ -19,7 +19,7 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
 }));
 
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Page: ({ children }: any) => <div>{children}</div>,
   Text: ({ children }: any) => <span>{children}</span>,
 }));

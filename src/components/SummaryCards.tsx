@@ -1,4 +1,4 @@
-import { Card, Flex, Grid, ProgressBar, Text } from '@design-system';
+import { Card, Flex, Grid, ProgressBar, Text } from 'doom-design-system';
 
 interface SummaryCardsProps {
   netWorth: number;

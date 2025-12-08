@@ -30,8 +30,8 @@ vi.mock('@/components/NetWorthHistoryTable', () => ({ default: () => <div data-t
 vi.mock('@/components/SettingsView', () => ({ default: () => <div data-testid="settings-view" /> }));
 
 // Mock Design System components that might cause issues
-vi.mock('@design-system', async () => {
-  const actual = await vi.importActual('@design-system');
+vi.mock('doom-design-system', async () => {
+  const actual = await vi.importActual('doom');
   return {
     ...actual as any,
     // Keep simple components, mock complex ones if needed

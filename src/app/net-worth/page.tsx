@@ -2,7 +2,7 @@ import {  redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { getNetWorthHistory } from '@/app/actions/networth';
 import NetWorthHistoryTable from '@/components/NetWorthHistoryTable';
-import { Page, Text } from '@design-system';
+import { Page, Text } from 'doom-design-system';
 
 export default async function NetWorthPage() {
   const userId = await getCurrentUser();

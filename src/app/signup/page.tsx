@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { signup } from '@/app/actions/auth';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
-import { Button, Card, Flex, Input, Link, Page, Text } from '@design-system';
+import { Button, Card, Flex, Input, Link, Page, Text } from 'doom-design-system';
 import { AlertTriangle, ArrowLeft } from 'lucide-react';
 
 const sheen = keyframes`

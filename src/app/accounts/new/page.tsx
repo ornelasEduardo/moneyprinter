@@ -3,7 +3,7 @@
 import {  useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createAccount } from '@/app/actions/accounts';
-import { Badge, Button, Card, Flex, Input, Page, Select, Text } from '@design-system';
+import { Badge, Button, Card, Flex, Input, Page, Select, Text } from 'doom-design-system';
 import { X, Wallet, SquarePen, Zap, ArrowRight, ArrowLeft, Check } from 'lucide-react';
 
 

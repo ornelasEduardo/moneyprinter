@@ -4,7 +4,7 @@
 import { Logo } from '@/components/Logo';
 import { logout } from '@/app/actions/auth';
 import { useDashboardStore } from '@/lib/store';
-import { Button, Flex, Select, Text } from '@design-system';
+import { Button, Flex, Select, Text } from 'doom-design-system';
 import { User, LogOut, FlaskConical } from 'lucide-react';
 
 interface DashboardHeaderProps {

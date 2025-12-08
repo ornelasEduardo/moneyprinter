@@ -1,6 +1,6 @@
 'use client';
 
-import { Page, Grid, Flex, Card, Skeleton } from '@design-system';
+import { Page, Grid, Flex, Card, Skeleton } from 'doom-design-system';
 
 export default function Loading() {
   return (

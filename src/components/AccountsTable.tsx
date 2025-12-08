@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { deleteAccount, updateAccount } from '@/app/actions/accounts';
 import { useRouter } from 'next/navigation';
-import { Badge, Button, Card, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Select, Table, Text, useToast } from '@design-system';
+import { Badge, Button, Card, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Select, Table, Text, useToast } from 'doom-design-system';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 import { SafeAccount } from '@/lib/types';

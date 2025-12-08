@@ -1,5 +1,5 @@
 'use client';
-import { ToastProvider } from '@design-system';
+import { ToastProvider } from 'doom-design-system';
 
 
 export function Providers({ children }: { children: React.ReactNode }) {

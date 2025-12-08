@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import {  ColumnDef } from '@tanstack/react-table';
-import { Card, Flex, Table, Text } from '@design-system';
+import { Card, Flex, Table, Text } from 'doom-design-system';
 
 interface ProjectionData {
   label: string;

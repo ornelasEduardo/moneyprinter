@@ -21,7 +21,7 @@ vi.mock('@/app/actions/budgets', () => ({
   saveIncomeBudgets: vi.fn(),
 }));
 
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Button: ({ children, onClick, disabled }: any) => (
     <button onClick={onClick} disabled={disabled}>{children}</button>
   ),

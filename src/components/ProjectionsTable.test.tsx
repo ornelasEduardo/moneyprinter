@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 
 // Mock Design System
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Card: ({ children }: any) => <div>{children}</div>,
   Flex: ({ children }: any) => <div>{children}</div>,
   Table: ({ data, columns }: any) => (

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styled from '@emotion/styled';
-import { Text, Card, useTheme, ThemeKey } from '@design-system';
+import { Text, Card, useTheme, ThemeKey } from 'doom-design-system';
 
 const SettingsContainer = styled.div`
   display: flex;

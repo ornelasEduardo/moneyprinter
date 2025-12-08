@@ -10,7 +10,7 @@ vi.mock('@/app/actions/auth', () => ({
 }));
 
 // Mock Design System
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Button: ({ children, onClick, disabled }: any) => (
     <button onClick={onClick} disabled={disabled}>{children}</button>
   ),

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {  ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import {  updateTransaction, deleteTransaction } from '@/app/actions/transactions';
-import { Badge, Button, Card, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Select, Table, Text, useToast } from '@design-system';
+import { Badge, Button, Card, Flex, Input, Modal, ModalBody, ModalFooter, ModalHeader, Select, Table, Text, useToast } from 'doom-design-system';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 import { Serialized, Transaction as PrismaTransaction } from '@/lib/types';

@@ -25,9 +25,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@design-system": [
-        "./src/components/DesignSystem"
       ]
     }
   },

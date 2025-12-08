@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { updatePrimaryGoal, updateEmergencyFundAmount } from '@/app/actions/goals';
-import { Button, Card, Flex, Grid, Input, ProgressBar, Text } from '@design-system';
+import { Button, Card, Flex, Grid, Input, ProgressBar, Text } from 'doom-design-system';
 import { X, Pencil } from 'lucide-react';
 
 interface GoalTrackerProps {

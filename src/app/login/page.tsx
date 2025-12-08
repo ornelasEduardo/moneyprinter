@@ -5,7 +5,7 @@ import { login } from '@/app/actions/auth';
 
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
-import { Button, Card, Flex, Input, Link, Page, Text } from '@design-system';
+import { Button, Card, Flex, Input, Link, Page, Text } from 'doom-design-system';
 import { AlertTriangle, FlaskConical } from 'lucide-react';
 
 const sheen = keyframes`

@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createTransaction } from '@/app/actions/transactions';
 import { X, Receipt, Plus } from 'lucide-react';
-import { Button, Card, Flex, Form, FormGroup, Input, Label, Page, Select, Text } from '@design-system';
+import { Button, Card, Flex, Form, FormGroup, Input, Label, Page, Select, Text } from 'doom-design-system';
 
 interface Account {
   id: number;

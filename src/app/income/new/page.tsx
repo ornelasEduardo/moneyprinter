@@ -2,7 +2,7 @@
 
 import {  useRouter, useSearchParams } from 'next/navigation';
 import { createIncomeSource } from '@/app/actions/income';
-import { Button, Card, Flex, Input, Page, Select, Text } from '@design-system';
+import { Button, Card, Flex, Input, Page, Select, Text } from 'doom-design-system';
 import { X, Banknote, Plus } from 'lucide-react';
 
 

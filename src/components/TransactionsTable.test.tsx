@@ -19,7 +19,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Mock Design System
-vi.mock('@design-system', () => ({
+vi.mock('doom-design-system', () => ({
   Badge: ({ children }: any) => <span>{children}</span>,
   Button: ({ children, onClick, disabled }: any) => (
     <button onClick={onClick} disabled={disabled} data-testid="button">
