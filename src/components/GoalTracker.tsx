@@ -108,7 +108,7 @@ export function GoalTracker({ netWorth, monthlySavings, goal, emergencyFund }: G
         <Pencil size={16} strokeWidth={2.5} />
       </Button>
 
-      <Flex direction="column" gap="1rem">
+      <Flex direction="column" gap="1rem" className="pr-10 mr-2">
         <Text variant="small" weight="bold" color="muted" className="uppercase tracking-widest">
           Goal Tracker: {goalName}
         </Text>
@@ -116,10 +116,7 @@ export function GoalTracker({ netWorth, monthlySavings, goal, emergencyFund }: G
         <div className="leading-none">
           <Flex align="baseline" gap="0.5rem" wrap>
             {yearsToGoal > 0 && (
-              <>
-                <Text variant="h1" color='primary'>{yearsToGoal} YEARS</Text>
-                <Text variant="h1">,</Text>
-              </>
+                <Text variant="h1" color='primary'>{yearsToGoal} YEARS, </Text>
             )}
             <Text variant="h1">{remainingMonths} MONTHS</Text>
           </Flex>
