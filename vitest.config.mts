@@ -14,18 +14,5 @@ export default defineConfig({
         "./src/components/DesignSystem"
       ),
     },
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html", "lcov"],
-      exclude: [
-        "node_modules/",
-        "src/components/DesignSystem/**",
-        "**/*.d.ts",
-        "**/*.config.*",
-        "**/mockData.ts",
-        "dist/",
-        ".next/",
-      ],
-    },
   },
 });

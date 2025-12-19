@@ -77,11 +77,9 @@ npm test
 # Run tests in watch mode
 npm test -- --watch
 
-# Run tests with coverage
+# Run tests with coverage (optional, local only)
 npm test -- --coverage
 ```
-
-See [docs/CI.md](docs/CI.md) for more information about the CI pipeline and running checks locally.
 
 ## 🗄️ Database Management
 
