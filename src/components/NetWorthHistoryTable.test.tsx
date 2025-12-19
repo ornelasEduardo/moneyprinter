@@ -47,8 +47,9 @@ describe("NetWorthHistoryTable", () => {
     fireEvent.click(addButton!);
 
     await waitFor(() => {
-      expect(screen.getByText("Add Net Worth Entry")).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
+    expect(screen.getByText("Add Net Worth Entry")).toBeInTheDocument();
   });
 
   it("should delete entry", async () => {

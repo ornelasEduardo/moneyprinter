@@ -52,19 +52,11 @@ export default function SummaryCards({
             </Text>
             <Text variant="small">{formatCurrency(budget)}</Text>
           </Flex>
-          <div
-            role="progressbar"
-            aria-label="Spending Progress"
-            aria-valuenow={spendingPercentage}
-          >
-            <ProgressBar
-              value={spendingPercentage}
-              color={
-                spendingPercentage > 100 ? "var(--error)" : "var(--primary)"
-              }
-              height="12px"
-            />
-          </div>
+          <ProgressBar
+            value={spendingPercentage}
+            color={spendingPercentage > 100 ? "var(--error)" : "var(--primary)"}
+            height="12px"
+          />
         </div>
       </Card>
 
