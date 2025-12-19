@@ -1,8 +1,9 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act } from '@/test-utils';
 import { createDashboardStore, useDashboardStore, DashboardStoreProvider } from './store';
 import { describe, it, expect } from 'vitest';
 import React from 'react';
 
+// Mock Design System hooks locally to avoid Provider issues
 // Mock types
 const mockProps: any = {
   user: { id: 1, username: 'testuser', display_name: 'Test User', is_sandbox: false },

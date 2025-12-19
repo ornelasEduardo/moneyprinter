@@ -4,15 +4,22 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      {
+        find: "@design-system",
+        replacement: path.resolve(__dirname, "./src/components/DesignSystem"),
+      },
+    ],
+  },
   test: {
-    environment: "jsdom",
+    environment: "happy-dom",
     setupFiles: ["./vitest.setup.ts"],
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@design-system": path.resolve(
-        __dirname,
-        "./src/components/DesignSystem"
-      ),
+    server: {
+      deps: {
+        inline: ["doom-design-system"],
+      },
     },
   },
 });

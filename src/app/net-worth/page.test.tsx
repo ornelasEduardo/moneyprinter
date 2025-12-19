@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import NetWorthPage from './page';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
@@ -6,6 +6,7 @@ import * as authLib from '@/lib/auth';
 import * as netWorthActions from '@/app/actions/networth';
 import { redirect } from 'next/navigation';
 
+// Mock Design System hooks locally to avoid Provider issues
 // Mock dependencies
 vi.mock('@/lib/auth', () => ({
   getCurrentUser: vi.fn(),
@@ -19,10 +20,6 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
 }));
 
-vi.mock('doom-design-system', () => ({
-  Page: ({ children }: any) => <div>{children}</div>,
-  Text: ({ children }: any) => <span>{children}</span>,
-}));
 
 vi.mock('@/components/NetWorthHistoryTable', () => ({
   default: ({ entries }: any) => (

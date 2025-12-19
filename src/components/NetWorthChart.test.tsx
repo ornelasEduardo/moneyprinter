@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import NetWorthChart from './NetWorthChart';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 
+// Mock Design System hooks locally to avoid Provider issues
 describe('NetWorthChart', () => {
   const mockData = [
     { date: '2024-01-01', netWorth: 10000 },
