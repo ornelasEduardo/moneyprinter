@@ -1,33 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import ProjectionsTable from './ProjectionsTable';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 
+// Mock Design System hooks locally to avoid Provider issues
 // Mock Design System
-vi.mock('doom-design-system', () => ({
-  Card: ({ children }: any) => <div>{children}</div>,
-  Flex: ({ children }: any) => <div>{children}</div>,
-  Table: ({ data, columns }: any) => (
-    <table>
-      <thead>
-        <tr>
-          {columns.map((col: any) => <th key={col.header}>{col.header}</th>)}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((row: any) => (
-          <tr key={row.label} data-testid="table-row">
-            <td>{row.label}</td>
-            <td>{columns.find((c: any) => c.accessorKey === 'change').cell({ getValue: () => row.change })}</td>
-            <td>{columns.find((c: any) => c.accessorKey === 'windfalls').cell({ getValue: () => row.windfalls })}</td>
-            <td>{columns.find((c: any) => c.accessorKey === 'newTotal').cell({ getValue: () => row.newTotal })}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  ),
-  Text: ({ children }: any) => <span>{children}</span>,
-}));
 
 describe('ProjectionsTable', () => {
   const mockProjections = [

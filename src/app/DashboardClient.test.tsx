@@ -1,8 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@/test-utils';
 import DashboardClient from './DashboardClient';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 
+// Mock Design System hooks locally to avoid Provider issues
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -30,13 +31,6 @@ vi.mock('@/components/NetWorthHistoryTable', () => ({ default: () => <div data-t
 vi.mock('@/components/SettingsView', () => ({ default: () => <div data-testid="settings-view" /> }));
 
 // Mock Design System components that might cause issues
-vi.mock('doom-design-system', async () => {
-  const actual = await vi.importActual('doom');
-  return {
-    ...actual as any,
-    // Keep simple components, mock complex ones if needed
-  };
-});
 
 const mockProps: any = {
   user: { id: 1, username: 'test', display_name: 'Test', is_sandbox: false },

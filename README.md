@@ -1,33 +1,35 @@
 # 🖨️ MoneyPrinter
 
+[![CI](https://github.com/ornelasEduardo/moneyprinter/actions/workflows/ci.yml/badge.svg)](https://github.com/ornelasEduardo/moneyprinter/actions/workflows/ci.yml)
+
 **MoneyPrinter** is a local-first, privacy-focused personal finance dashboard designed to give you complete control over your financial data. Built with a neubrutalist design philosophy and a focus on functionality and simplicity.
 
 ## ✨ Features
 
--   **📊 Comprehensive Dashboard**: Real-time view of your Net Worth, Monthly Spending, and Budget status.
--   **🔮 Financial Projections**: Project your net worth growth based on current spending, income, and windfalls.
--   **🎯 Goal Tracking**: Track progress towards your Primary Goal and Emergency Fund.
--   **💰 Transaction Management**: Log and categorize income and expenses.
--   **🏦 Account Management**: Track balances across multiple accounts (Checking, Savings, Investments).
--   **🎨 Dynamic Theming**: Switch between themes like "Latverian Day" (Light) and "Latverian Night" (Dark).
--   **🔒 Local-First & Private**: Your data lives in a local Dockerized Postgres database. No external cloud dependencies.
+- **📊 Comprehensive Dashboard**: Real-time view of your Net Worth, Monthly Spending, and Budget status.
+- **🔮 Financial Projections**: Project your net worth growth based on current spending, income, and windfalls.
+- **🎯 Goal Tracking**: Track progress towards your Primary Goal and Emergency Fund.
+- **💰 Transaction Management**: Log and categorize income and expenses.
+- **🏦 Account Management**: Track balances across multiple accounts (Checking, Savings, Investments).
+- **🎨 Dynamic Theming**: Switch between themes like "Latverian Day" (Light) and "Latverian Night" (Dark).
+- **🔒 Local-First & Private**: Your data lives in a local Dockerized Postgres database. No external cloud dependencies.
 
 ## 🛠️ Tech Stack
 
--   **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
--   **Language**: [TypeScript](https://www.typescriptlang.org/)
--   **Database**: [PostgreSQL](https://www.postgresql.org/) (via Docker)
--   **ORM**: [Prisma](https://www.prisma.io/)
--   **Migrations**: [Atlas](https://atlasgo.io/)
--   **Styling**: Vanilla CSS Variables + [Styled Components](https://emotion.sh/)
--   **Testing**: [Vitest](https://vitest.dev/) + React Testing Library
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) (via Docker)
+- **ORM**: [Prisma](https://www.prisma.io/)
+- **Migrations**: [Atlas](https://atlasgo.io/)
+- **Styling**: Vanilla CSS Variables + [Styled Components](https://emotion.sh/)
+- **Testing**: [Vitest](https://vitest.dev/) + React Testing Library
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
--   **Node.js** (v18+)
--   **Docker** & **Docker Compose** (for the database)
+- **Node.js** (v18+)
+- **Docker** & **Docker Compose** (for the database)
 
 ### Quick Start (Recommended)
 
@@ -48,11 +50,13 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 If you prefer running steps manually:
 
 1.  **Start the Database**:
+
     ```bash
     docker-compose up -d
     ```
 
 2.  **Initialize the Database Schema**:
+
     ```bash
     node scripts/init-db.js
     ```
@@ -72,14 +76,17 @@ npm test
 
 # Run tests in watch mode
 npm test -- --watch
+
+# Run tests with coverage (optional, local only)
+npm test -- --coverage
 ```
 
 ## 🗄️ Database Management
 
 Database schema changes are managed using **Atlas** and **Prisma**.
 
--   **Schema Definition**: `src/lib/schema.sql` (Source of Truth)
--   **Migrations**: Located in `migrations/` directory.
+- **Schema Definition**: `src/lib/schema.sql` (Source of Truth)
+- **Migrations**: Located in `migrations/` directory.
 
 To apply migrations manually (if not using `dev.sh`):
 
@@ -91,9 +98,10 @@ docker-compose run atlas migrate apply --env docker
 ## 🎨 Design System
 
 MoneyPrinter features a custom-built Design System located in `src/components/DesignSystem`. It prioritizes:
--   **Responsiveness**: Fluid layouts for laptops and ultra-wide monitors.
--   **Interaction**: Subtle, modifier-based hover states (brightness, opacity) rather than abrupt color swaps.
--   **Accessibility**: Semantic HTML and keyboard navigation support.
+
+- **Responsiveness**: Fluid layouts for laptops and ultra-wide monitors.
+- **Interaction**: Subtle, modifier-based hover states (brightness, opacity) rather than abrupt color swaps.
+- **Accessibility**: Semantic HTML and keyboard navigation support.
 
 ## 🤝 Contributing
 
