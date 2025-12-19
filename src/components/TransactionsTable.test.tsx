@@ -78,8 +78,12 @@ describe("TransactionsTable", () => {
     expect(screen.getByText("Paycheck")).toBeInTheDocument();
 
     // Filter by Savings (should show none since both mock transactions are "Checking")
-    const trigger = screen.getByRole("button", { name: "All Accounts" });
-    fireEvent.click(trigger);
+    // Filter by Savings (should show none since both mock transactions are "Checking")
+    const trigger = screen
+      .getAllByRole("combobox")
+      .find((el) => el.textContent?.includes("All Accounts"));
+    expect(trigger).toBeDefined();
+    fireEvent.click(trigger!);
 
     // Select the "Savings" option from the dropdown
     fireEvent.click(screen.getByText("Savings"));
@@ -91,8 +95,11 @@ describe("TransactionsTable", () => {
     });
 
     // Filter back to Checking (should show both)
-    const triggerSavings = screen.getByRole("button", { name: "Savings" });
-    fireEvent.click(triggerSavings);
+    const triggerSavings = screen
+      .getAllByRole("combobox")
+      .find((el) => el.textContent?.includes("Savings"));
+    expect(triggerSavings).toBeDefined();
+    fireEvent.click(triggerSavings!);
     fireEvent.click(screen.getByText("Checking"));
 
     await waitFor(() => {

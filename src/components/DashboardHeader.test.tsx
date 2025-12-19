@@ -48,7 +48,8 @@ describe("DashboardHeader", () => {
       <DashboardHeader selectedYear={2024} onYearChange={handleYearChange} />
     );
 
-    const trigger = screen.getByRole("button", { name: "2024" });
+    const trigger = screen.getByRole("combobox");
+    expect(trigger).toHaveTextContent("2024");
     fireEvent.click(trigger);
     fireEvent.click(screen.getByText("2023"));
 
