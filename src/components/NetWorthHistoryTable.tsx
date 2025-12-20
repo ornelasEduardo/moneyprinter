@@ -12,6 +12,8 @@ import {
   Button,
   Flex,
   Input,
+  Form,
+  Field,
   Modal,
   ModalBody,
   ModalFooter,
@@ -224,25 +226,30 @@ export default function NetWorthHistoryTable({
       />
 
       {/* Edit Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-        {editingEntry && (
-          <form onSubmit={handleUpdate}>
-            <ModalHeader>Edit Net Worth Entry</ModalHeader>
-            <ModalBody>
+      {editingEntry && (
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+        >
+          <ModalHeader>
+            <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
+              Edit Net Worth Entry
+            </Text>
+          </ModalHeader>
+          <ModalBody>
+            <Form id="edit-networth-form" onSubmit={handleUpdate}>
               <Flex direction="column" gap="1rem">
-                <div>
+                <Field label="Date" required>
                   <Input
-                    label="Date"
                     type="date"
                     name="date"
                     defaultValue={editingEntry.date}
                     required
                   />
-                </div>
+                </Field>
 
-                <div>
+                <Field label="Net Worth" required>
                   <Input
-                    label="Net Worth"
                     type="number"
                     step="0.01"
                     name="netWorth"
@@ -250,47 +257,53 @@ export default function NetWorthHistoryTable({
                     startAdornment="$"
                     required
                   />
-                </div>
+                </Field>
               </Flex>
-            </ModalBody>
-            <ModalFooter>
-              <Flex gap="1rem" justify="flex-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setIsEditModalOpen(false)}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-              </Flex>
-            </ModalFooter>
-          </form>
-        )}
-      </Modal>
+            </Form>
+          </ModalBody>
+          <ModalFooter>
+            <Flex gap="1rem" justify="flex-end">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="edit-networth-form"
+                disabled={isLoading}
+              >
+                {isLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </Flex>
+          </ModalFooter>
+        </Modal>
+      )}
 
       {/* Add Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
-        <form onSubmit={handleCreate}>
-          <ModalHeader>Add Net Worth Entry</ModalHeader>
-          <ModalBody>
+        <ModalHeader>
+          <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
+            Add Net Worth Entry
+          </Text>
+        </ModalHeader>
+        <ModalBody>
+          <Form id="add-networth-form" onSubmit={handleCreate}>
             <Flex direction="column" gap="1rem">
-              <div>
+              <Field label="Date" required>
                 <Input
-                  label="Date"
                   type="date"
                   name="date"
                   defaultValue={new Date().toISOString().split("T")[0]}
                   required
                 />
-              </div>
+              </Field>
 
-              <div>
+              <Field label="Net Worth" required>
                 <Input
-                  label="Net Worth"
                   type="number"
                   step="0.01"
                   name="netWorth"
@@ -298,25 +311,25 @@ export default function NetWorthHistoryTable({
                   placeholder="0.00"
                   required
                 />
-              </div>
+              </Field>
             </Flex>
-          </ModalBody>
-          <ModalFooter>
-            <Flex gap="1rem" justify="flex-end">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsAddModalOpen(false)}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Entry"}
-              </Button>
-            </Flex>
-          </ModalFooter>
-        </form>
+          </Form>
+        </ModalBody>
+        <ModalFooter>
+          <Flex gap="1rem" justify="flex-end">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsAddModalOpen(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" form="add-networth-form" disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create Entry"}
+            </Button>
+          </Flex>
+        </ModalFooter>
       </Modal>
     </>
   );

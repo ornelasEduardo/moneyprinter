@@ -11,6 +11,8 @@ import {
   Card,
   Flex,
   Input,
+  Form,
+  Field,
   Modal,
   ModalBody,
   ModalFooter,
@@ -295,24 +297,29 @@ export default function TransactionsTable({
         />
       </Card>
 
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-        {editingTransaction && (
-          <form onSubmit={handleUpdate}>
-            <ModalHeader>Edit Transaction</ModalHeader>
-            <ModalBody>
+      {editingTransaction && (
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+        >
+          <ModalHeader>
+            <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
+              Edit Transaction
+            </Text>
+          </ModalHeader>
+          <ModalBody>
+            <Form id="edit-transaction-form" onSubmit={handleUpdate}>
               <Flex direction="column" gap="1rem">
-                <div>
+                <Field label="Name" required>
                   <Input
-                    label="Name"
                     name="name"
                     defaultValue={editingTransaction.name}
                     required
                   />
-                </div>
+                </Field>
 
-                <div>
+                <Field label="Type">
                   <Select
-                    label="Type"
                     name="type"
                     defaultValue={editingTransaction.type || "expense"}
                     options={[
@@ -320,41 +327,37 @@ export default function TransactionsTable({
                       { value: "income", label: "Income" },
                     ]}
                   />
-                </div>
+                </Field>
 
-                <div>
+                <Field label="Amount" required>
                   <Input
-                    label="Amount"
                     name="amount"
                     type="number"
                     step="0.01"
                     defaultValue={editingTransaction.amount}
                     required
                   />
-                </div>
+                </Field>
 
-                <div>
+                <Field label="Date" required>
                   <Input
-                    label="Date"
                     name="date"
                     type="date"
                     defaultValue={editingTransaction.date}
                     required
                   />
-                </div>
+                </Field>
 
-                <div>
+                <Field label="Tags">
                   <Input
-                    label="Tags"
                     name="tags"
                     defaultValue={editingTransaction.tags || ""}
                     placeholder="e.g. Food, Travel"
                   />
-                </div>
+                </Field>
 
-                <div>
+                <Field label="Account">
                   <Select
-                    label="Account"
                     name="accountId"
                     defaultValue={
                       editingTransaction.accountId?.toString() || ""
@@ -364,27 +367,31 @@ export default function TransactionsTable({
                       label: acc.name,
                     }))}
                   />
-                </div>
+                </Field>
               </Flex>
-            </ModalBody>
-            <ModalFooter>
-              <Flex justify="flex-end" gap="1rem">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setIsEditModalOpen(false)}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-              </Flex>
-            </ModalFooter>
-          </form>
-        )}
-      </Modal>
+            </Form>
+          </ModalBody>
+          <ModalFooter>
+            <Flex justify="flex-end" gap="1rem">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="edit-transaction-form"
+                disabled={isLoading}
+              >
+                {isLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </Flex>
+          </ModalFooter>
+        </Modal>
+      )}
     </>
   );
 }
