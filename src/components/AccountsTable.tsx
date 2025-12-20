@@ -10,6 +10,8 @@ import {
   Card,
   Flex,
   Input,
+  Form,
+  Field,
   Modal,
   ModalBody,
   ModalFooter,
@@ -188,25 +190,30 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
         />
       </Card>
 
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-        {editingAccount && (
-          <form onSubmit={handleUpdate}>
-            <ModalHeader>Edit Account</ModalHeader>
-            <ModalBody>
+      {editingAccount && (
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+        >
+          <ModalHeader>
+            <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
+              Edit Account
+            </Text>
+          </ModalHeader>
+          <ModalBody>
+            <Form id="edit-account-form" onSubmit={handleUpdate}>
               <Flex direction="column" gap="1rem">
-                <div>
+                <Field label="Account Name" required>
                   <Input
-                    label="Account Name"
                     name="name"
                     defaultValue={editingAccount.name}
                     required
                     placeholder="e.g. Chase Checking"
                   />
-                </div>
+                </Field>
 
-                <div>
+                <Field label="Type">
                   <Select
-                    label="Type"
                     name="type"
                     defaultValue={editingAccount.type}
                     options={[
@@ -218,23 +225,19 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
                       { value: "other", label: "Other" },
                     ]}
                   />
-                </div>
+                </Field>
 
-                <div>
+                <Field label="Current Balance" required>
                   <Input
-                    label="Current Balance"
                     name="balance"
                     type="number"
                     step="0.01"
                     defaultValue={editingAccount.balance}
                     required
                   />
-                </div>
+                </Field>
 
-                <div>
-                  <Text as="label" weight="bold" className="mb-2 block">
-                    Currency
-                  </Text>
+                <Field label="Currency">
                   <Select
                     name="currency"
                     defaultValue={editingAccount.currency || "USD"}
@@ -245,27 +248,31 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
                       { value: "CAD", label: "CAD ($)" },
                     ]}
                   />
-                </div>
+                </Field>
               </Flex>
-            </ModalBody>
-            <ModalFooter>
-              <Flex justify="flex-end" gap="1rem">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setIsEditModalOpen(false)}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-              </Flex>
-            </ModalFooter>
-          </form>
-        )}
-      </Modal>
+            </Form>
+          </ModalBody>
+          <ModalFooter>
+            <Flex justify="flex-end" gap="1rem">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="edit-account-form"
+                disabled={isLoading}
+              >
+                {isLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </Flex>
+          </ModalFooter>
+        </Modal>
+      )}
     </>
   );
 }
