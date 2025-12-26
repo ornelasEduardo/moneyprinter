@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@/test-utils';
+import { render, screen, fireEvent, waitFor } from "@/test-utils";
 import AccountsTable from "./AccountsTable";
 import { describe, it, expect, vi } from "vitest";
 import React from "react";
@@ -47,9 +47,6 @@ describe("AccountsTable", () => {
   });
 
   it("should delete account", async () => {
-    // Mock confirm
-    window.confirm = vi.fn(() => true);
-
     render(<AccountsTable accounts={mockAccounts} />);
 
     // Find all delete buttons and click the first one
@@ -57,6 +54,10 @@ describe("AccountsTable", () => {
       name: /Delete account/i,
     });
     fireEvent.click(deleteButtons[0]);
+
+    // Wait for dialog and click confirm
+    const confirmButton = await screen.findByRole("button", { name: "Delete" });
+    fireEvent.click(confirmButton);
 
     await waitFor(() => {
       expect(accountActions.deleteAccount).toHaveBeenCalledWith(1);
