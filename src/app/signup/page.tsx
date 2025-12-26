@@ -1,11 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { signup } from '@/app/actions/auth';
-import styled from '@emotion/styled';
-import { keyframes } from '@emotion/react';
-import { Button, Card, Flex, Input, Link, Page, Text } from 'doom-design-system';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { useState } from "react";
+import { signup } from "@/app/actions/auth";
+import styled from "@emotion/styled";
+import { keyframes } from "@emotion/react";
+import {
+  Button,
+  Card,
+  Flex,
+  Input,
+  Link,
+  Page,
+  Text,
+} from "doom-design-system";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 
 const sheen = keyframes`
   0% { left: -100%; }
@@ -23,7 +31,7 @@ const HeaderContainer = styled.div`
   overflow: hidden;
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -46,21 +54,21 @@ const HeaderContainer = styled.div`
 `;
 
 export default function SignupPage() {
-  const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       setLoading(false);
       return;
     }
@@ -72,73 +80,89 @@ export default function SignupPage() {
         setLoading(false);
       }
     } catch (err) {
-      console.error('Signup error:', err);
-      setError('An error occurred during signup');
+      console.error("Signup error:", err);
+      setError("An error occurred during signup");
       setLoading(false);
     }
   };
 
   return (
     <Page variant="fullWidth">
-      <Flex 
-        align="center" 
+      <Flex
+        align="center"
         justify="center"
         style={{
-          minHeight: '100vh',
-          backgroundColor: 'var(--background)',
+          minHeight: "100vh",
+          backgroundColor: "var(--background)",
           backgroundImage: `
             linear-gradient(var(--muted) 1px, transparent 1px),
             linear-gradient(90deg, var(--muted) 1px, transparent 1px)
           `,
-          backgroundSize: '20px 20px',
-          padding: '2rem'
+          backgroundSize: "20px 20px",
+          padding: "2rem",
         }}
       >
-        <Card style={{ 
-          width: '100%',
-          maxWidth: '500px',
-          padding: '0',
-          overflow: 'hidden',
-          boxShadow: 'var(--shadow-hard)',
-          border: 'var(--border-width) solid var(--card-border)'
-        }}>
+        <Card
+          style={{
+            width: "100%",
+            maxWidth: "500px",
+            padding: "0",
+            overflow: "hidden",
+            boxShadow: "var(--shadow-hard)",
+            border: "var(--border-width) solid var(--card-border)",
+          }}
+        >
           {/* Header Section */}
           <HeaderContainer>
-            <Flex 
-              align="center" 
-              justify="flex-start" 
-              gap="0.75rem" 
-              style={{ marginBottom: '0.5rem' }}
+            <Flex
+              align="center"
+              justify="flex-start"
+              gap={3}
+              style={{ marginBottom: "0.5rem" }}
             >
-              <Text variant="h3" weight="black" style={{ 
-                color: 'var(--primary-foreground)', 
-                letterSpacing: '-0.02em',
-                margin: 0,
-                textTransform: 'uppercase'
-              }}>
+              <Text
+                variant="h3"
+                weight="black"
+                style={{
+                  color: "var(--primary-foreground)",
+                  letterSpacing: "-0.02em",
+                  margin: 0,
+                  textTransform: "uppercase",
+                }}
+              >
                 New Account
               </Text>
             </Flex>
-            <Text variant="small" style={{ color: 'var(--primary-foreground)', display: 'block', fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>
+            <Text
+              variant="small"
+              style={{
+                color: "var(--primary-foreground)",
+                display: "block",
+                fontSize: "0.75rem",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                fontWeight: 700,
+              }}
+            >
               Initialize Financial Profile
             </Text>
           </HeaderContainer>
 
-          <div style={{ padding: '2rem' }}>
+          <div style={{ padding: "2rem" }}>
             <form onSubmit={handleSubmit}>
-              <Flex direction="column" gap="1.5rem" align="stretch">
-                
+              <Flex direction="column" gap={6} align="stretch">
                 {error && (
-                  <Flex 
-                    align="center" 
-                    gap="0.5rem"
+                  <Flex
+                    align="center"
+                    gap={2}
                     style={{
-                      padding: '0.75rem',
-                      background: 'color-mix(in srgb, var(--error), transparent 90%)',
-                      border: 'var(--border-width) solid var(--error)',
-                      color: 'var(--error)',
+                      padding: "0.75rem",
+                      background:
+                        "color-mix(in srgb, var(--error), transparent 90%)",
+                      border: "var(--border-width) solid var(--error)",
+                      color: "var(--error)",
                       fontWeight: 700,
-                      fontSize: '0.875rem'
+                      fontSize: "0.875rem",
                     }}
                   >
                     <AlertTriangle size={20} strokeWidth={2.5} />
@@ -146,16 +170,18 @@ export default function SignupPage() {
                   </Flex>
                 )}
 
-                <Flex direction="column" gap="1.25rem">
+                <Flex direction="column" gap={5}>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem',
-                      fontWeight: 800,
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "0.5rem",
+                        fontWeight: 800,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
                       Username
                     </label>
                     <Input
@@ -169,14 +195,16 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem',
-                      fontWeight: 800,
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "0.5rem",
+                        fontWeight: 800,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
                       Display Name
                     </label>
                     <Input
@@ -190,14 +218,16 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem',
-                      fontWeight: 800,
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "0.5rem",
+                        fontWeight: 800,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
                       Password
                     </label>
                     <Input
@@ -211,14 +241,16 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem',
-                      fontWeight: 800,
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "0.5rem",
+                        fontWeight: 800,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
                       Confirm Password
                     </label>
                     <Input
@@ -234,25 +266,34 @@ export default function SignupPage() {
 
                 <Button
                   type="submit"
-                  disabled={loading || !username || !displayName || !password || !confirmPassword}
+                  disabled={
+                    loading ||
+                    !username ||
+                    !displayName ||
+                    !password ||
+                    !confirmPassword
+                  }
                   variant="primary"
                   size="lg"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                 >
-                  {loading ? 'INITIALIZING...' : 'CREATE ACCOUNT'}
+                  {loading ? "INITIALIZING..." : "CREATE ACCOUNT"}
                 </Button>
 
-                <div style={{
-                  borderTop: '2px dashed var(--muted)',
-                  paddingTop: '1.5rem',
-                  marginTop: '0.5rem',
-                  textAlign: 'center'
-                }}>
-                  <Link 
-                    href="/login" 
-                    variant="subtle"
-                  >
-                    <ArrowLeft size={18} strokeWidth={2.5} style={{ marginRight: '0.5rem' }} />
+                <div
+                  style={{
+                    borderTop: "2px dashed var(--muted)",
+                    paddingTop: "1.5rem",
+                    marginTop: "0.5rem",
+                    textAlign: "center",
+                  }}
+                >
+                  <Link href="/login" variant="subtle">
+                    <ArrowLeft
+                      size={18}
+                      strokeWidth={2.5}
+                      style={{ marginRight: "0.5rem" }}
+                    />
                     Return to Terminal
                   </Link>
                 </div>

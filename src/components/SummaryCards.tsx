@@ -26,7 +26,7 @@ export default function SummaryCards({
   year,
 }: SummaryCardsProps) {
   return (
-    <Grid columns="repeat(auto-fit, minmax(250px, 1fr))" gap="1.5rem">
+    <Grid columns="repeat(auto-fit, minmax(250px, 1fr))" gap={6}>
       {/* Net Worth Card */}
       <Card>
         <Text variant="h6" color="muted" className="mb-2">
@@ -65,7 +65,7 @@ export default function SummaryCards({
         <Text variant="h6" color="muted" className="mb-2">
           Upcoming Windfalls
         </Text>
-        <Flex direction="column" gap="0.75rem">
+        <Flex direction="column" gap={3}>
           {upcomingWindfalls.length > 0 ? (
             upcomingWindfalls.map((windfall, i) => (
               <Flex key={i} justify="space-between" align="center">

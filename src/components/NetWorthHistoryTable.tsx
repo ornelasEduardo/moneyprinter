@@ -154,7 +154,7 @@ export default function NetWorthHistoryTable({
         id: "actions",
         header: "",
         cell: (info) => (
-          <Flex gap="0.5rem" justify="flex-end" className="row-actions">
+          <Flex gap={2} justify="flex-end" className="row-actions">
             <Button
               variant="ghost"
               size="sm"
@@ -186,7 +186,7 @@ export default function NetWorthHistoryTable({
         align="center"
         className="mb-4"
         wrap
-        gap="1rem"
+        gap={4}
       >
         <Text variant="h4">Net Worth History</Text>
 
@@ -205,7 +205,7 @@ export default function NetWorthHistoryTable({
         pageSize={20}
         striped
         toolbarContent={
-          <Flex gap="0.5rem" align="center">
+          <Flex gap={2} align="center">
             <Input
               type="date"
               value={startDate}
@@ -238,7 +238,7 @@ export default function NetWorthHistoryTable({
           </ModalHeader>
           <ModalBody>
             <Form id="edit-networth-form" onSubmit={handleUpdate}>
-              <Flex direction="column" gap="1rem">
+              <Flex direction="column" gap={4}>
                 <Field label="Date" required>
                   <Input
                     type="date"
@@ -262,7 +262,7 @@ export default function NetWorthHistoryTable({
             </Form>
           </ModalBody>
           <ModalFooter>
-            <Flex gap="1rem" justify="flex-end">
+            <Flex gap={4} justify="flex-end">
               <Button
                 type="button"
                 variant="ghost"
@@ -292,7 +292,7 @@ export default function NetWorthHistoryTable({
         </ModalHeader>
         <ModalBody>
           <Form id="add-networth-form" onSubmit={handleCreate}>
-            <Flex direction="column" gap="1rem">
+            <Flex direction="column" gap={4}>
               <Field label="Date" required>
                 <Input
                   type="date"
@@ -316,7 +316,7 @@ export default function NetWorthHistoryTable({
           </Form>
         </ModalBody>
         <ModalFooter>
-          <Flex gap="1rem" justify="flex-end">
+          <Flex gap={4} justify="flex-end">
             <Button
               type="button"
               variant="ghost"

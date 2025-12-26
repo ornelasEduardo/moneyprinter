@@ -17,14 +17,19 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
+  RadioGroup,
+  RadioGroupItem,
   Select,
+  Spinner,
   Table,
   Text,
+  Tooltip,
   useToast,
 } from "doom-design-system";
 import { Pencil, Trash2, Plus } from "lucide-react";
 
 import { Serialized, Transaction as PrismaTransaction } from "@/lib/types";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface Transaction
   extends Serialized<
@@ -70,6 +75,10 @@ export default function TransactionsTable({
     useState<Transaction | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<number | null>(
+    null
+  );
 
   const filteredTransactions = useMemo(() => {
     let result = transactions;
@@ -95,21 +104,25 @@ export default function TransactionsTable({
     setIsEditModalOpen(true);
   }, []);
 
-  const handleDeleteClick = useCallback(
-    async (id: number) => {
-      if (confirm("Are you sure you want to delete this transaction?")) {
-        try {
-          await deleteTransaction(id);
-          toastSuccess("Transaction deleted successfully");
-          router.refresh();
-        } catch (err) {
-          console.error("Failed to delete transaction:", err);
-          toastError("Failed to delete transaction");
-        }
-      }
-    },
-    [router, toastError, toastSuccess]
-  );
+  const handleDeleteClick = useCallback((id: number) => {
+    setTransactionToDelete(id);
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (transactionToDelete === null) return;
+
+    try {
+      await deleteTransaction(transactionToDelete);
+      toastSuccess("Transaction deleted successfully");
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to delete transaction:", err);
+      toastError("Failed to delete transaction");
+    } finally {
+      setTransactionToDelete(null);
+    }
+  }, [transactionToDelete, router, toastError, toastSuccess]);
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -176,7 +189,7 @@ export default function TransactionsTable({
           const value = info.getValue() as string;
           if (!value) return null;
           return (
-            <Flex gap="0.25rem" wrap={true}>
+            <Flex gap={1} wrap={true}>
               {value.split(",").map((tag, i) => (
                 <Badge key={i} variant="primary" className="text-xs">
                   {tag.trim()}
@@ -202,24 +215,28 @@ export default function TransactionsTable({
         id: "actions",
         header: "",
         cell: (info) => (
-          <Flex gap="0.5rem" justify="flex-end" className="row-actions">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleEditClick(info.row.original)}
-              aria-label="Edit transaction"
-            >
-              <Pencil size={16} strokeWidth={2.5} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleDeleteClick(info.row.original.id)}
-              className="text-error"
-              aria-label="Delete transaction"
-            >
-              <Trash2 size={16} strokeWidth={2.5} />
-            </Button>
+          <Flex gap={2} justify="flex-end" className="row-actions">
+            <Tooltip content="Edit transaction">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleEditClick(info.row.original)}
+                aria-label="Edit transaction"
+              >
+                <Pencil size={16} strokeWidth={2.5} />
+              </Button>
+            </Tooltip>
+            <Tooltip content="Delete transaction">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDeleteClick(info.row.original.id)}
+                className="text-error"
+                aria-label="Delete transaction"
+              >
+                <Trash2 size={16} strokeWidth={2.5} />
+              </Button>
+            </Tooltip>
           </Flex>
         ),
       },
@@ -234,12 +251,12 @@ export default function TransactionsTable({
           justify="space-between"
           align="center"
           wrap
-          gap="1rem"
+          gap={4}
           className="mb-6"
         >
           <Text variant="h4">Transactions ({selectedYear})</Text>
 
-          <Flex gap="1rem" align="center">
+          <Flex gap={4} align="center">
             <Button
               onClick={() =>
                 router.push(`/transactions/new?year=${selectedYear}`)
@@ -260,8 +277,8 @@ export default function TransactionsTable({
           variant="flat"
           striped
           toolbarContent={
-            <Flex gap="1rem" align="center" wrap>
-              <Flex gap="0.5rem" align="center">
+            <Flex gap={4} align="center" wrap>
+              <Flex gap={2} align="center">
                 <Input
                   type="date"
                   value={startDate}
@@ -309,7 +326,7 @@ export default function TransactionsTable({
           </ModalHeader>
           <ModalBody>
             <Form id="edit-transaction-form" onSubmit={handleUpdate}>
-              <Flex direction="column" gap="1rem">
+              <Flex direction="column" gap={4}>
                 <Field label="Name" required>
                   <Input
                     name="name"
@@ -319,14 +336,13 @@ export default function TransactionsTable({
                 </Field>
 
                 <Field label="Type">
-                  <Select
+                  <RadioGroup
                     name="type"
                     defaultValue={editingTransaction.type || "expense"}
-                    options={[
-                      { value: "expense", label: "Expense" },
-                      { value: "income", label: "Income" },
-                    ]}
-                  />
+                  >
+                    <RadioGroupItem value="expense">Expense</RadioGroupItem>
+                    <RadioGroupItem value="income">Income</RadioGroupItem>
+                  </RadioGroup>
                 </Field>
 
                 <Field label="Amount" required>
@@ -372,7 +388,7 @@ export default function TransactionsTable({
             </Form>
           </ModalBody>
           <ModalFooter>
-            <Flex justify="flex-end" gap="1rem">
+            <Flex justify="flex-end" gap={4}>
               <Button
                 type="button"
                 variant="ghost"
@@ -386,12 +402,28 @@ export default function TransactionsTable({
                 form="edit-transaction-form"
                 disabled={isLoading}
               >
-                {isLoading ? "Saving..." : "Save Changes"}
+                {isLoading ? (
+                  <>
+                    <Spinner size="sm" /> Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             </Flex>
           </ModalFooter>
         </Modal>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+      />
     </>
   );
 }

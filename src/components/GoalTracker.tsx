@@ -12,7 +12,9 @@ import {
   Grid,
   Input,
   ProgressBar,
+  Spinner,
   Text,
+  Tooltip,
 } from "doom-design-system";
 import { X, Pencil } from "lucide-react";
 
@@ -75,7 +77,7 @@ export function GoalTracker({
   if (isEditing) {
     return (
       <Card>
-        <Flex direction="column" gap="1rem">
+        <Flex direction="column" gap={4}>
           <Flex justify="space-between" align="center">
             <Text variant="h3">Edit Goal Settings</Text>
             <Button
@@ -87,7 +89,7 @@ export function GoalTracker({
             </Button>
           </Flex>
 
-          <Grid columns="1fr 1fr" gap="1rem">
+          <Grid columns="1fr 1fr" gap={4}>
             <div className="col-span-full">
               <Input
                 label="Goal Name"
@@ -124,7 +126,13 @@ export function GoalTracker({
             disabled={saving}
             className="w-full"
           >
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? (
+              <>
+                <Spinner size="sm" /> Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </Button>
         </Flex>
       </Card>
@@ -133,16 +141,18 @@ export function GoalTracker({
 
   return (
     <Card className="relative">
-      <Button
-        variant="ghost"
-        onClick={() => setIsEditing(true)}
-        className="absolute top-4 right-4 p-2 text-muted"
-        aria-label="Edit Goal"
-      >
-        <Pencil size={16} strokeWidth={2.5} />
-      </Button>
+      <Tooltip content="Edit Goal">
+        <Button
+          variant="ghost"
+          onClick={() => setIsEditing(true)}
+          className="absolute top-4 right-4 p-2 text-muted"
+          aria-label="Edit Goal"
+        >
+          <Pencil size={16} strokeWidth={2.5} />
+        </Button>
+      </Tooltip>
 
-      <Flex direction="column" gap="1rem" className="pr-10 mr-2">
+      <Flex direction="column" gap={4} className="pr-10 mr-2">
         <Text
           variant="small"
           weight="bold"
@@ -153,7 +163,7 @@ export function GoalTracker({
         </Text>
 
         <div className="leading-none">
-          <Flex align="baseline" gap="0.5rem" wrap>
+          <Flex align="baseline" gap={2} wrap>
             {yearsToGoal > 0 && (
               <Text variant="h1" color="primary">
                 {yearsToGoal} YEARS,{" "}

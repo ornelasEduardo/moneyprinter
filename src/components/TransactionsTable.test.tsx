@@ -109,9 +109,6 @@ describe("TransactionsTable", () => {
   });
 
   it("should delete transaction", async () => {
-    // Mock confirm
-    window.confirm = vi.fn(() => true);
-
     render(
       <TransactionsTable
         transactions={mockTransactions}
@@ -126,6 +123,10 @@ describe("TransactionsTable", () => {
     });
 
     fireEvent.click(deleteButtons[0]);
+
+    // Wait for dialog and click confirm
+    const confirmButton = await screen.findByRole("button", { name: "Delete" });
+    fireEvent.click(confirmButton);
 
     await waitFor(() => {
       expect(transactionActions.deleteTransaction).toHaveBeenCalledWith(1);
