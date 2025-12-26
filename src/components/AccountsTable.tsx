@@ -17,13 +17,16 @@ import {
   ModalFooter,
   ModalHeader,
   Select,
+  Spinner,
   Table,
   Text,
+  Tooltip,
   useToast,
 } from "doom-design-system";
 import { Pencil, Trash2, Plus } from "lucide-react";
 
 import { SafeAccount } from "@/lib/types";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 type Account = SafeAccount;
 
@@ -55,26 +58,28 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<number | null>(null);
 
-  const handleDelete = useCallback(
-    async (id: number) => {
-      if (
-        confirm(
-          "Are you sure you want to delete this account? This action cannot be undone."
-        )
-      ) {
-        try {
-          await deleteAccount(id);
-          toastSuccess("Account deleted successfully");
-          router.refresh();
-        } catch (err) {
-          console.error("Failed to delete account:", err);
-          toastError("Failed to delete account");
-        }
-      }
-    },
-    [router, toastError, toastSuccess]
-  );
+  const handleDelete = useCallback((id: number) => {
+    setAccountToDelete(id);
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (accountToDelete === null) return;
+
+    try {
+      await deleteAccount(accountToDelete);
+      toastSuccess("Account deleted successfully");
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+      toastError("Failed to delete account");
+    } finally {
+      setAccountToDelete(null);
+    }
+  }, [accountToDelete, router, toastError, toastSuccess]);
 
   const handleEditClick = useCallback((account: Account) => {
     setEditingAccount(account);
@@ -138,24 +143,28 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
         id: "actions",
         header: "",
         cell: (info) => (
-          <Flex gap="0.5rem" justify="flex-end" className="row-actions">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleEditClick(info.row.original)}
-              aria-label="Edit account"
-            >
-              <Pencil size={16} strokeWidth={2.5} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleDelete(info.row.original.id)}
-              className="text-error"
-              aria-label="Delete account"
-            >
-              <Trash2 size={16} strokeWidth={2.5} />
-            </Button>
+          <Flex gap={2} justify="flex-end" className="row-actions">
+            <Tooltip content="Edit account">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleEditClick(info.row.original)}
+                aria-label="Edit account"
+              >
+                <Pencil size={16} strokeWidth={2.5} />
+              </Button>
+            </Tooltip>
+            <Tooltip content="Delete account">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDelete(info.row.original.id)}
+                className="text-error"
+                aria-label="Delete account"
+              >
+                <Trash2 size={16} strokeWidth={2.5} />
+              </Button>
+            </Tooltip>
           </Flex>
         ),
       },
@@ -170,7 +179,7 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
           justify="space-between"
           align="center"
           wrap
-          gap="1rem"
+          gap={4}
           className="mb-6"
         >
           <Text variant="h4">Accounts</Text>
@@ -202,7 +211,7 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
           </ModalHeader>
           <ModalBody>
             <Form id="edit-account-form" onSubmit={handleUpdate}>
-              <Flex direction="column" gap="1rem">
+              <Flex direction="column" gap={4}>
                 <Field label="Account Name" required>
                   <Input
                     name="name"
@@ -253,7 +262,7 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
             </Form>
           </ModalBody>
           <ModalFooter>
-            <Flex justify="flex-end" gap="1rem">
+            <Flex justify="flex-end" gap={4}>
               <Button
                 type="button"
                 variant="ghost"
@@ -267,12 +276,28 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
                 form="edit-account-form"
                 disabled={isLoading}
               >
-                {isLoading ? "Saving..." : "Save Changes"}
+                {isLoading ? (
+                  <>
+                    <Spinner size="sm" /> Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             </Flex>
           </ModalFooter>
         </Modal>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Account"
+        message="Are you sure you want to delete this account? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+      />
     </>
   );
 }

@@ -409,9 +409,9 @@ export default function IncomeBudgetPage() {
         </div>
       </header>
 
-      <Grid columns="1fr 350px" gap="2rem">
+      <Grid columns="1fr 350px" gap={8}>
         {/* Left Column: Inputs */}
-        <Flex direction="column" gap="2rem">
+        <Flex direction="column" gap={8}>
           {incomeSources.length > 0 && (
             <Card>
               <Text variant="h4" className="mb-4">
@@ -601,11 +601,7 @@ export default function IncomeBudgetPage() {
               Summary
             </Text>
 
-            <Flex
-              direction="column"
-              gap="1.5rem"
-              style={{ marginBottom: "2rem" }}
-            >
+            <Flex direction="column" gap={6} style={{ marginBottom: "2rem" }}>
               <Flex justify="space-between" align="center">
                 <Text color="muted">Total Paycheck</Text>
                 <Text weight="bold" variant="h5">
@@ -621,7 +617,10 @@ export default function IncomeBudgetPage() {
               </Flex>
 
               <div
-                style={{ height: "1px", background: "var(--card-border)" }}
+                style={{
+                  height: "1px",
+                  background: "var(--card-border)",
+                }}
               />
 
               <Flex justify="space-between" align="center">
@@ -636,7 +635,7 @@ export default function IncomeBudgetPage() {
               </Flex>
             </Flex>
 
-            <Flex direction="column" gap="0.75rem">
+            <Flex direction="column" gap={3}>
               <Button
                 variant="primary"
                 onClick={handleSave}
