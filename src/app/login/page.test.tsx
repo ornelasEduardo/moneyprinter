@@ -71,7 +71,7 @@ describe("LoginPage", () => {
     fireEvent.click(submitButton!);
 
     await waitFor(() => {
-      expect(screen.getByText("INVALID CREDENTIALS")).toBeInTheDocument();
+      expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
     });
   });
 });

@@ -65,7 +65,7 @@ describe("SignupPage", () => {
     fireEvent.click(submitButton!);
 
     await waitFor(() => {
-      expect(screen.getByText("PASSWORDS DO NOT MATCH")).toBeInTheDocument();
+      expect(screen.getByText("Passwords do not match")).toBeInTheDocument();
     });
     expect(authActions.signup).not.toHaveBeenCalled();
   });
