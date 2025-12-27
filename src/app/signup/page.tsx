@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { signup } from "@/app/actions/auth";
-import styled from "@emotion/styled";
-import { keyframes } from "@emotion/react";
 import {
+  Alert,
   Button,
   Card,
   Flex,
@@ -13,45 +12,8 @@ import {
   Page,
   Text,
 } from "doom-design-system";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
-
-const sheen = keyframes`
-  0% { left: -100%; }
-  20% { left: 100%; }
-  100% { left: 100%; }
-`;
-
-const HeaderContainer = styled.div`
-  background: var(--primary);
-  color: var(--primary-foreground);
-  padding: 1.5rem;
-  border-bottom: var(--border-width) solid var(--card-border);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255, 255, 255, 0.4) 50%,
-      transparent 100%
-    );
-    transform: skewX(-25deg);
-    animation: none;
-    pointer-events: none;
-  }
-
-  &:hover::after {
-    animation: ${sheen} 5s;
-  }
-`;
+import { ArrowLeft } from "lucide-react";
+import styles from "./Signup.module.scss";
 
 export default function SignupPage() {
   const [username, setUsername] = useState("");
@@ -88,180 +50,76 @@ export default function SignupPage() {
 
   return (
     <Page variant="fullWidth">
-      <Flex
-        align="center"
-        justify="center"
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "var(--background)",
-          backgroundImage: `
-            linear-gradient(var(--muted) 1px, transparent 1px),
-            linear-gradient(90deg, var(--muted) 1px, transparent 1px)
-          `,
-          backgroundSize: "20px 20px",
-          padding: "2rem",
-        }}
-      >
-        <Card
-          style={{
-            width: "100%",
-            maxWidth: "500px",
-            padding: "0",
-            overflow: "hidden",
-            boxShadow: "var(--shadow-hard)",
-            border: "var(--border-width) solid var(--card-border)",
-          }}
-        >
+      <Flex align="center" justify="center" className={styles.pageBackground}>
+        <Card className={styles.card}>
           {/* Header Section */}
-          <HeaderContainer>
+          <div className={styles.headerContainer}>
             <Flex
               align="center"
               justify="flex-start"
               gap={3}
               style={{ marginBottom: "0.5rem" }}
             >
-              <Text
-                variant="h3"
-                weight="black"
-                style={{
-                  color: "var(--primary-foreground)",
-                  letterSpacing: "-0.02em",
-                  margin: 0,
-                  textTransform: "uppercase",
-                }}
-              >
+              <Text variant="h3" weight="black" className={styles.headerTitle}>
                 New Account
               </Text>
             </Flex>
-            <Text
-              variant="small"
-              style={{
-                color: "var(--primary-foreground)",
-                display: "block",
-                fontSize: "0.75rem",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                fontWeight: 700,
-              }}
-            >
+            <Text variant="small" className={styles.headerSubtitle}>
               Initialize Financial Profile
             </Text>
-          </HeaderContainer>
+          </div>
 
-          <div style={{ padding: "2rem" }}>
+          <div className={styles.formPadding}>
             <form onSubmit={handleSubmit}>
               <Flex direction="column" gap={6} align="stretch">
                 {error && (
-                  <Flex
-                    align="center"
-                    gap={2}
-                    style={{
-                      padding: "0.75rem",
-                      background:
-                        "color-mix(in srgb, var(--error), transparent 90%)",
-                      border: "var(--border-width) solid var(--error)",
-                      color: "var(--error)",
-                      fontWeight: 700,
-                      fontSize: "0.875rem",
-                    }}
-                  >
-                    <AlertTriangle size={20} strokeWidth={2.5} />
-                    {error.toUpperCase()}
-                  </Flex>
+                  <Alert
+                    variant="error"
+                    title="SIGNUP FAILED"
+                    description={error}
+                  />
                 )}
 
                 <Flex direction="column" gap={5}>
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "0.5rem",
-                        fontWeight: 800,
-                        fontSize: "0.75rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      Username
-                    </label>
-                    <Input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="CHOOSE USERNAME"
-                      required
-                      minLength={3}
-                    />
-                  </div>
+                  <Input
+                    label="Username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="CHOOSE USERNAME"
+                    required
+                    minLength={3}
+                  />
 
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "0.5rem",
-                        fontWeight: 800,
-                        fontSize: "0.75rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      Display Name
-                    </label>
-                    <Input
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="YOUR DISPLAY NAME"
-                      required
-                      minLength={2}
-                    />
-                  </div>
+                  <Input
+                    label="Display Name"
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="YOUR DISPLAY NAME"
+                    required
+                    minLength={2}
+                  />
 
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "0.5rem",
-                        fontWeight: 800,
-                        fontSize: "0.75rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      Password
-                    </label>
-                    <Input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="CREATE PASSWORD"
-                      required
-                      minLength={6}
-                    />
-                  </div>
+                  <Input
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="CREATE PASSWORD"
+                    required
+                    minLength={6}
+                  />
 
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "0.5rem",
-                        fontWeight: 800,
-                        fontSize: "0.75rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      Confirm Password
-                    </label>
-                    <Input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="CONFIRM PASSWORD"
-                      required
-                      minLength={6}
-                    />
-                  </div>
+                  <Input
+                    label="Confirm Password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="CONFIRM PASSWORD"
+                    required
+                    minLength={6}
+                  />
                 </Flex>
 
                 <Button
@@ -280,14 +138,7 @@ export default function SignupPage() {
                   {loading ? "INITIALIZING..." : "CREATE ACCOUNT"}
                 </Button>
 
-                <div
-                  style={{
-                    borderTop: "2px dashed var(--muted)",
-                    paddingTop: "1.5rem",
-                    marginTop: "0.5rem",
-                    textAlign: "center",
-                  }}
-                >
+                <div className={styles.separator}>
                   <Link href="/login" variant="subtle">
                     <ArrowLeft
                       size={18}

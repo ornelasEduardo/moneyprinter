@@ -1,0 +1,40 @@
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(400px, 1fr) 2fr;
+  gap: 1.5rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.column {
+  min-width: 0;
+  height: 100%;
+}
+
+.chartCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  min-width: 0;
+}
+
+.chartContainer {
+  flex: 1;
+  min-width: 0;
+}
+
+.tabSpacing {
+  margin-bottom: 2rem;
+}
+
+.budgetHeader {
+  padding: 1.5rem;
+  border-bottom: var(--border-width) solid var(--card-border);
+}

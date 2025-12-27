@@ -1,0 +1,87 @@
+@keyframes loginSheen {
+  0% {
+    left: -100%;
+  }
+  20% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.loginHeaderContainer {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 1.5rem;
+  border-bottom: var(--border-width) solid var(--card-border);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent 100%
+    );
+    transform: skewX(-25deg);
+    animation: none;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    animation: loginSheen 5s;
+  }
+}
+
+.loginPageBackground {
+  min-height: 100vh;
+  background-color: var(--background);
+  background-image: linear-gradient(var(--muted) 1px, transparent 1px),
+    linear-gradient(90deg, var(--muted) 1px, transparent 1px);
+  background-size: 20px 20px;
+  padding: 2rem;
+}
+
+.loginCard.loginCard {
+  width: 100%;
+  max-width: 440px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow-hard);
+  border: var(--border-width) solid var(--card-border);
+}
+
+.loginHeaderTitle {
+  color: var(--primary-foreground);
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.loginHeaderSubtitle {
+  color: var(--primary-foreground);
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.loginFormPadding {
+  padding: 2rem;
+}
+
+.loginSeparator {
+  border-top: 2px dashed var(--muted);
+  padding-top: 1.5rem;
+  margin-top: 0.5rem;
+}

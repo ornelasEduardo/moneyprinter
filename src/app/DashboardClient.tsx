@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import styled from "@emotion/styled";
 import { GoalTracker } from "@/components/GoalTracker";
 import NetWorthChart from "@/components/NetWorthChart";
 import DashboardHeader from "@/components/DashboardHeader";
@@ -25,6 +24,7 @@ import {
   Text,
 } from "doom-design-system";
 import { Banknote, PieChart } from "lucide-react";
+import styles from "./DashboardClient.module.scss";
 
 import { Serialized, Transaction, SafeUser, SafeAccount } from "@/lib/types";
 
@@ -56,16 +56,6 @@ interface DashboardClientProps {
   selectedYear?: number;
   initialTab?: string;
 }
-
-const DashboardGrid = styled.div`
-  display: grid;
-  grid-template-columns: minmax(400px, 1fr) 2fr;
-  gap: 1.5rem;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
-  }
-`;
 
 export default function DashboardClient(props: DashboardClientProps) {
   const router = useRouter();
@@ -222,7 +212,7 @@ export default function DashboardClient(props: DashboardClientProps) {
           onYearChange={handleYearChange}
         />
 
-        <div style={{ marginBottom: "2rem" }}>
+        <div className={styles.tabSpacing}>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList>
               <TabsTrigger value="home">Home</TabsTrigger>
@@ -236,9 +226,9 @@ export default function DashboardClient(props: DashboardClientProps) {
             <TabsBody>
               <TabsContent value="home">
                 {/* Main Layout: Projections (Left) vs Chart & Cards (Right) */}
-                <DashboardGrid>
+                <div className={styles.dashboardGrid}>
                   {/* Goal Tracker (Spans Full Width) */}
-                  <div style={{ gridColumn: "1 / -1" }}>
+                  <div className={styles.fullWidth}>
                     <GoalTracker
                       netWorth={props.netWorth}
                       monthlySavings={props.monthlyNetWorthIncrease}
@@ -248,7 +238,7 @@ export default function DashboardClient(props: DashboardClientProps) {
                   </div>
 
                   {/* Left Column: Projections Table */}
-                  <div style={{ minWidth: 0, height: "100%" }}>
+                  <div className={styles.column}>
                     <ProjectionsTable
                       projections={projections}
                       selectedYear={selectedYear}
@@ -258,21 +248,9 @@ export default function DashboardClient(props: DashboardClientProps) {
                   </div>
 
                   {/* Right Column: Chart + Summary Cards */}
-                  <Flex
-                    direction="column"
-                    gap={6}
-                    style={{ height: "100%", minWidth: 0 }}
-                  >
+                  <Flex direction="column" gap={6} className={styles.column}>
                     {/* Net Worth Chart */}
-                    <Card
-                      style={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        minHeight: "400px",
-                        minWidth: 0,
-                      }}
-                    >
+                    <Card className={styles.chartCard}>
                       <Text
                         variant="h5"
                         color="muted"
@@ -280,7 +258,7 @@ export default function DashboardClient(props: DashboardClientProps) {
                       >
                         Net Worth Over Time
                       </Text>
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className={styles.chartContainer}>
                         <NetWorthChart data={chartData} />
                       </div>
                     </Card>
@@ -295,7 +273,7 @@ export default function DashboardClient(props: DashboardClientProps) {
                       year={selectedYear}
                     />
                   </Flex>
-                </DashboardGrid>
+                </div>
               </TabsContent>
 
               <TabsContent value="transactions">
@@ -313,13 +291,7 @@ export default function DashboardClient(props: DashboardClientProps) {
               <TabsContent value="budget">
                 <Card style={{ padding: 0, overflow: "hidden" }}>
                   {/* Header */}
-                  <div
-                    style={{
-                      padding: "1.5rem",
-                      borderBottom:
-                        "var(--border-width) solid var(--card-border)",
-                    }}
-                  >
+                  <div className={styles.budgetHeader}>
                     <Text variant="h3" weight="black">
                       Budget
                     </Text>

@@ -17,7 +17,7 @@ These rules must be followed for all code generation and modification tasks with
 - **Spacing Integrity**: The `gap` prop on Layout components (`Flex`, `Grid`, `Stack`) accepts **integers only** (0-16), representing steps in the spacing scale.
   - ❌ `<Flex gap="1rem">`
   - ✅ `<Flex gap={4}>` (which equals 1rem)
-- **Responsive Layouts**: The Design System does NOT support Tailwind-like responsive utility classes (e.g., `md:w-32`). Use `@emotion/styled` and media queries for responsive adjustments if the component props don't support it directly.
+- **Responsive Layouts**: The Design System does NOT support Tailwind-like responsive utility classes (e.g., `md:w-32`). Use **CSS Modules (`.module.scss`)** and media queries for responsive adjustments.
 
 ## 3. Typography
 
@@ -44,7 +44,7 @@ These rules must be followed for all code generation and modification tasks with
 
 ## 6. Component Extension
 
-- If a custom style is absolutely required (e.g., a specific hover effect or responsive width), use `styled(Component)` from `@emotion/styled` to extend the Design System component.
+- If a custom style is absolutely required (e.g., a specific hover effect or responsive width), use **CSS Modules** and pass a `className` to the Design System component.
 
 ## 7. File Organization & Imports
 
