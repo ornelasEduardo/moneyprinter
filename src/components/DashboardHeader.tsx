@@ -5,25 +5,7 @@ import { logout } from "@/app/actions/auth";
 import { useDashboardStore } from "@/lib/store";
 import { Button, Flex, Select, Text } from "doom-design-system";
 import { User, LogOut, FlaskConical } from "lucide-react";
-import styled from "@emotion/styled";
-
-const HeaderContainer = styled(Flex)`
-  position: relative;
-  z-index: 40;
-  margin-bottom: 1.5rem;
-
-  @media (min-width: 768px) {
-    margin-bottom: 2.5rem;
-  }
-`;
-
-const YearSelectWrapper = styled.div`
-  width: 100%;
-
-  @media (min-width: 768px) {
-    width: 8rem;
-  }
-`;
+import styles from "./DashboardHeader.module.scss";
 
 interface DashboardHeaderProps {
   selectedYear: number;
@@ -38,14 +20,20 @@ export default function DashboardHeader({
   const availableYears = useDashboardStore((state) => state.availableYears);
 
   return (
-    <HeaderContainer justify="space-between" align="center" wrap={true} gap={4}>
+    <Flex
+      className={styles.headerContainer}
+      justify="space-between"
+      align="center"
+      wrap={true}
+      gap={4}
+    >
       <Flex gap={4} align="center" wrap={true}>
         <Logo size={48} />
         <Text variant="h1" className="uppercase" style={{ margin: 0 }}>
           MoneyPrinter
         </Text>
 
-        <YearSelectWrapper>
+        <div className={styles.yearSelectWrapper}>
           <Select
             value={selectedYear}
             onChange={(e) => onYearChange(e.target.value)}
@@ -53,7 +41,7 @@ export default function DashboardHeader({
               .sort((a, b) => a - b)
               .map((year) => ({ value: year, label: year.toString() }))}
           />
-        </YearSelectWrapper>
+        </div>
       </Flex>
 
       <Flex gap={4} align="center" wrap={true}>
@@ -87,6 +75,6 @@ export default function DashboardHeader({
           <span>Logout</span>
         </Button>
       </Flex>
-    </HeaderContainer>
+    </Flex>
   );
 }

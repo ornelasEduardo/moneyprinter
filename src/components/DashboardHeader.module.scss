@@ -1,0 +1,17 @@
+.headerContainer {
+  position: relative;
+  z-index: 40;
+  margin-bottom: 1.5rem;
+
+  @media (min-width: 768px) {
+    margin-bottom: 2.5rem;
+  }
+}
+
+.yearSelectWrapper {
+  width: 100%;
+
+  @media (min-width: 768px) {
+    width: 8rem;
+  }
+}

@@ -11,8 +11,6 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
     "@prisma/client": "^5.22.0",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.12",
@@ -45,6 +43,7 @@
     "happy-dom": "^20.0.11",
     "jsdom": "^27.2.0",
     "prisma": "^5.22.0",
+    "sass": "^1.97.1",
     "typescript": "^5",
     "vitest": "^4.0.14"
   }
