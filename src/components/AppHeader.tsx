@@ -42,14 +42,9 @@ export default function AppHeader({ user, selectedYear, availableYears, onYearCh
             aria-label="User menu"
           >
             <Avatar fallback={initials} size="sm" shape="square" />
-            <Stack gap={0} className={styles.profileText}>
-              <Text variant="caption" weight="bold">{user?.display_name ?? 'User'}</Text>
-              {user?.is_sandbox ? (
-                <Text variant="caption" color="warning" weight="semibold">Sandbox</Text>
-              ) : (
-                <Text variant="caption" color="muted">Personal</Text>
-              )}
-            </Stack>
+            <Text variant="caption" weight="bold" className={styles.profileText}>
+              {user?.display_name ?? 'User'}
+            </Text>
             <ChevronDown
               size={14}
               strokeWidth={2.5}
