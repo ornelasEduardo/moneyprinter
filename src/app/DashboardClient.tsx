@@ -336,7 +336,7 @@ export default function DashboardClient(props: DashboardClientProps) {
           </Sidebar.Nav>
         </Sidebar>
 
-        <main className={styles.main} style={{ position: 'relative', zIndex: 0 }}>
+        <main className={styles.main}>
           <AppHeader
             user={props.user}
             selectedYear={selectedYear}

@@ -1,18 +1,16 @@
 // AppHeader
-// Top strip that sits flush with Sidebar.Header.
-// z-index sits BELOW sidebar so the sidebar's right hard shadow
-// renders on top of this header's background.
+// Continues the sidebar header's horizontal line.
+// Same background (--card-bg), same border-bottom, same visual weight.
+// The sidebar shadow naturally falls over this bar — that's correct,
+// it creates a subtle depth separation between sidebar and content.
 
 .bar {
   position: sticky;
   top: 0;
-  // Must be below sidebar's z-index so sidebar shadow overlaps us
-  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-6);
-  // Height accommodates doom's Select (min-height: 48px) + breathing room
   padding: var(--spacing-3) var(--spacing-6);
   background: var(--card-bg);
   border-bottom: var(--border-width) solid var(--card-border);
@@ -24,13 +22,16 @@
   }
 }
 
-// Year selector — just the select, no label
+// Year selector
 
 .yearSelect {
   width: 8rem;
 }
 
 // Profile trigger
+// Bordered container with doom's lift/press interaction.
+// Same background as page (--background) to contrast against
+// the header's --card-bg.
 
 .profileTrigger {
   all: unset;
@@ -83,7 +84,6 @@
 // Dropdown
 
 .dropdown {
-  padding: 0;
   min-width: 220px;
   overflow: hidden;
 }
