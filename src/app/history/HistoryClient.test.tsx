@@ -60,8 +60,9 @@ describe('HistoryClient', () => {
   it('should render audit log entries', () => {
     render(<HistoryClient entries={mockEntries} warnings={[]} />);
 
-    expect(screen.getAllByText(/accounts/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/CREATE/i).length).toBeGreaterThan(0);
+    expect(screen.getByText('CREATE')).toBeInTheDocument();
+    expect(screen.getByText('UPDATE')).toBeInTheDocument();
+    expect(screen.getByText('DELETE')).toBeInTheDocument();
   });
 
   it('should render integrity warnings when present', () => {
@@ -79,7 +80,6 @@ describe('HistoryClient', () => {
   it('should render undo buttons only for non-undone entries', () => {
     render(<HistoryClient entries={mockEntries} warnings={[]} />);
 
-    // 2 entries are not undone, 1 is undone
     const undoButtons = screen.getAllByRole('button', { name: /undo/i });
     expect(undoButtons.length).toBe(2);
   });

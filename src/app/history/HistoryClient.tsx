@@ -1,8 +1,9 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useMemo, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Card, Text, Stack, Badge, Flex } from 'doom-design-system';
+import { ColumnDef } from '@tanstack/react-table';
+import { Button, Card, Text, Stack, Badge, Flex, Table } from 'doom-design-system';
 import { Logo } from '@/components/Logo';
 import { undoEntry } from '@/app/actions/audit';
 import { ArrowLeft, Undo2 } from 'lucide-react';
@@ -49,6 +50,71 @@ export default function HistoryClient({ entries, warnings }: HistoryClientProps)
     });
   }
 
+  const columns = useMemo<ColumnDef<AuditEntryRow>[]>(
+    () => [
+      {
+        accessorKey: 'action',
+        header: 'Action',
+        cell: (info) => {
+          const action = info.getValue() as string;
+          const isUndone = info.row.original.undone_at !== null;
+          return (
+            <Flex gap={2} align="center">
+              <Badge variant={isUndone ? 'secondary' : actionBadgeVariant(action)}>
+                {action}
+              </Badge>
+              {isUndone && <Badge variant="outline">undone</Badge>}
+            </Flex>
+          );
+        },
+      },
+      {
+        accessorKey: 'entity_type',
+        header: 'Entity',
+        cell: (info) => {
+          const isUndone = info.row.original.undone_at !== null;
+          return (
+            <Text className={isUndone ? styles.mutedText : ''}>
+              {formatEntityType(info.getValue() as string)} #{info.row.original.entity_id}
+            </Text>
+          );
+        },
+      },
+      {
+        accessorKey: 'created_at',
+        header: 'Date',
+        cell: (info) => (
+          <Text color="muted">
+            {new Date(info.getValue() as string).toLocaleString()}
+          </Text>
+        ),
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: (info) => {
+          const isUndone = info.row.original.undone_at !== null;
+          if (isUndone) return null;
+          return (
+            <Flex justify="flex-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleUndo(info.row.original.id)}
+                disabled={isPending}
+                aria-label="Undo"
+              >
+                <Undo2 size={14} strokeWidth={2.5} />
+                Undo
+              </Button>
+            </Flex>
+          );
+        },
+      },
+    ],
+    [isPending]
+  );
+
   return (
     <div className={styles.history}>
       <Flex justify="space-between" align="center" gap={4} className={styles.header}>
@@ -65,7 +131,7 @@ export default function HistoryClient({ entries, warnings }: HistoryClientProps)
       <Text variant="h2">History</Text>
 
       {warnings.length > 0 && (
-        <Card className={styles.warningsCard}>
+        <Card className={`${styles.warningsCard} ${styles.cardInner}`}>
           <Stack gap={3}>
             <Text variant="h4">Integrity Warnings</Text>
             <Stack gap={2}>
@@ -80,50 +146,22 @@ export default function HistoryClient({ entries, warnings }: HistoryClientProps)
         </Card>
       )}
 
-      <Card>
+      <Card className={styles.cardInner}>
         <Stack gap={4}>
           <Text variant="h4">Activity Log</Text>
           {entries.length === 0 ? (
             <Text color="muted">No activity yet.</Text>
           ) : (
-            <Stack gap={0}>
-              {entries.map((entry) => {
-                const isUndone = entry.undone_at !== null;
-                return (
-                  <div
-                    key={entry.id}
-                    className={`${styles.entry} ${isUndone ? styles.undone : ''}`}
-                  >
-                    <Flex align="center" gap={3} wrap={true} className={styles.entryInfo}>
-                      <Badge variant={isUndone ? 'secondary' : actionBadgeVariant(entry.action)}>
-                        {entry.action}
-                      </Badge>
-                      {isUndone && (
-                        <Badge variant="outline">undone</Badge>
-                      )}
-                      <Text className={isUndone ? styles.mutedText : ''}>
-                        {formatEntityType(entry.entity_type)} #{entry.entity_id}
-                      </Text>
-                      <Text variant="small" color="muted">
-                        {new Date(entry.created_at).toLocaleString()}
-                      </Text>
-                    </Flex>
-                    {!isUndone && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleUndo(entry.id)}
-                        disabled={isPending}
-                        aria-label="Undo"
-                      >
-                        <Undo2 size={14} strokeWidth={2.5} />
-                        Undo
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
-            </Stack>
+            <Table
+              data={entries}
+              columns={columns}
+              enablePagination
+              enableFiltering
+              enableSorting
+              variant="flat"
+              striped
+              pageSize={20}
+            />
           )}
         </Stack>
       </Card>
