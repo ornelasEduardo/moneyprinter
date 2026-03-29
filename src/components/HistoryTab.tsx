@@ -189,16 +189,26 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
           </Text>
         </Modal.Header>
         <Modal.Body>
-          <Stack gap={3}>
-            {entityHistory.map((entry) => (
-              <Flex key={entry.id} align="center" gap={3} className={styles.modalEntry}>
-                {entry.undone_at ? (
-                  <Badge variant="error">UNDONE</Badge>
-                ) : (
-                  <Badge variant={actionBadgeVariant(entry.action)}>{entry.action}</Badge>
-                )}
-                <Stack gap={1}>
-                  <Text>{new Date(entry.created_at).toLocaleString()}</Text>
+          <div className={styles.timeline}>
+            {entityHistory.map((entry, i) => (
+              <div key={entry.id} className={styles.timelineItem}>
+                <div className={styles.timelineLine}>
+                  <div
+                    className={`${styles.timelineDot} ${
+                      entry.undone_at ? styles.dotError : styles[`dot${entry.action}`]
+                    }`}
+                  />
+                  {i < entityHistory.length - 1 && <div className={styles.timelineConnector} />}
+                </div>
+                <Stack gap={1} className={styles.timelineContent}>
+                  {entry.undone_at ? (
+                    <Badge variant="error">UNDONE</Badge>
+                  ) : (
+                    <Badge variant={actionBadgeVariant(entry.action)}>{entry.action}</Badge>
+                  )}
+                  <Text variant="small" color="muted">
+                    {new Date(entry.created_at).toLocaleString()}
+                  </Text>
                   {entry.previous_value && (
                     <Text variant="small" color="muted">
                       From: {JSON.stringify(entry.previous_value)}
@@ -210,9 +220,9 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
                     </Text>
                   )}
                 </Stack>
-              </Flex>
+              </div>
             ))}
-          </Stack>
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="ghost" onClick={() => setSelectedEntity(null)}>

@@ -15,11 +15,59 @@
   text-decoration: line-through;
 }
 
-.modalEntry {
-  padding: var(--spacing-3) 0;
-  border-bottom: var(--border-width) solid var(--card-border);
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
 
-  &:last-child {
-    border-bottom: none;
-  }
+.timelineItem {
+  display: flex;
+  gap: var(--spacing-4);
+  min-height: var(--spacing-8);
+}
+
+.timelineLine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--spacing-3);
+  flex-shrink: 0;
+}
+
+.timelineDot {
+  width: var(--spacing-3);
+  height: var(--spacing-3);
+  border-radius: 50%;
+  border: var(--border-width) solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.dotError {
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.dotCREATE {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.dotUPDATE {
+  background: var(--warning);
+  border-color: var(--warning);
+}
+
+.dotDELETE {
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.timelineConnector {
+  width: var(--border-width);
+  flex: 1;
+  background: var(--card-border);
+}
+
+.timelineContent {
+  padding-bottom: var(--spacing-4);
 }
