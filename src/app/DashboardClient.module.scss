@@ -59,19 +59,33 @@
   border-bottom: var(--border-width) solid var(--card-border);
 }
 
-.sidebarFooter {
-  padding: var(--spacing-2) var(--spacing-3);
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  padding: var(--spacing-3) var(--spacing-6);
+  background: var(--background);
+  border-bottom: var(--border-width) solid var(--card-border);
+
+  @media (max-width: 768px) {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
 }
 
-.userBadge {
-  padding: var(--spacing-1) var(--spacing-2);
-  border: var(--border-width) solid var(--card-border);
-  border-radius: var(--radius);
-  background: var(--primary);
-  color: var(--primary-foreground);
+.avatarTrigger {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
 
-  &.sandbox {
-    background: var(--warning);
-    color: var(--foreground);
-  }
+.userMenu {
+  padding: var(--spacing-3);
+  min-width: 200px;
+}
+
+.userMenuHeader {
+  padding-bottom: var(--spacing-2);
+  border-bottom: var(--border-width) solid var(--card-border);
+  margin-bottom: var(--spacing-1);
 }
