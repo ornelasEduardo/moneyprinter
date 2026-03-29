@@ -6,7 +6,7 @@ export async function getNetWorth() {
   if (!userId) return 0;
 
   const result = await prisma.accounts.aggregate({
-    where: { user_id: userId },
+    where: { user_id: userId, deleted_at: null },
     _sum: { balance: true }
   });
   return Number(result._sum.balance) || 0;
@@ -17,7 +17,7 @@ export async function getAccounts() {
   if (!userId) return [];
 
   const accounts = await prisma.accounts.findMany({
-    where: { user_id: userId },
+    where: { user_id: userId, deleted_at: null },
     orderBy: { name: 'asc' },
     select: {
       id: true,
@@ -48,7 +48,8 @@ export async function getMonthlySpending() {
     where: {
       user_id: userId,
       date: { gte: startOfMonth },
-      amount: { gt: 0 }
+      amount: { gt: 0 },
+      deleted_at: null
     },
     _sum: { amount: true }
   });
@@ -65,7 +66,8 @@ export async function getNetWorthHistory(days: number = 30) {
   const history = await prisma.net_worth_history.findMany({
     where: {
       user_id: userId,
-      date: { gte: startDate }
+      date: { gte: startDate },
+      deleted_at: null
     },
     orderBy: { date: 'asc' },
     select: {
@@ -95,7 +97,8 @@ export async function getNetWorthHistoryForYear(year: number) {
       date: {
         gte: startDate,
         lt: endDate
-      }
+      },
+      deleted_at: null
     },
     orderBy: { date: 'asc' },
     select: {
@@ -120,7 +123,8 @@ export async function getWindfalls() {
     where: {
       user_id: userId,
       type: { in: ['bonus', 'rsu', 'espp', 'other'] },
-      next_date: { not: null }
+      next_date: { not: null },
+      deleted_at: null
     },
     orderBy: { next_date: 'asc' },
     select: {
@@ -147,7 +151,8 @@ export async function getUpcomingWindfalls() {
     where: {
       user_id: userId,
       type: { in: ['bonus', 'rsu', 'espp', 'other'] },
-      next_date: { gte: new Date() }
+      next_date: { gte: new Date() },
+      deleted_at: null
     },
     orderBy: { next_date: 'asc' },
     take: 5,
@@ -181,7 +186,8 @@ export async function getTransactionsForYear(year: number) {
         gte: startDate,
         lt: endDate
       },
-      amount: { gt: 0 }
+      amount: { gt: 0 },
+      deleted_at: null
     },
     orderBy: { date: 'asc' },
     include: {
@@ -211,7 +217,8 @@ export async function calculateMonthlyNetWorthIncrease() {
     const income = await prisma.income_sources.findFirst({
       where: {
         user_id: userId,
-        type: 'paycheck'
+        type: 'paycheck',
+        deleted_at: null
       },
       select: {
         id: true,
@@ -301,9 +308,10 @@ export async function getAvailableYears() {
   if (!userId) return [new Date().getFullYear()];
 
   const result = await prisma.$queryRaw`
-    SELECT DISTINCT EXTRACT(YEAR FROM date) as year 
-    FROM net_worth_history 
-    WHERE user_id = ${userId} 
+    SELECT DISTINCT EXTRACT(YEAR FROM date) as year
+    FROM net_worth_history
+    WHERE user_id = ${userId}
+    AND deleted_at IS NULL
     ORDER BY year DESC
   `;
   

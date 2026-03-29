@@ -11,7 +11,8 @@ async function _getOrCreateDefaultIncomeSource(userId: number): Promise<number> 
   const existing = await prisma.income_sources.findFirst({
     where: {
       user_id: userId,
-      type: 'paycheck'
+      type: 'paycheck',
+      deleted_at: null
     },
     select: { id: true }
   });
@@ -144,7 +145,8 @@ export async function getDefaultIncomeBudgets() {
   const incomeSource = await prisma.income_sources.findFirst({
     where: {
       id: incomeSourceId,
-      user_id: userId
+      user_id: userId,
+      deleted_at: null
     },
     select: { amount: true }
   });
@@ -161,10 +163,11 @@ export async function getIncomeSources() {
   
   // Use raw query for complex ordering by aggregated relation
   const result = await prisma.$queryRaw`
-    SELECT s.id, s.name, s.type, s.amount 
+    SELECT s.id, s.name, s.type, s.amount
     FROM income_sources s
     LEFT JOIN income_budgets b ON s.id = b.income_source_id
     WHERE s.user_id = ${userId}
+    AND s.deleted_at IS NULL
     GROUP BY s.id
     ORDER BY MAX(b.updated_at) DESC NULLS LAST, s.name ASC
   `;
@@ -183,11 +186,12 @@ export async function getBudgetsForIncomeSource(incomeSourceId: number) {
   const incomeSource = await prisma.income_sources.findFirst({
     where: {
       id: incomeSourceId,
-      user_id: userId
+      user_id: userId,
+      deleted_at: null
     },
     select: { amount: true }
   });
-  
+
   if (!incomeSource) {
     throw new Error('Income source not found');
   }

@@ -154,7 +154,8 @@ export async function getAccounts() {
 
   const accounts = await prisma.accounts.findMany({
     where: {
-      user_id: userId
+      user_id: userId,
+      deleted_at: null
     },
     orderBy: {
       name: 'asc'

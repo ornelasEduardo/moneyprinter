@@ -59,7 +59,7 @@ describe('Data Library', () => {
       const result = await getNetWorth();
       expect(result).toBe(1000);
       expect(prisma.accounts.aggregate).toHaveBeenCalledWith({
-        where: { user_id: 1 },
+        where: { user_id: 1, deleted_at: null },
         _sum: { balance: true },
       });
     });

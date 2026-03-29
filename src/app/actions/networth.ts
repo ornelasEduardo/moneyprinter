@@ -106,7 +106,8 @@ export async function getNetWorthHistory() {
 
   const entries = await prisma.net_worth_history.findMany({
     where: {
-      user_id: userId
+      user_id: userId,
+      deleted_at: null
     },
     orderBy: {
       date: 'desc'

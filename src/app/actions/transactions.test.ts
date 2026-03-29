@@ -141,7 +141,7 @@ describe('Transaction Actions', () => {
       const result = await getAccounts();
 
       expect(prisma.accounts.findMany).toHaveBeenCalledWith({
-        where: { user_id: mockUserId },
+        where: { user_id: mockUserId, deleted_at: null },
         orderBy: { name: 'asc' },
         select: { id: true, name: true },
       });
