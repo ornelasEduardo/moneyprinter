@@ -1,33 +1,53 @@
-.header {
+// AppHeader — utility bar / instrument strip
+// Sits between sidebar and content. Compact, purposeful, no fluff.
+
+.bar {
   position: sticky;
   top: 0;
   z-index: var(--z-header);
-  padding: var(--spacing-3) var(--spacing-6);
-  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  height: 56px;
+  padding: 0 var(--spacing-6);
+  background: var(--card-bg);
   border-bottom: var(--border-width) solid var(--card-border);
 
   @media (max-width: 768px) {
-    padding: var(--spacing-3) var(--spacing-4);
+    padding: 0 var(--spacing-4);
   }
 }
 
-.calendarIcon {
+// Left side — year label + select
+
+.label {
   color: var(--muted-foreground);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
-// Avatar trigger
+.yearSelect {
+  width: 7rem;
+}
 
-.avatarTrigger {
+// Right side — user trigger
+
+.userTrigger {
   all: unset;
   cursor: pointer;
   display: flex;
   align-items: center;
-  position: relative;
-  border-radius: var(--radius-full);
-  transition: box-shadow var(--duration-fast) var(--ease-in-out);
+  gap: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius);
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              background var(--duration-fast) var(--ease-in-out);
 
   &:hover {
-    box-shadow: 0 0 0 var(--border-width) var(--primary);
+    border-color: var(--card-border);
+    background: var(--background);
   }
 
   &:focus-visible {
@@ -36,27 +56,35 @@
   }
 }
 
-.sandboxIndicator {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  color: var(--warning);
+.userInfo {
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.chevron {
+  color: var(--muted-foreground);
+  transition: transform var(--duration-fast) var(--ease-in-out);
+
+  .userTrigger:hover & {
+    transform: translateY(1px);
+  }
 }
 
 // Dropdown menu
 
-.menuCard {
+.menu {
+  min-width: 240px;
   padding: 0;
-  min-width: 220px;
   overflow: hidden;
 }
 
-.menuUser {
-  padding: var(--spacing-3) var(--spacing-4);
+.menuHeader {
+  padding: var(--spacing-4);
   border-bottom: var(--border-width) solid var(--card-border);
 }
 
-.menuItem {
+.menuAction {
   all: unset;
   cursor: pointer;
   display: flex;
@@ -70,6 +98,11 @@
 
   &:hover {
     background: var(--muted);
+  }
+
+  &:active {
+    transition: none;
+    background: var(--card-border);
   }
 
   &:focus-visible {

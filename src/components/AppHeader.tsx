@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Avatar, Button, Card, Flex, Popover, Select, Stack, Text } from 'doom-design-system';
+import { Avatar, Card, Chip, Flex, Popover, Select, Stack, Text } from 'doom-design-system';
 import { logout } from '@/app/actions/auth';
-import { LogOut, User, FlaskConical, Calendar } from 'lucide-react';
+import { LogOut, FlaskConical, ChevronDown } from 'lucide-react';
 import type { SafeUser } from '@/lib/types';
 import styles from './AppHeader.module.scss';
 
@@ -22,59 +22,55 @@ export default function AppHeader({ user, selectedYear, availableYears, onYearCh
     : '?';
 
   return (
-    <Flex align="center" justify="space-between" className={styles.header}>
+    <header className={styles.bar}>
+      {/* Left: Year selector */}
       <Flex align="center" gap={3}>
-        <Calendar size={16} strokeWidth={2.5} className={styles.calendarIcon} />
-        <Select
-          value={selectedYear}
-          onChange={(e) => onYearChange(e.target.value)}
-          options={[...availableYears]
-            .sort((a, b) => a - b)
-            .map((year) => ({ value: year, label: year.toString() }))}
-        />
+        <Text variant="caption" weight="bold" className={`${styles.label} uppercase`}>Year</Text>
+        <div className={styles.yearSelect}>
+          <Select
+            value={selectedYear}
+            onChange={(e) => onYearChange(e.target.value)}
+            options={[...availableYears]
+              .sort((a, b) => a - b)
+              .map((year) => ({ value: year, label: year.toString() }))}
+          />
+        </div>
       </Flex>
 
+      {/* Right: User */}
       <Popover
         trigger={
           <button
-            className={styles.avatarTrigger}
+            className={styles.userTrigger}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="User menu"
           >
-            <Avatar
-              fallback={initials}
-              size="sm"
-              shape="circle"
-            />
-            {user?.is_sandbox && (
-              <FlaskConical size={12} strokeWidth={2.5} className={styles.sandboxIndicator} />
-            )}
+            <Avatar fallback={initials} size="sm" shape="square" />
+            <Flex direction="column" align="flex-start" gap={0} className={styles.userInfo}>
+              <Text variant="caption" weight="bold">{user?.display_name ?? 'User'}</Text>
+              {user?.is_sandbox && (
+                <Chip variant="warning" size="xs">
+                  <FlaskConical size={10} strokeWidth={2.5} />
+                  Sandbox
+                </Chip>
+              )}
+            </Flex>
+            <ChevronDown size={14} strokeWidth={2.5} className={styles.chevron} />
           </button>
         }
         content={
-          <Card className={styles.menuCard}>
+          <Card className={styles.menu}>
             <Stack gap={0}>
-              {user && (
-                <Flex align="center" gap={3} className={styles.menuUser}>
-                  <Avatar fallback={initials} size="md" shape="circle" />
-                  <Stack gap={0}>
-                    <Text weight="bold">{user.display_name}</Text>
-                    <Text variant="caption" color="muted">{user.username}</Text>
-                    {user.is_sandbox && (
-                      <Flex align="center" gap={1}>
-                        <FlaskConical size={10} strokeWidth={2.5} />
-                        <Text variant="caption" color="warning" weight="semibold">Sandbox</Text>
-                      </Flex>
-                    )}
-                  </Stack>
-                </Flex>
-              )}
+              <Flex direction="column" gap={0} className={styles.menuHeader}>
+                <Text weight="bold">{user?.display_name}</Text>
+                <Text variant="caption" color="muted">{user?.username}</Text>
+              </Flex>
               <button
-                className={styles.menuItem}
+                className={styles.menuAction}
                 onClick={() => { logout(); setMenuOpen(false); }}
               >
                 <LogOut size={16} strokeWidth={2.5} />
-                <Text variant="small">Logout</Text>
+                <Text variant="small" weight="medium">Logout</Text>
               </button>
             </Stack>
           </Card>
@@ -83,6 +79,6 @@ export default function AppHeader({ user, selectedYear, availableYears, onYearCh
         onClose={() => setMenuOpen(false)}
         placement="bottom-end"
       />
-    </Flex>
+    </header>
   );
 }
