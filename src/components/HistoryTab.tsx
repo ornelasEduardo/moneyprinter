@@ -105,7 +105,7 @@ function buildTimelineEvents(entry: AuditEntryRow): TimelineEvent[] {
     data: entry.action === 'CREATE' ? entry.new_value
         : entry.action === 'DELETE' ? entry.previous_value
         : entry.new_value,
-    dataLabel: entry.action === 'DELETE' ? 'Deleted record' : 'Values',
+    dataLabel: entry.action === 'DELETE' ? 'Deleted record' : '',
   });
 
   return events;
@@ -119,7 +119,7 @@ function ValueDisplay({ label, data }: { label: string; data: Record<string, unk
 
   return (
     <Stack gap={1}>
-      <Text variant="caption" weight="semibold" className="uppercase">{label}</Text>
+      {label && <Text variant="caption" weight="semibold" className="uppercase">{label}</Text>}
       <Card className={styles.valueCard}>
         <Stack gap={0}>
           {fields.map(([key, val], i) => (

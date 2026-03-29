@@ -9,11 +9,8 @@
 
 .clickableCell {
   cursor: pointer;
-  transition: opacity var(--duration-fast) var(--ease-in-out);
-
-  &:hover {
-    opacity: 0.7;
-  }
+  margin: calc(var(--spacing-2) * -1) calc(var(--spacing-3) * -1);
+  padding: var(--spacing-2) var(--spacing-3);
 }
 
 .mutedText {
