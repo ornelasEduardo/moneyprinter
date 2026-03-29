@@ -104,7 +104,8 @@ export default function DashboardClient(props: DashboardClientProps) {
     router.push(`/?${params.toString()}`);
   };
 
-  const handleNavigation = (href: string) => {
+  const handleNavigation = (href: string, e?: React.MouseEvent) => {
+    e?.preventDefault();
     const tab = href.replace("/", "");
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
