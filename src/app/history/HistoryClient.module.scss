@@ -1,0 +1,37 @@
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.warnings {
+  border-left: 4px solid var(--color-danger);
+}
+
+.warning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.entryInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.timestamp {
+  color: var(--color-text-muted);
+}
