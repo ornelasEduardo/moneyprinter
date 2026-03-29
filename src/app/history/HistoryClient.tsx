@@ -54,9 +54,7 @@ export default function HistoryClient({ entries, warnings }: HistoryClientProps)
       <Flex justify="space-between" align="center" gap={4} className={styles.header}>
         <Flex gap={4} align="center">
           <Logo size={48} />
-          <Text variant="h1" className="uppercase" style={{ margin: 0 }}>
-            MoneyPrinter
-          </Text>
+          <Text variant="h1" className="uppercase">MoneyPrinter</Text>
         </Flex>
         <Button variant="secondary" onClick={() => router.push('/')}>
           <ArrowLeft size={18} strokeWidth={2.5} />
@@ -64,66 +62,70 @@ export default function HistoryClient({ entries, warnings }: HistoryClientProps)
         </Button>
       </Flex>
 
-      <Text variant="h2" style={{ margin: 0 }}>History</Text>
+      <Text variant="h2">History</Text>
 
       {warnings.length > 0 && (
         <Card className={styles.warningsCard}>
-          <Text variant="h4" style={{ margin: 0 }}>Integrity Warnings</Text>
-          <Stack gap={2}>
-            {warnings.map((w, i) => (
-              <Flex key={i} align="center" gap={2} className={styles.warning}>
-                <Badge variant="error">{w.type.replace(/_/g, ' ')}</Badge>
-                <Text>{w.message}</Text>
-              </Flex>
-            ))}
+          <Stack gap={3}>
+            <Text variant="h4">Integrity Warnings</Text>
+            <Stack gap={2}>
+              {warnings.map((w, i) => (
+                <Flex key={i} align="center" gap={3} className={styles.warning}>
+                  <Badge variant="error">{w.type.replace(/_/g, ' ')}</Badge>
+                  <Text>{w.message}</Text>
+                </Flex>
+              ))}
+            </Stack>
           </Stack>
         </Card>
       )}
 
       <Card>
-        <Text variant="h4" style={{ margin: 0, marginBottom: 'var(--space-md)' }}>Activity Log</Text>
-        {entries.length === 0 ? (
-          <Text color="muted">No activity yet.</Text>
-        ) : (
-          <Stack gap={0}>
-            {entries.map((entry) => {
-              const isUndone = entry.undone_at !== null;
-              return (
-                <div
-                  key={entry.id}
-                  className={`${styles.entry} ${isUndone ? styles.undone : ''}`}
-                >
-                  <Flex align="center" gap={2} wrap={true} className={styles.entryInfo}>
-                    <Badge variant={isUndone ? 'secondary' : actionBadgeVariant(entry.action)}>
-                      {entry.action}
-                    </Badge>
-                    {isUndone && (
-                      <Badge variant="outline">undone</Badge>
+        <Stack gap={4}>
+          <Text variant="h4">Activity Log</Text>
+          {entries.length === 0 ? (
+            <Text color="muted">No activity yet.</Text>
+          ) : (
+            <Stack gap={0}>
+              {entries.map((entry) => {
+                const isUndone = entry.undone_at !== null;
+                return (
+                  <div
+                    key={entry.id}
+                    className={`${styles.entry} ${isUndone ? styles.undone : ''}`}
+                  >
+                    <Flex align="center" gap={3} wrap={true} className={styles.entryInfo}>
+                      <Badge variant={isUndone ? 'secondary' : actionBadgeVariant(entry.action)}>
+                        {entry.action}
+                      </Badge>
+                      {isUndone && (
+                        <Badge variant="outline">undone</Badge>
+                      )}
+                      <Text className={isUndone ? styles.mutedText : ''}>
+                        {formatEntityType(entry.entity_type)} #{entry.entity_id}
+                      </Text>
+                      <Text variant="small" color="muted">
+                        {new Date(entry.created_at).toLocaleString()}
+                      </Text>
+                    </Flex>
+                    {!isUndone && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleUndo(entry.id)}
+                        disabled={isPending}
+                        aria-label="Undo"
+                      >
+                        <Undo2 size={14} strokeWidth={2.5} />
+                        Undo
+                      </Button>
                     )}
-                    <Text className={isUndone ? styles.mutedText : ''}>
-                      {formatEntityType(entry.entity_type)} #{entry.entity_id}
-                    </Text>
-                    <Text variant="small" color="muted">
-                      {new Date(entry.created_at).toLocaleString()}
-                    </Text>
-                  </Flex>
-                  {!isUndone && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleUndo(entry.id)}
-                      disabled={isPending}
-                      aria-label="Undo"
-                    >
-                      <Undo2 size={14} />
-                      Undo
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </Stack>
-        )}
+                  </div>
+                );
+              })}
+            </Stack>
+          )}
+        </Stack>
       </Card>
     </div>
   );
