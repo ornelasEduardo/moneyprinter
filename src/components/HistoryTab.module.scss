@@ -22,8 +22,7 @@
 
 .timelineItem {
   display: flex;
-  gap: var(--spacing-4);
-  min-height: var(--spacing-8);
+  gap: var(--spacing-3);
 }
 
 .timelineLine {
@@ -70,4 +69,20 @@
 
 .timelineContent {
   padding-bottom: var(--spacing-4);
+  min-width: 0;
+  flex: 1;
+}
+
+.valueGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-1) var(--spacing-3);
+  padding: var(--spacing-2);
+  background: var(--bg);
+  border: var(--border-width) solid var(--card-border);
+  border-radius: var(--radius);
+}
+
+.valueRow {
+  display: contents;
 }

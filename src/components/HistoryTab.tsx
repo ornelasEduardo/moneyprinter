@@ -38,6 +38,45 @@ function formatEntityType(type: string): string {
   return type.replace(/_/g, ' ');
 }
 
+function formatFieldName(key: string): string {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatFieldValue(value: unknown): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'number') return value.toLocaleString();
+  if (typeof value === 'string') {
+    // Check if it looks like a date
+    if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+      return new Date(value).toLocaleDateString();
+    }
+    return value;
+  }
+  return String(value);
+}
+
+function ValueTable({ label, data }: { label: string; data: Record<string, unknown> }) {
+  const entries = Object.entries(data).filter(
+    ([key]) => !['id', 'user_id', 'deleted_at'].includes(key)
+  );
+  if (entries.length === 0) return null;
+
+  return (
+    <Stack gap={1}>
+      <Text variant="small" weight="bold">{label}</Text>
+      <div className={styles.valueGrid}>
+        {entries.map(([key, val]) => (
+          <div key={key} className={styles.valueRow}>
+            <Text variant="small" color="muted">{formatFieldName(key)}</Text>
+            <Text variant="small">{formatFieldValue(val)}</Text>
+          </div>
+        ))}
+      </div>
+    </Stack>
+  );
+}
+
 export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
   const [isPending, startTransition] = useTransition();
   const [selectedEntity, setSelectedEntity] = useState<{ type: string; id: number } | null>(null);
@@ -200,24 +239,22 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
                   />
                   {i < entityHistory.length - 1 && <div className={styles.timelineConnector} />}
                 </div>
-                <Stack gap={1} className={styles.timelineContent}>
-                  {entry.undone_at ? (
-                    <Badge variant="error">UNDONE</Badge>
-                  ) : (
-                    <Badge variant={actionBadgeVariant(entry.action)}>{entry.action}</Badge>
-                  )}
-                  <Text variant="small" color="muted">
-                    {new Date(entry.created_at).toLocaleString()}
-                  </Text>
-                  {entry.previous_value && (
+                <Stack gap={2} className={styles.timelineContent}>
+                  <Flex gap={2} align="center">
+                    {entry.undone_at ? (
+                      <Badge variant="error">UNDONE</Badge>
+                    ) : (
+                      <Badge variant={actionBadgeVariant(entry.action)}>{entry.action}</Badge>
+                    )}
                     <Text variant="small" color="muted">
-                      From: {JSON.stringify(entry.previous_value)}
+                      {new Date(entry.created_at).toLocaleString()}
                     </Text>
+                  </Flex>
+                  {entry.previous_value && (
+                    <ValueTable label="Before" data={entry.previous_value} />
                   )}
                   {entry.new_value && (
-                    <Text variant="small" color="muted">
-                      To: {JSON.stringify(entry.new_value)}
-                    </Text>
+                    <ValueTable label="After" data={entry.new_value} />
                   )}
                 </Stack>
               </div>
