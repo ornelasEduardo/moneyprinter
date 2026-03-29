@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS accounts (
   type VARCHAR(50) NOT NULL,
   balance DECIMAL(12, 2) NOT NULL DEFAULT 0,
   currency VARCHAR(3) DEFAULT 'USD',
-  last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
@@ -35,7 +36,8 @@ CREATE TABLE IF NOT EXISTS transactions (
   name VARCHAR(255) NOT NULL,
   tags VARCHAR(255),
   type VARCHAR(50) DEFAULT 'expense', -- 'income', 'expense'
-  pending BOOLEAN DEFAULT FALSE
+  pending BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS income_sources (
@@ -46,7 +48,8 @@ CREATE TABLE IF NOT EXISTS income_sources (
   amount DECIMAL(12, 2) NOT NULL,
   frequency VARCHAR(50) NOT NULL, -- 'monthly', 'bi-weekly', etc.
   next_date DATE,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS budget_limits (
@@ -63,6 +66,7 @@ CREATE TABLE IF NOT EXISTS net_worth_history (
   date DATE NOT NULL,
   net_worth DECIMAL(12, 2) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   UNIQUE(user_id, date)
 );
 
@@ -88,6 +92,18 @@ CREATE TABLE IF NOT EXISTS goals (
   is_primary BOOLEAN DEFAULT FALSE,
   target_date DATE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  entity_type VARCHAR(50) NOT NULL,
+  entity_id INTEGER NOT NULL,
+  action VARCHAR(10) NOT NULL,
+  batch_id UUID,
+  previous_value JSONB,
+  new_value JSONB,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS user_settings (
