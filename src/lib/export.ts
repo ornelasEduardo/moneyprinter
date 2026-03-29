@@ -1,18 +1,8 @@
 import prisma from '@/lib/prisma';
 import Papa from 'papaparse';
+import { EXPORTABLE_ENTITIES, type ExportableEntity } from '@/lib/constants';
 
-export const EXPORTABLE_ENTITIES = [
-  'accounts',
-  'transactions',
-  'net_worth_history',
-  'income_sources',
-  'income_budgets',
-  'budget_limits',
-  'goals',
-  'user_settings',
-] as const;
-
-export type ExportableEntity = (typeof EXPORTABLE_ENTITIES)[number];
+export { EXPORTABLE_ENTITIES, type ExportableEntity };
 
 const EXCLUDE_FIELDS = ['user_id', 'deleted_at'];
 

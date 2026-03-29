@@ -3,26 +3,15 @@ import { entitySchemas } from '@/lib/schemas';
 import prisma from '@/lib/prisma';
 import { withAuditContext } from '@/lib/audit-context';
 import { randomUUID } from 'node:crypto';
-import { EXPORTABLE_ENTITIES, type ExportableEntity } from '@/lib/export';
+import {
+  EXPORTABLE_ENTITIES,
+  type ExportableEntity,
+  type ValidationError,
+  type ImportValidationResult,
+  type ConflictReport,
+} from '@/lib/constants';
 
-export interface ValidationError {
-  row: number;
-  field: string;
-  message: string;
-}
-
-export interface ImportValidationResult {
-  entity: string;
-  total: number;
-  valid: Record<string, unknown>[];
-  errors: ValidationError[];
-}
-
-export interface ConflictReport {
-  entity: string;
-  existingCount: number;
-  existingIds: number[];
-}
+export type { ValidationError, ImportValidationResult, ConflictReport };
 
 export function parseCsvEntity(csv: string): Record<string, string>[] {
   if (!csv.trim()) return [];

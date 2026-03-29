@@ -16,7 +16,7 @@ import HistoryTab from "@/components/HistoryTab";
 import type { AuditEntryRow } from "@/components/HistoryTab";
 import type { IntegrityWarning } from "@/lib/integrity";
 import DataTab from "@/components/DataTab";
-import type { BackupHistoryEntry } from "@/lib/backup";
+import type { BackupHistoryEntry } from "@/lib/constants";
 import {
   ActionRow,
   Card,

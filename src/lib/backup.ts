@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { EXPORTABLE_ENTITIES } from '@/lib/export';
+import { EXPORTABLE_ENTITIES } from '@/lib/constants';
 import { createHash } from 'node:crypto';
 
 const AVG_ROW_BYTES: Record<string, number> = {
@@ -19,12 +19,7 @@ export interface BackupSizeEstimate {
   entities: Record<string, number>;
 }
 
-export interface BackupHistoryEntry {
-  date: string;
-  filename: string;
-  size: number;
-  entityCounts: Record<string, number>;
-}
+export type { BackupHistoryEntry } from '@/lib/constants';
 
 export async function estimateBackupSize(userId: number): Promise<BackupSizeEstimate> {
   const entities: Record<string, number> = {};
@@ -75,8 +70,4 @@ export function shouldShowReminder(
   return true;
 }
 
-export function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+export { formatBytes } from '@/lib/constants';

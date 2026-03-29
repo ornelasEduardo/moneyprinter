@@ -6,11 +6,9 @@ import {
   Button, Card, Text, Stack, Flex, Badge, FileUpload, Select,
 } from 'doom-design-system';
 import { Download, Upload, Shield, X } from 'lucide-react';
-import { EXPORTABLE_ENTITIES } from '@/app/actions/export';
+import { EXPORTABLE_ENTITIES, formatBytes, type BackupHistoryEntry, type ImportValidationResult, type ConflictReport } from '@/lib/constants';
 import { validateImport, commitImportAction } from '@/app/actions/import';
 import { getBackupEstimate, recordBackup, dismissBackupReminder } from '@/app/actions/backup';
-import { formatBytes, type BackupHistoryEntry } from '@/lib/backup';
-import type { ImportValidationResult, ConflictReport } from '@/lib/import';
 import styles from './DataTab.module.scss';
 
 interface DataTabProps {

@@ -2,9 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@/test-utils';
 import DataTab from './DataTab';
 
-vi.mock('@/app/actions/export', () => ({
-  EXPORTABLE_ENTITIES: ['accounts', 'transactions'],
-}));
+vi.mock('@/lib/constants', async () => {
+  const actual = await vi.importActual('@/lib/constants');
+  return {
+    ...actual,
+    EXPORTABLE_ENTITIES: ['accounts', 'transactions'],
+  };
+});
 
 vi.mock('@/app/actions/import', () => ({
   validateImport: vi.fn(),
