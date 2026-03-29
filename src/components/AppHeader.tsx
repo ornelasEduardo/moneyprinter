@@ -25,6 +25,7 @@ export default function AppHeader({ user, selectedYear, availableYears, onYearCh
     <header className={styles.bar}>
       <div className={styles.yearSelect}>
         <Select
+          size="sm"
           value={selectedYear}
           onChange={(e) => onYearChange(e.target.value)}
           options={[...availableYears]
