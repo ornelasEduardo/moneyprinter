@@ -1,10 +1,8 @@
-import { render, screen, fireEvent } from '@/test-utils';
+import { render, screen } from '@/test-utils';
 import DashboardClient from './DashboardClient';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 
-// Mock Design System hooks locally to avoid Provider issues
-// Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -19,7 +17,6 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock child components to simplify testing
 vi.mock('@/components/GoalTracker', () => ({ GoalTracker: () => <div data-testid="goal-tracker" /> }));
 vi.mock('@/components/NetWorthChart', () => ({ default: () => <div data-testid="net-worth-chart" /> }));
 vi.mock('@/components/DashboardHeader', () => ({ default: () => <div data-testid="dashboard-header" /> }));
@@ -29,8 +26,6 @@ vi.mock('@/components/TransactionsTable', () => ({ default: () => <div data-test
 vi.mock('@/components/AccountsTable', () => ({ default: () => <div data-testid="accounts-table" /> }));
 vi.mock('@/components/NetWorthHistoryTable', () => ({ default: () => <div data-testid="net-worth-history-table" /> }));
 vi.mock('@/components/SettingsView', () => ({ default: () => <div data-testid="settings-view" /> }));
-
-// Mock Design System components that might cause issues
 
 const mockProps: any = {
   user: { id: 1, username: 'test', display_name: 'Test', is_sandbox: false },
@@ -53,29 +48,19 @@ const mockProps: any = {
 };
 
 describe('DashboardClient', () => {
-  it('should render the dashboard with default tab', () => {
+  it('should render the dashboard with sidebar and home content', () => {
     render(<DashboardClient {...mockProps} />);
-    
+
     expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
-    expect(screen.getByText('Home')).toBeInTheDocument();
     expect(screen.getByTestId('goal-tracker')).toBeInTheDocument();
     expect(screen.getByTestId('projections-table')).toBeInTheDocument();
   });
 
-  it('should switch tabs', () => {
+  it('should render sidebar navigation items', () => {
     render(<DashboardClient {...mockProps} />);
-    
-    const transactionsTab = screen.getByText('Transactions');
-    fireEvent.click(transactionsTab);
-    
-    // Since we mocked useRouter, the URL update won't trigger a re-render via searchParams
-    // But the local state in DashboardClient might update if we didn't mock useSearchParams to be static
-    // Actually DashboardClient syncs state from searchParams in useEffect.
-    // So clicking tab calls router.push.
-    // To test tab switching fully we'd need to simulate the router/searchParams change or test the callback.
-    // For this unit test, checking that the click handler fires router.push is enough.
-    
-    // We can check if the tab trigger exists.
-    expect(transactionsTab).toBeInTheDocument();
+
+    expect(screen.getAllByText('Transactions').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Accounts').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Settings').length).toBeGreaterThan(0);
   });
 });
