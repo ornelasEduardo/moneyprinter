@@ -9,6 +9,11 @@
 
 .clickableCell {
   cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-in-out);
+
+  &:hover {
+    opacity: 0.7;
+  }
 }
 
 .mutedText {
@@ -17,65 +22,73 @@
 
 // Timeline
 
-.timelineItem {
-  min-height: var(--spacing-8);
+.timeline {
+  overflow: hidden;
 }
 
-.timelineLine {
-  width: var(--spacing-3);
+.timelineItem {
+  min-height: var(--spacing-10);
+}
+
+.timelineTrack {
+  width: var(--spacing-4);
   flex-shrink: 0;
+  padding-top: var(--spacing-1);
 }
 
 .timelineDot {
   width: var(--spacing-3);
   height: var(--spacing-3);
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: var(--border-width) solid var(--card-border);
   flex-shrink: 0;
 }
 
-.dotError {
+.dot_error {
   background: var(--error);
   border-color: var(--error);
 }
 
-.dotCREATE {
+.dot_success {
   background: var(--success);
   border-color: var(--success);
 }
 
-.dotUPDATE {
+.dot_warning {
   background: var(--warning);
   border-color: var(--warning);
 }
 
-.dotDELETE {
-  background: var(--error);
-  border-color: var(--error);
+.dot_secondary {
+  background: var(--muted);
+  border-color: var(--muted);
 }
 
 .timelineConnector {
   width: var(--border-width);
   flex: 1;
   background: var(--card-border);
+  min-height: var(--spacing-4);
 }
 
 .timelineContent {
-  padding-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-5);
   min-width: 0;
   flex: 1;
 }
 
-// Value cards
+// Value display
 
 .valueCard {
-  padding: var(--spacing-2) var(--spacing-3);
-}
-
-.valueGrid {
-  gap: var(--spacing-1) var(--spacing-3);
+  padding: 0;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .valueRow {
-  display: contents;
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.valueRowBorder {
+  border-bottom: var(--border-width) solid var(--card-border);
 }
