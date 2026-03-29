@@ -1,22 +1,26 @@
-// AppHeader — utility bar / instrument strip
-// Sits between sidebar and content. Compact, purposeful, no fluff.
+// AppHeader — floating utility bar
+// Hard shadow matches doom's brutalist language.
+// Floats inside the content area with margin, not edge-to-edge.
 
 .bar {
   position: sticky;
-  top: 0;
-  z-index: var(--z-elevated);
+  top: var(--spacing-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-4);
-  height: 56px;
-  // Left padding clears the sidebar's right hard shadow (8px)
-  padding: 0 var(--spacing-6) 0 calc(var(--spacing-6) + var(--spacing-2));
+  height: 48px;
+  margin: var(--spacing-4) var(--spacing-4) 0;
+  padding: 0 var(--spacing-4);
   background: var(--card-bg);
-  border-bottom: var(--border-width) solid var(--card-border);
+  border: var(--border-width) solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hard);
+  z-index: var(--z-elevated);
 
   @media (max-width: 768px) {
-    padding: 0 var(--spacing-4);
+    margin: var(--spacing-3) var(--spacing-3) 0;
+    padding: 0 var(--spacing-3);
   }
 }
 
