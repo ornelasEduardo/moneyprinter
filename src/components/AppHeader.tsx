@@ -57,7 +57,7 @@ export default function AppHeader({ user, selectedYear, availableYears, onYearCh
           </button>
         }
         content={
-          <Card className={styles.dropdown}>
+          <Card className={styles.dropdown} style={{ padding: 0 }}>
             <Stack gap={0}>
               <Stack gap={1} className={styles.dropdownHeader}>
                 <Flex align="center" gap={3}>
