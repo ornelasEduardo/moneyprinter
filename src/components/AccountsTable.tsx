@@ -13,9 +13,6 @@ import {
   Form,
   Field,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
   Select,
   Spinner,
   Table,
@@ -204,12 +201,12 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
         >
-          <ModalHeader>
+          <Modal.Header>
             <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
               Edit Account
             </Text>
-          </ModalHeader>
-          <ModalBody>
+          </Modal.Header>
+          <Modal.Body>
             <Form id="edit-account-form" onSubmit={handleUpdate}>
               <Flex direction="column" gap={4}>
                 <Field label="Account Name" required>
@@ -260,8 +257,8 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
                 </Field>
               </Flex>
             </Form>
-          </ModalBody>
-          <ModalFooter>
+          </Modal.Body>
+          <Modal.Footer>
             <Flex justify="flex-end" gap={4}>
               <Button
                 type="button"
@@ -285,7 +282,7 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
                 )}
               </Button>
             </Flex>
-          </ModalFooter>
+          </Modal.Footer>
         </Modal>
       )}
 

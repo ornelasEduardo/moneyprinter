@@ -2,9 +2,6 @@ import {
   Button,
   Flex,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
   Text,
 } from "doom-design-system";
 
@@ -38,15 +35,15 @@ export function ConfirmDialog({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalHeader>
+      <Modal.Header>
         <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
           {title}
         </Text>
-      </ModalHeader>
-      <ModalBody>
+      </Modal.Header>
+      <Modal.Body>
         <Text>{message}</Text>
-      </ModalBody>
-      <ModalFooter>
+      </Modal.Body>
+      <Modal.Footer>
         <Flex justify="flex-end" gap={4}>
           <Button
             type="button"
@@ -66,7 +63,7 @@ export function ConfirmDialog({
             {isLoading ? "Processing..." : confirmText}
           </Button>
         </Flex>
-      </ModalFooter>
+      </Modal.Footer>
     </Modal>
   );
 }

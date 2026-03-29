@@ -14,9 +14,6 @@ import {
   Form,
   Field,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
   RadioGroup,
   RadioGroupItem,
   Select,
@@ -319,12 +316,12 @@ export default function TransactionsTable({
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
         >
-          <ModalHeader>
+          <Modal.Header>
             <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
               Edit Transaction
             </Text>
-          </ModalHeader>
-          <ModalBody>
+          </Modal.Header>
+          <Modal.Body>
             <Form id="edit-transaction-form" onSubmit={handleUpdate}>
               <Flex direction="column" gap={4}>
                 <Field label="Name" required>
@@ -386,8 +383,8 @@ export default function TransactionsTable({
                 </Field>
               </Flex>
             </Form>
-          </ModalBody>
-          <ModalFooter>
+          </Modal.Body>
+          <Modal.Footer>
             <Flex justify="flex-end" gap={4}>
               <Button
                 type="button"
@@ -411,7 +408,7 @@ export default function TransactionsTable({
                 )}
               </Button>
             </Flex>
-          </ModalFooter>
+          </Modal.Footer>
         </Modal>
       )}
 
