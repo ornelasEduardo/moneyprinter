@@ -340,7 +340,7 @@ export default function DashboardClient(props: DashboardClientProps) {
             </Sidebar.Section>
           </Sidebar.Nav>
           <Sidebar.Footer>
-            <Stack gap={3} className={styles.sidebarFooter}>
+            <Stack gap={2} className={styles.sidebarFooter}>
               <Select
                 value={selectedYear}
                 onChange={(e) => handleYearChange(e.target.value)}
@@ -349,23 +349,20 @@ export default function DashboardClient(props: DashboardClientProps) {
                   .map((year) => ({ value: year, label: year.toString() }))}
               />
               {props.user && (
-                <Flex
-                  align="center"
-                  gap={2}
-                  className={`${styles.userBadge} ${props.user.is_sandbox ? styles.sandbox : ''}`}
-                >
-                  {props.user.is_sandbox ? (
-                    <FlaskConical size={16} strokeWidth={2.5} />
-                  ) : (
-                    <User size={16} strokeWidth={2.5} />
-                  )}
-                  <Text variant="small" weight="bold">{props.user.display_name}</Text>
+                <Flex align="center" justify="space-between" gap={2}>
+                  <Flex align="center" gap={2} className={`${styles.userBadge} ${props.user.is_sandbox ? styles.sandbox : ''}`}>
+                    {props.user.is_sandbox ? (
+                      <FlaskConical size={14} strokeWidth={2.5} />
+                    ) : (
+                      <User size={14} strokeWidth={2.5} />
+                    )}
+                    <Text variant="caption" weight="bold">{props.user.display_name}</Text>
+                  </Flex>
+                  <Button variant="ghost" size="sm" onClick={() => logout()} aria-label="Logout">
+                    <LogOut size={14} strokeWidth={2.5} />
+                  </Button>
                 </Flex>
               )}
-              <Button variant="ghost" size="sm" onClick={() => logout()}>
-                <LogOut size={16} strokeWidth={2.5} />
-                Logout
-              </Button>
             </Stack>
           </Sidebar.Footer>
         </Sidebar>
