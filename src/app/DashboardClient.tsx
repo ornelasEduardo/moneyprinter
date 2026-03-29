@@ -15,6 +15,8 @@ import SettingsView from "@/components/SettingsView";
 import HistoryTab from "@/components/HistoryTab";
 import type { AuditEntryRow } from "@/components/HistoryTab";
 import type { IntegrityWarning } from "@/lib/integrity";
+import DataTab from "@/components/DataTab";
+import type { BackupHistoryEntry } from "@/lib/constants";
 import {
   ActionRow,
   Card,
@@ -60,6 +62,8 @@ interface DashboardClientProps {
   initialTab?: string;
   auditEntries?: AuditEntryRow[];
   integrityWarnings?: IntegrityWarning[];
+  backupHistory?: BackupHistoryEntry[];
+  showBackupReminder?: boolean;
 }
 
 export default function DashboardClient(props: DashboardClientProps) {
@@ -226,6 +230,7 @@ export default function DashboardClient(props: DashboardClientProps) {
               <TabsTrigger value="budget">Budget</TabsTrigger>
               <TabsTrigger value="networth">Net Worth</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="data">Data</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
@@ -334,6 +339,13 @@ export default function DashboardClient(props: DashboardClientProps) {
                 <HistoryTab
                   entries={props.auditEntries ?? []}
                   warnings={props.integrityWarnings ?? []}
+                />
+              </TabsContent>
+
+              <TabsContent value="data">
+                <DataTab
+                  backupHistory={props.backupHistory ?? []}
+                  showBackupReminder={props.showBackupReminder ?? false}
                 />
               </TabsContent>
 

@@ -1,0 +1,39 @@
+.section {
+  padding: var(--spacing-4);
+}
+
+.reminderCard {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-left: 4px solid var(--warning);
+}
+
+.entityRow {
+  padding: var(--spacing-2) 0;
+  border-bottom: var(--border-width) solid var(--card-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.previewCard {
+  padding: var(--spacing-4);
+  border-left: 4px solid var(--primary);
+}
+
+.resultCard {
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.estimateCard {
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.historyRow {
+  padding: var(--spacing-2) 0;
+  border-bottom: var(--border-width) solid var(--card-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
