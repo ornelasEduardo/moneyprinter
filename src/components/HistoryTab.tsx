@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Button, Card, Text, Stack, Badge, Flex, Table, Modal } from 'doom-design-system';
+import { Button, Card, Text, Stack, Badge, Flex, Grid, Table, Modal } from 'doom-design-system';
 import { undoEntry } from '@/app/actions/audit';
 import { Undo2 } from 'lucide-react';
 import type { IntegrityWarning } from '@/lib/integrity';
@@ -47,7 +47,6 @@ function formatFieldValue(value: unknown): string {
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
   if (typeof value === 'number') return value.toLocaleString();
   if (typeof value === 'string') {
-    // Check if it looks like a date
     if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
       return new Date(value).toLocaleDateString();
     }
@@ -56,23 +55,25 @@ function formatFieldValue(value: unknown): string {
   return String(value);
 }
 
-function ValueTable({ label, data }: { label: string; data: Record<string, unknown> }) {
-  const entries = Object.entries(data).filter(
+function ValueCard({ label, data }: { label: string; data: Record<string, unknown> }) {
+  const fields = Object.entries(data).filter(
     ([key]) => !['id', 'user_id', 'deleted_at'].includes(key)
   );
-  if (entries.length === 0) return null;
+  if (fields.length === 0) return null;
 
   return (
     <Stack gap={1}>
       <Text variant="small" weight="bold">{label}</Text>
-      <div className={styles.valueGrid}>
-        {entries.map(([key, val]) => (
-          <div key={key} className={styles.valueRow}>
-            <Text variant="small" color="muted">{formatFieldName(key)}</Text>
-            <Text variant="small">{formatFieldValue(val)}</Text>
-          </div>
-        ))}
-      </div>
+      <Card className={styles.valueCard}>
+        <Grid columns="auto 1fr" gap={1} className={styles.valueGrid}>
+          {fields.map(([key, val]) => (
+            <Flex key={key} className={styles.valueRow} gap={3} align="baseline">
+              <Text variant="small" color="muted">{formatFieldName(key)}</Text>
+              <Text variant="small">{formatFieldValue(val)}</Text>
+            </Flex>
+          ))}
+        </Grid>
+      </Card>
     </Stack>
   );
 }
@@ -91,7 +92,6 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
     setSelectedEntity({ type: entry.entity_type, id: entry.entity_id });
   }
 
-  // Get all entries for the selected entity
   const entityHistory = selectedEntity
     ? entries
         .filter((e) => e.entity_type === selectedEntity.type && e.entity_id === selectedEntity.id)
@@ -107,7 +107,7 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
           const action = info.getValue() as string;
           const isUndone = info.row.original.undone_at !== null;
           return (
-            <div
+            <Flex
               className={styles.clickableCell}
               onClick={() => handleRowClick(info.row.original)}
             >
@@ -116,7 +116,7 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
               ) : (
                 <Badge variant={actionBadgeVariant(action)}>{action}</Badge>
               )}
-            </div>
+            </Flex>
           );
         },
       },
@@ -126,14 +126,14 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
         cell: (info) => {
           const isUndone = info.row.original.undone_at !== null;
           return (
-            <div
+            <Flex
               className={styles.clickableCell}
               onClick={() => handleRowClick(info.row.original)}
             >
               <Text className={isUndone ? styles.mutedText : ''}>
                 {formatEntityType(info.getValue() as string)} #{info.row.original.entity_id}
               </Text>
-            </div>
+            </Flex>
           );
         },
       },
@@ -141,14 +141,14 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
         accessorKey: 'created_at',
         header: 'Date',
         cell: (info) => (
-          <div
+          <Flex
             className={styles.clickableCell}
             onClick={() => handleRowClick(info.row.original)}
           >
             <Text color="muted">
               {new Date(info.getValue() as string).toLocaleString()}
             </Text>
-          </div>
+          </Flex>
         ),
       },
       {
@@ -228,19 +228,21 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
           </Text>
         </Modal.Header>
         <Modal.Body>
-          <div className={styles.timeline}>
+          <Stack gap={0}>
             {entityHistory.map((entry, i) => (
-              <div key={entry.id} className={styles.timelineItem}>
-                <div className={styles.timelineLine}>
-                  <div
+              <Flex key={entry.id} gap={3} className={styles.timelineItem}>
+                <Flex direction="column" align="center" className={styles.timelineLine}>
+                  <Flex
                     className={`${styles.timelineDot} ${
                       entry.undone_at ? styles.dotError : styles[`dot${entry.action}`]
                     }`}
                   />
-                  {i < entityHistory.length - 1 && <div className={styles.timelineConnector} />}
-                </div>
+                  {i < entityHistory.length - 1 && (
+                    <Flex className={styles.timelineConnector} />
+                  )}
+                </Flex>
                 <Stack gap={2} className={styles.timelineContent}>
-                  <Flex gap={2} align="center">
+                  <Flex gap={2} align="center" wrap={true}>
                     {entry.undone_at ? (
                       <Badge variant="error">UNDONE</Badge>
                     ) : (
@@ -251,20 +253,22 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
                     </Text>
                   </Flex>
                   {entry.previous_value && (
-                    <ValueTable label="Before" data={entry.previous_value} />
+                    <ValueCard label="Before" data={entry.previous_value} />
                   )}
                   {entry.new_value && (
-                    <ValueTable label="After" data={entry.new_value} />
+                    <ValueCard label="After" data={entry.new_value} />
                   )}
                 </Stack>
-              </div>
+              </Flex>
             ))}
-          </div>
+          </Stack>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="ghost" onClick={() => setSelectedEntity(null)}>
-            Close
-          </Button>
+          <Flex justify="flex-end">
+            <Button variant="ghost" onClick={() => setSelectedEntity(null)}>
+              Close
+            </Button>
+          </Flex>
         </Modal.Footer>
       </Modal>
     </Stack>
