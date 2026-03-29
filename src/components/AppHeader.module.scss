@@ -4,13 +4,14 @@
 .bar {
   position: sticky;
   top: 0;
-  z-index: var(--z-header);
+  z-index: var(--z-elevated);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-4);
   height: 56px;
-  padding: 0 var(--spacing-6);
+  // Left padding clears the sidebar's right hard shadow (8px)
+  padding: 0 var(--spacing-6) 0 calc(var(--spacing-6) + var(--spacing-2));
   background: var(--card-bg);
   border-bottom: var(--border-width) solid var(--card-border);
 
