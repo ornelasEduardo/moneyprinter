@@ -1,11 +1,9 @@
 .headerContainer {
   position: relative;
-  z-index: 40;
-  margin-bottom: 1.5rem;
-
-  @media (min-width: 768px) {
-    margin-bottom: 2.5rem;
-  }
+  z-index: var(--z-header);
+  padding: var(--spacing-4) 0;
+  margin-bottom: var(--spacing-4);
+  border-bottom: var(--border-width) solid var(--card-border);
 }
 
 .yearSelectWrapper {

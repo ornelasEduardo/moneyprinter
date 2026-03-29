@@ -82,7 +82,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const projectedHistory = await getProjectedNetWorthHistory();
 
   return (
-    <Page>
+    <Page variant="fullWidth">
       <DashboardClient
         user={user}
         netWorth={netWorth}

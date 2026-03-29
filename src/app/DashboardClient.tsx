@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GoalTracker } from "@/components/GoalTracker";
 import NetWorthChart from "@/components/NetWorthChart";
-import DashboardHeader from "@/components/DashboardHeader";
+import { Logo } from "@/components/Logo";
+import { logout } from "@/app/actions/auth";
 import SummaryCards from "@/components/SummaryCards";
 import ProjectionsTable from "@/components/ProjectionsTable";
 import TransactionsTable from "@/components/TransactionsTable";
@@ -19,16 +20,29 @@ import DataTab from "@/components/DataTab";
 import type { BackupHistoryEntry } from "@/lib/constants";
 import {
   ActionRow,
+  Button,
   Card,
   Flex,
-  Tabs,
-  TabsBody,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
+  Select,
+  Sidebar,
+  Stack,
   Text,
 } from "doom-design-system";
-import { Banknote, PieChart } from "lucide-react";
+import {
+  Banknote,
+  PieChart,
+  Home,
+  ArrowRightLeft,
+  Wallet,
+  TrendingUp,
+  Clock,
+  Database,
+  Settings,
+  Receipt,
+  LogOut,
+  User,
+  FlaskConical,
+} from "lucide-react";
 import styles from "./DashboardClient.module.scss";
 
 import { Serialized, Transaction, SafeUser, SafeAccount } from "@/lib/types";
@@ -66,6 +80,17 @@ interface DashboardClientProps {
   showBackupReminder?: boolean;
 }
 
+const NAV_ITEMS = [
+  { id: "home", label: "Home", icon: Home },
+  { id: "transactions", label: "Transactions", icon: ArrowRightLeft },
+  { id: "accounts", label: "Accounts", icon: Wallet },
+  { id: "budget", label: "Budget", icon: Receipt },
+  { id: "networth", label: "Net Worth", icon: TrendingUp },
+  { id: "history", label: "History", icon: Clock },
+  { id: "data", label: "Data", icon: Database },
+  { id: "settings", label: "Settings", icon: Settings },
+] as const;
+
 export default function DashboardClient(props: DashboardClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -76,7 +101,6 @@ export default function DashboardClient(props: DashboardClientProps) {
   );
   const [activeTab, setActiveTab] = useState(props.initialTab || "home");
 
-  // Sync URL params to state when they change
   useEffect(() => {
     const year = parseInt(searchParams.get("year") || currentYear.toString());
     const tab = searchParams.get("tab") || "home";
@@ -90,7 +114,8 @@ export default function DashboardClient(props: DashboardClientProps) {
     router.push(`/?${params.toString()}`);
   };
 
-  const handleTabChange = (tab: string) => {
+  const handleNavigation = (href: string) => {
+    const tab = href.replace("/", "");
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
     router.push(`/?${params.toString()}`);
@@ -99,58 +124,38 @@ export default function DashboardClient(props: DashboardClientProps) {
   // Generate monthly projections for the selected year (Jan-Dec)
   const generateProjections = () => {
     const monthNames = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ];
 
-    // Calculate net worth at the start of the selected year
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth(); // 0-11
+    const currentMonth = currentDate.getMonth();
 
-    // Calculate months difference between now and Jan 1st of selected year
     const monthsToStartOfYear =
       (selectedYear - currentYear) * 12 - currentMonth;
 
-    // Base net worth at Jan 1st of selected year
-    // Try to find a recorded net worth for January of selected year
     const januaryEntry = props.netWorthHistory.find((h) => {
-      // Parse date manually to avoid timezone issues
       const [y, m] = h.date.split("-").map(Number);
-      return y === selectedYear && m === 1; // m is 1-based in split
+      return y === selectedYear && m === 1;
     });
 
     const recordedStartNetWorth = januaryEntry?.netWorth;
 
-    // If we have a recorded start, use it. Otherwise calculate from current.
     let startOfYearNetWorth: number;
 
     if (recordedStartNetWorth !== undefined) {
       startOfYearNetWorth = recordedStartNetWorth;
     } else {
-      // Fallback: Calculate from current net worth
       startOfYearNetWorth =
         props.netWorth + monthsToStartOfYear * props.monthlyNetWorthIncrease;
     }
 
-    // Track running total for iterative calculation
     let currentTotal = startOfYearNetWorth;
 
     const monthlyData = monthNames.map((month, idx) => {
-      // Capture value at start of month
       const startTotal = currentTotal;
 
-      // Find windfalls for this month
       const monthlyWindfalls = props.windfalls.filter((w) => {
         const [wYear, wMonth] = w.date.split("-").map(Number);
         return wYear === selectedYear && wMonth - 1 === idx;
@@ -161,7 +166,6 @@ export default function DashboardClient(props: DashboardClientProps) {
         0
       );
 
-      // Find transactions for this month
       const monthlyTransactions = props.transactions.filter((t) => {
         const [tYear, tMonth] = t.date.split("-").map(Number);
         return tYear === selectedYear && tMonth - 1 === idx;
@@ -175,7 +179,6 @@ export default function DashboardClient(props: DashboardClientProps) {
         .filter((t) => t.type === "income")
         .reduce((sum, t) => sum + t.amount, 0);
 
-      // Update total for end of month: + Income + Windfalls + Extra Income - Expenses
       const monthlyChange =
         props.monthlyNetWorthIncrease +
         monthlyWindfallTotal +
@@ -187,9 +190,8 @@ export default function DashboardClient(props: DashboardClientProps) {
         label: month,
         change: monthlyChange,
         windfalls: monthlyWindfallTotal,
-        newTotal: currentTotal, // End of month value (for table)
-        startTotal: startTotal, // Start of month value (for chart)
-        // Manually construct YYYY-MM-DD to avoid timezone shifts
+        newTotal: currentTotal,
+        startTotal: startTotal,
         date: `${selectedYear}-${String(idx + 1).padStart(2, "0")}-01`,
       };
     });
@@ -199,162 +201,187 @@ export default function DashboardClient(props: DashboardClientProps) {
 
   const { monthlyData: projections, finalTotal } = generateProjections();
 
-  // Generate chart data from projections
-  // We use startTotal to align with "Jan 1", "Feb 1" dates
   const chartData = projections.map((p) => ({
     date: p.date,
     netWorth: p.startTotal,
   }));
 
-  // Add one final data point for the end of the year (Jan 1st of next year)
-  // so the chart shows the full year's growth
   chartData.push({
     date: `${selectedYear + 1}-01-01`,
     netWorth: finalTotal,
   });
 
+  function renderContent() {
+    switch (activeTab) {
+      case "home":
+        return (
+          <div className={styles.dashboardGrid}>
+            <div className={styles.fullWidth}>
+              <GoalTracker
+                netWorth={props.netWorth}
+                monthlySavings={props.monthlyNetWorthIncrease}
+                goal={props.primaryGoal}
+                emergencyFund={props.emergencyFund}
+              />
+            </div>
+            <div className={styles.column}>
+              <ProjectionsTable
+                projections={projections}
+                selectedYear={selectedYear}
+                currentYear={currentYear}
+                onYearChange={handleYearChange}
+              />
+            </div>
+            <Flex direction="column" gap={6} className={styles.column}>
+              <Card className={styles.chartCard}>
+                <Text
+                  variant="h5"
+                  color="muted"
+                  style={{ marginBottom: "1rem" }}
+                >
+                  Net Worth Over Time
+                </Text>
+                <div className={styles.chartContainer}>
+                  <NetWorthChart data={chartData} />
+                </div>
+              </Card>
+              <SummaryCards
+                netWorth={props.netWorth}
+                yearlySpending={props.yearlySpending}
+                spendingPercentage={props.spendingPercentage}
+                budget={props.budget}
+                upcomingWindfalls={props.upcomingWindfalls}
+                year={selectedYear}
+              />
+            </Flex>
+          </div>
+        );
+
+      case "transactions":
+        return (
+          <TransactionsTable
+            transactions={props.transactions}
+            selectedYear={selectedYear}
+            accounts={props.accounts}
+          />
+        );
+
+      case "accounts":
+        return <AccountsTable accounts={props.accounts} />;
+
+      case "budget":
+        return (
+          <Card style={{ padding: 0, overflow: "hidden" }}>
+            <div className={styles.budgetHeader}>
+              <Text variant="h3" weight="black">Budget</Text>
+              <Text color="muted">
+                Manage your income streams and budget allocations
+              </Text>
+            </div>
+            <ActionRow
+              icon={<Banknote size={24} strokeWidth={2.5} />}
+              title="Income Sources"
+              description="Add and manage your paychecks, bonuses, and other income streams"
+              onClick={() => router.push(`/income/new?year=${selectedYear}`)}
+            />
+            <ActionRow
+              icon={<PieChart size={24} strokeWidth={2.5} />}
+              title="Budgets"
+              description="Control how your income is distributed across savings and expenses"
+              onClick={() => router.push(`/income/budgets?year=${selectedYear}`)}
+            />
+          </Card>
+        );
+
+      case "networth":
+        return <NetWorthHistoryTable entries={props.netWorthHistory} />;
+
+      case "history":
+        return (
+          <HistoryTab
+            entries={props.auditEntries ?? []}
+            warnings={props.integrityWarnings ?? []}
+          />
+        );
+
+      case "data":
+        return (
+          <DataTab
+            backupHistory={props.backupHistory ?? []}
+            showBackupReminder={props.showBackupReminder ?? false}
+          />
+        );
+
+      case "settings":
+        return <SettingsView />;
+
+      default:
+        return null;
+    }
+  }
+
   return (
     <DashboardStoreProvider {...props} selectedYear={selectedYear}>
-      <div className="dashboard">
-        <DashboardHeader
-          selectedYear={selectedYear}
-          onYearChange={handleYearChange}
-        />
+      <div className={styles.layout}>
+        <Sidebar
+          activeItem={`/${activeTab}`}
+          onNavigate={handleNavigation}
+        >
+          <Sidebar.Header>
+            <Flex gap={3} align="center">
+              <Logo size={32} />
+              <Text variant="h5" weight="black" className="uppercase">MoneyPrinter</Text>
+            </Flex>
+          </Sidebar.Header>
+          <Sidebar.Nav>
+            <Sidebar.Section id="main" label="Navigation" icon={<Home size={20} strokeWidth={2.5} />} expanded>
+              {NAV_ITEMS.map((item) => (
+                <Sidebar.Item
+                  key={item.id}
+                  href={`/${item.id}`}
+                  icon={<item.icon size={18} strokeWidth={2.5} />}
+                >
+                  {item.label}
+                </Sidebar.Item>
+              ))}
+            </Sidebar.Section>
+          </Sidebar.Nav>
+          <Sidebar.Footer>
+            <Stack gap={3} className={styles.sidebarFooter}>
+              <Select
+                value={selectedYear}
+                onChange={(e) => handleYearChange(e.target.value)}
+                options={[...props.availableYears]
+                  .sort((a, b) => a - b)
+                  .map((year) => ({ value: year, label: year.toString() }))}
+              />
+              {props.user && (
+                <Flex
+                  align="center"
+                  gap={2}
+                  className={`${styles.userBadge} ${props.user.is_sandbox ? styles.sandbox : ''}`}
+                >
+                  {props.user.is_sandbox ? (
+                    <FlaskConical size={16} strokeWidth={2.5} />
+                  ) : (
+                    <User size={16} strokeWidth={2.5} />
+                  )}
+                  <Text variant="small" weight="bold">{props.user.display_name}</Text>
+                </Flex>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => logout()}>
+                <LogOut size={16} strokeWidth={2.5} />
+                Logout
+              </Button>
+            </Stack>
+          </Sidebar.Footer>
+        </Sidebar>
 
-        <div className={styles.tabSpacing}>
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList>
-              <TabsTrigger value="home">Home</TabsTrigger>
-              <TabsTrigger value="transactions">Transactions</TabsTrigger>
-              <TabsTrigger value="accounts">Accounts</TabsTrigger>
-              <TabsTrigger value="budget">Budget</TabsTrigger>
-              <TabsTrigger value="networth">Net Worth</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-              <TabsTrigger value="data">Data</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
-
-            <TabsBody>
-              <TabsContent value="home">
-                {/* Main Layout: Projections (Left) vs Chart & Cards (Right) */}
-                <div className={styles.dashboardGrid}>
-                  {/* Goal Tracker (Spans Full Width) */}
-                  <div className={styles.fullWidth}>
-                    <GoalTracker
-                      netWorth={props.netWorth}
-                      monthlySavings={props.monthlyNetWorthIncrease}
-                      goal={props.primaryGoal}
-                      emergencyFund={props.emergencyFund}
-                    />
-                  </div>
-
-                  {/* Left Column: Projections Table */}
-                  <div className={styles.column}>
-                    <ProjectionsTable
-                      projections={projections}
-                      selectedYear={selectedYear}
-                      currentYear={currentYear}
-                      onYearChange={handleYearChange}
-                    />
-                  </div>
-
-                  {/* Right Column: Chart + Summary Cards */}
-                  <Flex direction="column" gap={6} className={styles.column}>
-                    {/* Net Worth Chart */}
-                    <Card className={styles.chartCard}>
-                      <Text
-                        variant="h5"
-                        color="muted"
-                        style={{ marginBottom: "1rem" }}
-                      >
-                        Net Worth Over Time
-                      </Text>
-                      <div className={styles.chartContainer}>
-                        <NetWorthChart data={chartData} />
-                      </div>
-                    </Card>
-
-                    {/* Summary Cards Row */}
-                    <SummaryCards
-                      netWorth={props.netWorth}
-                      yearlySpending={props.yearlySpending}
-                      spendingPercentage={props.spendingPercentage}
-                      budget={props.budget}
-                      upcomingWindfalls={props.upcomingWindfalls}
-                      year={selectedYear}
-                    />
-                  </Flex>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="transactions">
-                <TransactionsTable
-                  transactions={props.transactions}
-                  selectedYear={selectedYear}
-                  accounts={props.accounts}
-                />
-              </TabsContent>
-
-              <TabsContent value="accounts">
-                <AccountsTable accounts={props.accounts} />
-              </TabsContent>
-
-              <TabsContent value="budget">
-                <Card style={{ padding: 0, overflow: "hidden" }}>
-                  {/* Header */}
-                  <div className={styles.budgetHeader}>
-                    <Text variant="h3" weight="black">
-                      Budget
-                    </Text>
-                    <Text color="muted">
-                      Manage your income streams and budget allocations
-                    </Text>
-                  </div>
-
-                  <ActionRow
-                    icon={<Banknote size={24} strokeWidth={2.5} />}
-                    title="Income Sources"
-                    description="Add and manage your paychecks, bonuses, and other income streams"
-                    onClick={() =>
-                      router.push(`/income/new?year=${selectedYear}`)
-                    }
-                  />
-
-                  <ActionRow
-                    icon={<PieChart size={24} strokeWidth={2.5} />}
-                    title="Budgets"
-                    description="Control how your income is distributed across savings and expenses"
-                    onClick={() =>
-                      router.push(`/income/budgets?year=${selectedYear}`)
-                    }
-                  />
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="networth">
-                <NetWorthHistoryTable entries={props.netWorthHistory} />
-              </TabsContent>
-
-              <TabsContent value="history">
-                <HistoryTab
-                  entries={props.auditEntries ?? []}
-                  warnings={props.integrityWarnings ?? []}
-                />
-              </TabsContent>
-
-              <TabsContent value="data">
-                <DataTab
-                  backupHistory={props.backupHistory ?? []}
-                  showBackupReminder={props.showBackupReminder ?? false}
-                />
-              </TabsContent>
-
-              <TabsContent value="settings">
-                <SettingsView />
-              </TabsContent>
-            </TabsBody>
-          </Tabs>
-        </div>
+        <main className={styles.main}>
+          <div className={styles.content}>
+            {renderContent()}
+          </div>
+        </main>
       </div>
     </DashboardStoreProvider>
   );
