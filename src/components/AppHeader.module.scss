@@ -9,9 +9,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-4);
-  height: 48px;
   margin: var(--spacing-4) var(--spacing-4) 0;
-  padding: 0 var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
   background: var(--card-bg);
   border: var(--border-width) solid var(--card-border);
   border-radius: var(--radius);
@@ -20,7 +19,7 @@
 
   @media (max-width: 768px) {
     margin: var(--spacing-3) var(--spacing-3) 0;
-    padding: 0 var(--spacing-3);
+    padding: var(--spacing-2) var(--spacing-3);
   }
 }
 
