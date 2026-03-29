@@ -63,7 +63,7 @@ export default function HistoryClient({ entries, warnings }: HistoryClientProps)
               <Badge variant={isUndone ? 'secondary' : actionBadgeVariant(action)}>
                 {action}
               </Badge>
-              {isUndone && <Badge variant="outline">undone</Badge>}
+              {isUndone && <Badge variant="error">undone</Badge>}
             </Flex>
           );
         },

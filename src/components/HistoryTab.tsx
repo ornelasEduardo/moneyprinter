@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Button, Card, Text, Stack, Badge, Flex, Table } from 'doom-design-system';
+import { Button, Card, Text, Stack, Badge, Flex, Table, Modal } from 'doom-design-system';
 import { undoEntry } from '@/app/actions/audit';
 import { Undo2 } from 'lucide-react';
 import type { IntegrityWarning } from '@/lib/integrity';
@@ -40,12 +40,24 @@ function formatEntityType(type: string): string {
 
 export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
   const [isPending, startTransition] = useTransition();
+  const [selectedEntity, setSelectedEntity] = useState<{ type: string; id: number } | null>(null);
 
   function handleUndo(entryId: number) {
     startTransition(async () => {
       await undoEntry(entryId);
     });
   }
+
+  function handleRowClick(entry: AuditEntryRow) {
+    setSelectedEntity({ type: entry.entity_type, id: entry.entity_id });
+  }
+
+  // Get all entries for the selected entity
+  const entityHistory = selectedEntity
+    ? entries
+        .filter((e) => e.entity_type === selectedEntity.type && e.entity_id === selectedEntity.id)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    : [];
 
   const columns = useMemo<ColumnDef<AuditEntryRow>[]>(
     () => [
@@ -56,12 +68,16 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
           const action = info.getValue() as string;
           const isUndone = info.row.original.undone_at !== null;
           return (
-            <Flex gap={2} align="center">
-              <Badge variant={isUndone ? 'secondary' : actionBadgeVariant(action)}>
-                {action}
-              </Badge>
-              {isUndone && <Badge variant="outline">undone</Badge>}
-            </Flex>
+            <div
+              className={styles.clickableCell}
+              onClick={() => handleRowClick(info.row.original)}
+            >
+              {isUndone ? (
+                <Badge variant="error">UNDONE</Badge>
+              ) : (
+                <Badge variant={actionBadgeVariant(action)}>{action}</Badge>
+              )}
+            </div>
           );
         },
       },
@@ -71,9 +87,14 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
         cell: (info) => {
           const isUndone = info.row.original.undone_at !== null;
           return (
-            <Text className={isUndone ? styles.mutedText : ''}>
-              {formatEntityType(info.getValue() as string)} #{info.row.original.entity_id}
-            </Text>
+            <div
+              className={styles.clickableCell}
+              onClick={() => handleRowClick(info.row.original)}
+            >
+              <Text className={isUndone ? styles.mutedText : ''}>
+                {formatEntityType(info.getValue() as string)} #{info.row.original.entity_id}
+              </Text>
+            </div>
           );
         },
       },
@@ -81,9 +102,14 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
         accessorKey: 'created_at',
         header: 'Date',
         cell: (info) => (
-          <Text color="muted">
-            {new Date(info.getValue() as string).toLocaleString()}
-          </Text>
+          <div
+            className={styles.clickableCell}
+            onClick={() => handleRowClick(info.row.original)}
+          >
+            <Text color="muted">
+              {new Date(info.getValue() as string).toLocaleString()}
+            </Text>
+          </div>
         ),
       },
       {
@@ -97,7 +123,10 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleUndo(info.row.original.id)}
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  handleUndo(info.row.original.id);
+                }}
                 disabled={isPending}
                 aria-label="Undo"
               >
@@ -109,7 +138,7 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
         },
       },
     ],
-    [isPending]
+    [isPending, entries]
   );
 
   return (
@@ -149,6 +178,48 @@ export default function HistoryTab({ entries, warnings }: HistoryTabProps) {
           )}
         </Stack>
       </Card>
+
+      <Modal
+        isOpen={selectedEntity !== null}
+        onClose={() => setSelectedEntity(null)}
+      >
+        <Modal.Header>
+          <Text variant="h4">
+            {selectedEntity && `${formatEntityType(selectedEntity.type)} #${selectedEntity.id}`}
+          </Text>
+        </Modal.Header>
+        <Modal.Body>
+          <Stack gap={3}>
+            {entityHistory.map((entry) => (
+              <Flex key={entry.id} align="center" gap={3} className={styles.modalEntry}>
+                {entry.undone_at ? (
+                  <Badge variant="error">UNDONE</Badge>
+                ) : (
+                  <Badge variant={actionBadgeVariant(entry.action)}>{entry.action}</Badge>
+                )}
+                <Stack gap={1}>
+                  <Text>{new Date(entry.created_at).toLocaleString()}</Text>
+                  {entry.previous_value && (
+                    <Text variant="small" color="muted">
+                      From: {JSON.stringify(entry.previous_value)}
+                    </Text>
+                  )}
+                  {entry.new_value && (
+                    <Text variant="small" color="muted">
+                      To: {JSON.stringify(entry.new_value)}
+                    </Text>
+                  )}
+                </Stack>
+              </Flex>
+            ))}
+          </Stack>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="ghost" onClick={() => setSelectedEntity(null)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Stack>
   );
 }

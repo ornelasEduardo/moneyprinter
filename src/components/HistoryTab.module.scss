@@ -7,6 +7,19 @@
   padding: var(--spacing-4);
 }
 
+.clickableCell {
+  cursor: pointer;
+}
+
 .mutedText {
   text-decoration: line-through;
+}
+
+.modalEntry {
+  padding: var(--spacing-3) 0;
+  border-bottom: var(--border-width) solid var(--card-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
 }
