@@ -11,6 +11,7 @@ import {
 } from "@/lib/data";
 import { getRecentAuditLog } from "@/app/actions/audit";
 import { runIntegrityChecks } from "@/lib/integrity";
+import { getBackupHistory, getBackupReminderState } from "@/app/actions/backup";
 import DashboardClient from "./DashboardClient";
 import { getPrimaryGoal, getEmergencyFundAmount } from "@/app/actions/goals";
 import { getCurrentUser } from "@/lib/auth";
@@ -41,6 +42,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const [auditEntries, integrityWarnings] = await Promise.all([
     getRecentAuditLog(),
     runIntegrityChecks(),
+  ]);
+  const [backupHistoryData, backupReminderState] = await Promise.all([
+    getBackupHistory(),
+    getBackupReminderState(),
   ]);
   const serializedAuditEntries = auditEntries.map((e) => ({
     ...e,
@@ -99,6 +104,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
         initialTab={initialTab}
         auditEntries={serializedAuditEntries}
         integrityWarnings={integrityWarnings}
+        backupHistory={backupHistoryData}
+        showBackupReminder={backupReminderState.show}
       />
     </Page>
   );
