@@ -334,10 +334,11 @@ export default function IncomeBudgetPage() {
         cell: (info) => (
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => removeBudget(info.row.original.id)}
-            style={{ color: "var(--error)", padding: "0.5rem" }}
+            style={{ color: "var(--error)" }}
           >
-            <X size={20} strokeWidth={2.5} />
+            <X size={16} strokeWidth={2.5} />
           </Button>
         ),
         size: 50,

@@ -1,0 +1,91 @@
+.warningsCard {
+  border-left: 4px solid var(--error);
+  padding: var(--spacing-4);
+}
+
+.cardInner {
+  padding: var(--spacing-4);
+}
+
+.clickableCell {
+  cursor: pointer;
+  margin: calc(var(--spacing-2) * -1) calc(var(--spacing-3) * -1);
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.mutedText {
+  text-decoration: line-through;
+}
+
+// Timeline
+
+.timeline {
+  overflow: hidden;
+}
+
+.timelineItem {
+  min-height: var(--spacing-10);
+}
+
+.timelineTrack {
+  width: var(--spacing-4);
+  flex-shrink: 0;
+  padding-top: var(--spacing-1);
+}
+
+.timelineDot {
+  width: var(--spacing-3);
+  height: var(--spacing-3);
+  border-radius: var(--radius-full);
+  border: var(--border-width) solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.dot_error {
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.dot_success {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.dot_warning {
+  background: var(--warning);
+  border-color: var(--warning);
+}
+
+.dot_secondary {
+  background: var(--muted);
+  border-color: var(--muted);
+}
+
+.timelineConnector {
+  width: var(--border-width);
+  flex: 1;
+  background: var(--card-border);
+  min-height: var(--spacing-4);
+}
+
+.timelineContent {
+  padding-bottom: var(--spacing-5);
+  min-width: 0;
+  flex: 1;
+}
+
+// Value display
+
+.valueCard {
+  padding: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.valueRow {
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.valueRowBorder {
+  border-bottom: var(--border-width) solid var(--card-border);
+}

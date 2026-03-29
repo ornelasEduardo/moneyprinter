@@ -15,9 +15,6 @@ import {
   Form,
   Field,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
   Table,
   Text,
   useToast,
@@ -231,12 +228,12 @@ export default function NetWorthHistoryTable({
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
         >
-          <ModalHeader>
+          <Modal.Header>
             <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
               Edit Net Worth Entry
             </Text>
-          </ModalHeader>
-          <ModalBody>
+          </Modal.Header>
+          <Modal.Body>
             <Form id="edit-networth-form" onSubmit={handleUpdate}>
               <Flex direction="column" gap={4}>
                 <Field label="Date" required>
@@ -260,8 +257,8 @@ export default function NetWorthHistoryTable({
                 </Field>
               </Flex>
             </Form>
-          </ModalBody>
-          <ModalFooter>
+          </Modal.Body>
+          <Modal.Footer>
             <Flex gap={4} justify="flex-end">
               <Button
                 type="button"
@@ -279,18 +276,18 @@ export default function NetWorthHistoryTable({
                 {isLoading ? "Saving..." : "Save Changes"}
               </Button>
             </Flex>
-          </ModalFooter>
+          </Modal.Footer>
         </Modal>
       )}
 
       {/* Add Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
-        <ModalHeader>
+        <Modal.Header>
           <Text variant="h5" className="mb-0" style={{ color: "inherit" }}>
             Add Net Worth Entry
           </Text>
-        </ModalHeader>
-        <ModalBody>
+        </Modal.Header>
+        <Modal.Body>
           <Form id="add-networth-form" onSubmit={handleCreate}>
             <Flex direction="column" gap={4}>
               <Field label="Date" required>
@@ -314,8 +311,8 @@ export default function NetWorthHistoryTable({
               </Field>
             </Flex>
           </Form>
-        </ModalBody>
-        <ModalFooter>
+        </Modal.Body>
+        <Modal.Footer>
           <Flex gap={4} justify="flex-end">
             <Button
               type="button"
@@ -329,7 +326,7 @@ export default function NetWorthHistoryTable({
               {isLoading ? "Creating..." : "Create Entry"}
             </Button>
           </Flex>
-        </ModalFooter>
+        </Modal.Footer>
       </Modal>
     </>
   );
