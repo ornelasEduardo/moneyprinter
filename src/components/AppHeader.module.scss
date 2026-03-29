@@ -1,57 +1,62 @@
-// AppHeader — floating utility bar
-// Hard shadow matches doom's brutalist language.
-// Floats inside the content area with margin, not edge-to-edge.
+// AppHeader
+// Continuous strip that aligns with the Sidebar.Header (same height, same border).
+// These two together form the app's top chrome.
 
 .bar {
   position: sticky;
-  top: var(--spacing-4);
+  top: 0;
+  z-index: var(--z-elevated);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-4);
-  margin: var(--spacing-4) var(--spacing-4) 0;
-  padding: var(--spacing-3) var(--spacing-4);
+  gap: var(--spacing-6);
+  height: var(--header-height);
+  padding: 0 var(--spacing-6);
   background: var(--card-bg);
-  border: var(--border-width) solid var(--card-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-hard);
-  z-index: var(--z-elevated);
+  border-bottom: var(--border-width) solid var(--card-border);
+  box-sizing: border-box;
+  flex-shrink: 0;
 
   @media (max-width: 768px) {
-    margin: var(--spacing-3) var(--spacing-3) 0;
-    padding: var(--spacing-2) var(--spacing-3);
+    padding: 0 var(--spacing-4);
+    height: var(--header-height-sm);
   }
 }
 
-// Left side — year label + select
+// Year control
 
-.label {
-  color: var(--muted-foreground);
-  letter-spacing: 0.08em;
-  white-space: nowrap;
+.yearControl {
+  flex-shrink: 0;
 }
 
 .yearSelect {
   width: 7rem;
 }
 
-// Right side — user trigger
+// Profile trigger — the right-side interactive area
 
-.userTrigger {
+.profileTrigger {
   all: unset;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-1) var(--spacing-2);
-  border: var(--border-width) solid transparent;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: var(--border-width) solid var(--card-border);
   border-radius: var(--radius);
-  transition: border-color var(--duration-fast) var(--ease-in-out),
-              background var(--duration-fast) var(--ease-in-out);
+  background: var(--background);
+  transition: box-shadow var(--duration-fast) var(--ease-in-out),
+              transform var(--duration-fast) var(--ease-in-out);
 
   &:hover {
-    border-color: var(--card-border);
-    background: var(--background);
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:active {
+    transition: none;
+    transform: translate(var(--spacing-half), var(--spacing-half));
+    box-shadow: none;
   }
 
   &:focus-visible {
@@ -60,7 +65,9 @@
   }
 }
 
-.userInfo {
+.profileText {
+  text-align: left;
+
   @media (max-width: 768px) {
     display: none;
   }
@@ -69,26 +76,27 @@
 .chevron {
   color: var(--muted-foreground);
   transition: transform var(--duration-fast) var(--ease-in-out);
-
-  .userTrigger:hover & {
-    transform: translateY(1px);
-  }
+  flex-shrink: 0;
 }
 
-// Dropdown menu
+.chevronOpen {
+  transform: rotate(180deg);
+}
 
-.menu {
-  min-width: 240px;
+// Dropdown
+
+.dropdown {
   padding: 0;
+  min-width: 260px;
   overflow: hidden;
 }
 
-.menuHeader {
+.dropdownHeader {
   padding: var(--spacing-4);
   border-bottom: var(--border-width) solid var(--card-border);
 }
 
-.menuAction {
+.dropdownAction {
   all: unset;
   cursor: pointer;
   display: flex;
@@ -98,15 +106,17 @@
   padding: var(--spacing-3) var(--spacing-4);
   box-sizing: border-box;
   color: var(--foreground);
-  transition: background var(--duration-fast) var(--ease-in-out);
+  transition: background var(--duration-fast) var(--ease-in-out),
+              color var(--duration-fast) var(--ease-in-out);
 
   &:hover {
-    background: var(--muted);
+    background: var(--error);
+    color: var(--error-foreground);
   }
 
   &:active {
     transition: none;
-    background: var(--card-border);
+    filter: brightness(0.9);
   }
 
   &:focus-visible {

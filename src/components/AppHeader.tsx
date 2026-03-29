@@ -23,9 +23,10 @@ export default function AppHeader({ user, selectedYear, availableYears, onYearCh
 
   return (
     <header className={styles.bar}>
-      {/* Left: Year selector */}
-      <Flex align="center" gap={3}>
-        <Text variant="caption" weight="bold" className={`${styles.label} uppercase`}>Year</Text>
+      <Flex align="center" gap={3} className={styles.yearControl}>
+        <Text variant="caption" weight="bold" color="muted" className="uppercase">
+          Fiscal Year
+        </Text>
         <div className={styles.yearSelect}>
           <Select
             value={selectedYear}
@@ -37,40 +38,53 @@ export default function AppHeader({ user, selectedYear, availableYears, onYearCh
         </div>
       </Flex>
 
-      {/* Right: User */}
       <Popover
         trigger={
           <button
-            className={styles.userTrigger}
+            className={styles.profileTrigger}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="User menu"
           >
             <Avatar fallback={initials} size="sm" shape="square" />
-            <Flex direction="column" align="flex-start" gap={0} className={styles.userInfo}>
+            <Stack gap={0} className={styles.profileText}>
               <Text variant="caption" weight="bold">{user?.display_name ?? 'User'}</Text>
-              {user?.is_sandbox && (
-                <Chip variant="warning" size="xs">
-                  <FlaskConical size={10} strokeWidth={2.5} />
-                  Sandbox
-                </Chip>
+              {user?.is_sandbox ? (
+                <Text variant="caption" color="warning" weight="semibold">Sandbox</Text>
+              ) : (
+                <Text variant="caption" color="muted">Personal</Text>
               )}
-            </Flex>
-            <ChevronDown size={14} strokeWidth={2.5} className={styles.chevron} />
+            </Stack>
+            <ChevronDown
+              size={14}
+              strokeWidth={2.5}
+              className={`${styles.chevron} ${menuOpen ? styles.chevronOpen : ''}`}
+            />
           </button>
         }
         content={
-          <Card className={styles.menu}>
+          <Card className={styles.dropdown}>
             <Stack gap={0}>
-              <Flex direction="column" gap={0} className={styles.menuHeader}>
-                <Text weight="bold">{user?.display_name}</Text>
-                <Text variant="caption" color="muted">{user?.username}</Text>
-              </Flex>
+              <Stack gap={1} className={styles.dropdownHeader}>
+                <Flex align="center" gap={3}>
+                  <Avatar fallback={initials} size="md" shape="square" />
+                  <Stack gap={0}>
+                    <Text weight="bold">{user?.display_name}</Text>
+                    <Text variant="caption" color="muted">{user?.username}</Text>
+                  </Stack>
+                </Flex>
+                {user?.is_sandbox && (
+                  <Chip variant="warning" size="xs">
+                    <FlaskConical size={10} strokeWidth={2.5} />
+                    Sandbox Mode
+                  </Chip>
+                )}
+              </Stack>
               <button
-                className={styles.menuAction}
+                className={styles.dropdownAction}
                 onClick={() => { logout(); setMenuOpen(false); }}
               >
                 <LogOut size={16} strokeWidth={2.5} />
-                <Text variant="small" weight="medium">Logout</Text>
+                <Text variant="small" weight="medium">Sign out</Text>
               </button>
             </Stack>
           </Card>
