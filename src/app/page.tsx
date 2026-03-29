@@ -1,4 +1,4 @@
-import { 
+import {
   getNetWorth,
   getUpcomingWindfalls,
   getProjectedNetWorthHistory,
@@ -9,6 +9,8 @@ import {
   getAccounts,
   getAvailableYears
 } from "@/lib/data";
+import { getRecentAuditLog } from "@/app/actions/audit";
+import { runIntegrityChecks } from "@/lib/integrity";
 import DashboardClient from "./DashboardClient";
 import { getPrimaryGoal, getEmergencyFundAmount } from "@/app/actions/goals";
 import { getCurrentUser } from "@/lib/auth";
@@ -36,6 +38,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const emergencyFund = await getEmergencyFundAmount();
   const accounts = await getAccounts();
   const availableYears = await getAvailableYears();
+  const [auditEntries, integrityWarnings] = await Promise.all([
+    getRecentAuditLog(),
+    runIntegrityChecks(),
+  ]);
+  const serializedAuditEntries = auditEntries.map((e) => ({
+    ...e,
+    created_at: e.created_at.toISOString(),
+    undone_at: e.undone_at ? e.undone_at.toISOString() : null,
+    previous_value: e.previous_value as Record<string, unknown> | null,
+    new_value: e.new_value as Record<string, unknown> | null,
+  }));
 
   // Get timeframe/year/tab from URL params
   const yearParam = params.year;
@@ -84,6 +97,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
         availableYears={availableYears}
         selectedYear={selectedYear}
         initialTab={initialTab}
+        auditEntries={serializedAuditEntries}
+        integrityWarnings={integrityWarnings}
       />
     </Page>
   );

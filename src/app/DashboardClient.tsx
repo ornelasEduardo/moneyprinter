@@ -12,6 +12,9 @@ import AccountsTable from "@/components/AccountsTable";
 import NetWorthHistoryTable from "@/components/NetWorthHistoryTable";
 import { DashboardStoreProvider } from "@/lib/store";
 import SettingsView from "@/components/SettingsView";
+import HistoryTab from "@/components/HistoryTab";
+import type { AuditEntryRow } from "@/components/HistoryTab";
+import type { IntegrityWarning } from "@/lib/integrity";
 import {
   ActionRow,
   Card,
@@ -55,6 +58,8 @@ interface DashboardClientProps {
   projectedNetWorthHistory?: { id?: number; date: string; netWorth: number }[];
   selectedYear?: number;
   initialTab?: string;
+  auditEntries?: AuditEntryRow[];
+  integrityWarnings?: IntegrityWarning[];
 }
 
 export default function DashboardClient(props: DashboardClientProps) {
@@ -220,6 +225,7 @@ export default function DashboardClient(props: DashboardClientProps) {
               <TabsTrigger value="accounts">Accounts</TabsTrigger>
               <TabsTrigger value="budget">Budget</TabsTrigger>
               <TabsTrigger value="networth">Net Worth</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
@@ -322,6 +328,13 @@ export default function DashboardClient(props: DashboardClientProps) {
 
               <TabsContent value="networth">
                 <NetWorthHistoryTable entries={props.netWorthHistory} />
+              </TabsContent>
+
+              <TabsContent value="history">
+                <HistoryTab
+                  entries={props.auditEntries ?? []}
+                  warnings={props.integrityWarnings ?? []}
+                />
               </TabsContent>
 
               <TabsContent value="settings">

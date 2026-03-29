@@ -1,0 +1,12 @@
+.warningsCard {
+  border-left: 4px solid var(--error);
+  padding: var(--spacing-4);
+}
+
+.cardInner {
+  padding: var(--spacing-4);
+}
+
+.mutedText {
+  text-decoration: line-through;
+}
