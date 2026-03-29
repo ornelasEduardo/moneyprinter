@@ -23,20 +23,15 @@ export default function AppHeader({ user, selectedYear, availableYears, onYearCh
 
   return (
     <header className={styles.bar}>
-      <Flex align="center" gap={3} className={styles.yearControl}>
-        <Text variant="caption" weight="bold" color="muted" className="uppercase">
-          Fiscal Year
-        </Text>
-        <div className={styles.yearSelect}>
-          <Select
-            value={selectedYear}
-            onChange={(e) => onYearChange(e.target.value)}
-            options={[...availableYears]
-              .sort((a, b) => a - b)
-              .map((year) => ({ value: year, label: year.toString() }))}
-          />
-        </div>
-      </Flex>
+      <div className={styles.yearSelect}>
+        <Select
+          value={selectedYear}
+          onChange={(e) => onYearChange(e.target.value)}
+          options={[...availableYears]
+            .sort((a, b) => a - b)
+            .map((year) => ({ value: year, label: year.toString() }))}
+        />
+      </div>
 
       <Popover
         trigger={

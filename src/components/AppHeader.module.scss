@@ -1,39 +1,36 @@
 // AppHeader
-// Continuous strip that aligns with the Sidebar.Header (same height, same border).
-// These two together form the app's top chrome.
+// Top strip that sits flush with Sidebar.Header.
+// z-index sits BELOW sidebar so the sidebar's right hard shadow
+// renders on top of this header's background.
 
 .bar {
   position: sticky;
   top: 0;
-  z-index: var(--z-elevated);
+  // Must be below sidebar's z-index so sidebar shadow overlaps us
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-6);
-  height: var(--header-height);
-  padding: 0 var(--spacing-6);
+  // Height accommodates doom's Select (min-height: 48px) + breathing room
+  padding: var(--spacing-3) var(--spacing-6);
   background: var(--card-bg);
   border-bottom: var(--border-width) solid var(--card-border);
   box-sizing: border-box;
   flex-shrink: 0;
 
   @media (max-width: 768px) {
-    padding: 0 var(--spacing-4);
-    height: var(--header-height-sm);
+    padding: var(--spacing-3) var(--spacing-4);
   }
 }
 
-// Year control
-
-.yearControl {
-  flex-shrink: 0;
-}
+// Year selector — just the select, no label
 
 .yearSelect {
-  width: 7rem;
+  width: 8rem;
 }
 
-// Profile trigger — the right-side interactive area
+// Profile trigger
 
 .profileTrigger {
   all: unset;
