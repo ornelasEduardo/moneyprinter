@@ -12,10 +12,8 @@
   flex-direction: column;
   height: 100%;
   overflow-y: auto;
-  // Ensure main sits below sidebar so sidebar's right hard shadow
-  // paints on top of main's background and header
-  position: relative;
-  z-index: 0;
+  // z-index: 0 applied via inline style to beat doom's specificity
+  // This ensures sidebar's right hard shadow paints on top of main
 }
 
 .content {
