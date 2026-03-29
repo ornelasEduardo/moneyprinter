@@ -1,0 +1,11 @@
+{
+  "worktree": {
+    "symlinkDirectories": [
+      "node_modules",
+      ".next"
+    ]
+  },
+  "enabledPlugins": {
+    "doom-design-system@doom": true
+  }
+}
