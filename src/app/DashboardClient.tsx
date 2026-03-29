@@ -80,16 +80,6 @@ interface DashboardClientProps {
   showBackupReminder?: boolean;
 }
 
-const NAV_ITEMS = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "transactions", label: "Transactions", icon: ArrowRightLeft },
-  { id: "accounts", label: "Accounts", icon: Wallet },
-  { id: "budget", label: "Budget", icon: Receipt },
-  { id: "networth", label: "Net Worth", icon: TrendingUp },
-  { id: "history", label: "History", icon: Clock },
-  { id: "data", label: "Data", icon: Database },
-  { id: "settings", label: "Settings", icon: Settings },
-] as const;
 
 export default function DashboardClient(props: DashboardClientProps) {
   const router = useRouter();
@@ -334,16 +324,19 @@ export default function DashboardClient(props: DashboardClientProps) {
             </Flex>
           </Sidebar.Header>
           <Sidebar.Nav>
-            <Sidebar.Section id="main" label="Navigation" icon={<Home size={20} strokeWidth={2.5} />} expanded>
-              {NAV_ITEMS.map((item) => (
-                <Sidebar.Item
-                  key={item.id}
-                  href={`/${item.id}`}
-                  icon={<item.icon size={18} strokeWidth={2.5} />}
-                >
-                  {item.label}
-                </Sidebar.Item>
-              ))}
+            <Sidebar.Section id="overview" label="Overview" icon={<Home size={20} strokeWidth={2.5} />} expanded>
+              <Sidebar.Item href="/home" icon={<Home size={18} strokeWidth={2.5} />}>Home</Sidebar.Item>
+            </Sidebar.Section>
+            <Sidebar.Section id="finance" label="Finance" icon={<Wallet size={20} strokeWidth={2.5} />} expanded>
+              <Sidebar.Item href="/transactions" icon={<ArrowRightLeft size={18} strokeWidth={2.5} />}>Transactions</Sidebar.Item>
+              <Sidebar.Item href="/accounts" icon={<Wallet size={18} strokeWidth={2.5} />}>Accounts</Sidebar.Item>
+              <Sidebar.Item href="/budget" icon={<Receipt size={18} strokeWidth={2.5} />}>Budget</Sidebar.Item>
+              <Sidebar.Item href="/networth" icon={<TrendingUp size={18} strokeWidth={2.5} />}>Net Worth</Sidebar.Item>
+            </Sidebar.Section>
+            <Sidebar.Section id="system" label="System" icon={<Settings size={20} strokeWidth={2.5} />} expanded>
+              <Sidebar.Item href="/history" icon={<Clock size={18} strokeWidth={2.5} />}>History</Sidebar.Item>
+              <Sidebar.Item href="/data" icon={<Database size={18} strokeWidth={2.5} />}>Data</Sidebar.Item>
+              <Sidebar.Item href="/settings" icon={<Settings size={18} strokeWidth={2.5} />}>Settings</Sidebar.Item>
             </Sidebar.Section>
           </Sidebar.Nav>
           <Sidebar.Footer>
