@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { GoalTracker } from "@/components/GoalTracker";
 import NetWorthChart from "@/components/NetWorthChart";
 import { Logo } from "@/components/Logo";
-import { logout } from "@/app/actions/auth";
+import AppHeader from "@/components/AppHeader";
 import SummaryCards from "@/components/SummaryCards";
 import ProjectionsTable from "@/components/ProjectionsTable";
 import TransactionsTable from "@/components/TransactionsTable";
@@ -20,14 +20,9 @@ import DataTab from "@/components/DataTab";
 import type { BackupHistoryEntry } from "@/lib/constants";
 import {
   ActionRow,
-  Avatar,
-  Button,
   Card,
   Flex,
-  Popover,
-  Select,
   Sidebar,
-  Stack,
   Text,
 } from "doom-design-system";
 import {
@@ -41,8 +36,6 @@ import {
   Database,
   Settings,
   Receipt,
-  LogOut,
-  User,
 } from "lucide-react";
 import styles from "./DashboardClient.module.scss";
 
@@ -312,12 +305,6 @@ export default function DashboardClient(props: DashboardClientProps) {
     }
   }
 
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-
-  const initials = props.user?.display_name
-    ? props.user.display_name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
-    : '?';
-
   return (
     <DashboardStoreProvider {...props} selectedYear={selectedYear}>
       <div className={styles.layout}>
@@ -350,41 +337,12 @@ export default function DashboardClient(props: DashboardClientProps) {
         </Sidebar>
 
         <main className={styles.main}>
-          <Flex align="center" justify="space-between" className={styles.topBar}>
-            <Select
-              value={selectedYear}
-              onChange={(e) => handleYearChange(e.target.value)}
-              options={[...props.availableYears]
-                .sort((a, b) => a - b)
-                .map((year) => ({ value: year, label: year.toString() }))}
-            />
-            <Popover
-              trigger={
-                <button className={styles.avatarTrigger} onClick={() => setUserMenuOpen(!userMenuOpen)}>
-                  <Avatar fallback={initials} size="sm" shape="circle" />
-                </button>
-              }
-              content={
-                <Card className={styles.userMenu}>
-                  <Stack gap={2}>
-                    {props.user && (
-                      <Stack gap={0} className={styles.userMenuHeader}>
-                        <Text weight="bold">{props.user.display_name}</Text>
-                        <Text variant="caption" color="muted">{props.user.username}</Text>
-                      </Stack>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={() => { logout(); setUserMenuOpen(false); }}>
-                      <LogOut size={16} strokeWidth={2.5} />
-                      Logout
-                    </Button>
-                  </Stack>
-                </Card>
-              }
-              isOpen={userMenuOpen}
-              onClose={() => setUserMenuOpen(false)}
-              placement="bottom-end"
-            />
-          </Flex>
+          <AppHeader
+            user={props.user}
+            selectedYear={selectedYear}
+            availableYears={props.availableYears}
+            onYearChange={handleYearChange}
+          />
           <div className={styles.content}>
             {renderContent()}
           </div>

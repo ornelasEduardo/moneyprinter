@@ -58,34 +58,3 @@
   padding: var(--spacing-6);
   border-bottom: var(--border-width) solid var(--card-border);
 }
-
-.topBar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-header);
-  padding: var(--spacing-3) var(--spacing-6);
-  background: var(--background);
-  border-bottom: var(--border-width) solid var(--card-border);
-
-  @media (max-width: 768px) {
-    padding: var(--spacing-3) var(--spacing-4);
-  }
-}
-
-.avatarTrigger {
-  all: unset;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.userMenu {
-  padding: var(--spacing-3);
-  min-width: 200px;
-}
-
-.userMenuHeader {
-  padding-bottom: var(--spacing-2);
-  border-bottom: var(--border-width) solid var(--card-border);
-  margin-bottom: var(--spacing-1);
-}

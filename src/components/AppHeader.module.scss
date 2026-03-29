@@ -1,0 +1,79 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  padding: var(--spacing-3) var(--spacing-6);
+  background: var(--background);
+  border-bottom: var(--border-width) solid var(--card-border);
+
+  @media (max-width: 768px) {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+}
+
+.calendarIcon {
+  color: var(--muted-foreground);
+}
+
+// Avatar trigger
+
+.avatarTrigger {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  position: relative;
+  border-radius: var(--radius-full);
+  transition: box-shadow var(--duration-fast) var(--ease-in-out);
+
+  &:hover {
+    box-shadow: 0 0 0 var(--border-width) var(--primary);
+  }
+
+  &:focus-visible {
+    outline: var(--outline-width) solid var(--primary);
+    outline-offset: var(--outline-offset);
+  }
+}
+
+.sandboxIndicator {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  color: var(--warning);
+}
+
+// Dropdown menu
+
+.menuCard {
+  padding: 0;
+  min-width: 220px;
+  overflow: hidden;
+}
+
+.menuUser {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: var(--border-width) solid var(--card-border);
+}
+
+.menuItem {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  box-sizing: border-box;
+  color: var(--foreground);
+  transition: background var(--duration-fast) var(--ease-in-out);
+
+  &:hover {
+    background: var(--muted);
+  }
+
+  &:focus-visible {
+    outline: var(--outline-width) solid var(--primary);
+    outline-offset: calc(var(--outline-offset) * -1);
+  }
+}
