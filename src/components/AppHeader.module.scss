@@ -11,14 +11,19 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-6);
-  padding: var(--spacing-3) var(--spacing-6);
+  height: var(--header-height);
+  padding: 0 var(--spacing-6);
   background: var(--card-bg);
-  border-bottom: var(--border-width) solid var(--card-border);
+  border: var(--border-width) solid var(--card-border);
+  border-top: none;
+  border-right: none;
+  box-shadow: 0 var(--spacing-1) 0 0 var(--shadow-base);
   box-sizing: border-box;
   flex-shrink: 0;
 
   @media (max-width: 768px) {
-    padding: var(--spacing-3) var(--spacing-4);
+    padding: 0 var(--spacing-4);
+    height: var(--header-height-sm);
   }
 }
 
