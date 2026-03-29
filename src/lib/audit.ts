@@ -12,6 +12,7 @@ export interface AuditEntry {
   previous_value: Record<string, unknown> | null;
   new_value: Record<string, unknown> | null;
   created_at: Date;
+  undone_at: Date | null;
 }
 
 export async function writeAuditLog(params: {
@@ -70,6 +71,7 @@ function getModelDelegate(entityType: string) {
 export async function undoAuditEntry(entryId: number): Promise<void> {
   const entry = await prisma.audit_log.findUnique({ where: { id: entryId } });
   if (!entry) throw new Error('Audit entry not found');
+  if (entry.undone_at) throw new Error('Audit entry already undone');
   await undoEntry(entry as any);
 }
 
@@ -102,6 +104,13 @@ async function undoEntry(entry: {
       });
     }
 
+    // Mark the original entry as undone
+    await prisma.audit_log.update({
+      where: { id: entry.id },
+      data: { undone_at: new Date() },
+    });
+
+    // Write compensating audit entry
     await prisma.audit_log.create({
       data: {
         user_id: entry.user_id,

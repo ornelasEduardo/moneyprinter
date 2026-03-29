@@ -6,6 +6,7 @@ vi.mock('@/lib/prisma', () => ({
   default: {
     audit_log: {
       create: vi.fn(),
+      update: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
     },
@@ -181,6 +182,41 @@ describe('undoAuditEntry', () => {
     (prisma.audit_log.findUnique as any).mockResolvedValue(null);
 
     await expect(undoAuditEntry(999)).rejects.toThrow('Audit entry not found');
+  });
+
+  it('should throw if audit entry already undone', async () => {
+    (prisma.audit_log.findUnique as any).mockResolvedValue({
+      id: 4,
+      user_id: 1,
+      entity_type: 'accounts',
+      entity_id: 10,
+      action: 'UPDATE',
+      previous_value: { balance: 100 },
+      new_value: { balance: 200 },
+      undone_at: new Date(),
+    });
+
+    await expect(undoAuditEntry(4)).rejects.toThrow('Audit entry already undone');
+  });
+
+  it('should mark entry as undone after undo', async () => {
+    (prisma.audit_log.findUnique as any).mockResolvedValue({
+      id: 1,
+      user_id: 1,
+      entity_type: 'accounts',
+      entity_id: 10,
+      action: 'UPDATE',
+      previous_value: { balance: 100 },
+      new_value: { balance: 200 },
+      undone_at: null,
+    });
+
+    await undoAuditEntry(1);
+
+    expect(prisma.audit_log.update).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: { undone_at: expect.any(Date) },
+    });
   });
 });
 

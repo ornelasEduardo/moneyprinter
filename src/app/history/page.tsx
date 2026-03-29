@@ -21,6 +21,7 @@ export default async function HistoryPage() {
   const serializedEntries = entries.map((e) => ({
     ...e,
     created_at: e.created_at.toISOString(),
+    undone_at: e.undone_at ? e.undone_at.toISOString() : null,
     previous_value: e.previous_value as Record<string, unknown> | null,
     new_value: e.new_value as Record<string, unknown> | null,
   }));

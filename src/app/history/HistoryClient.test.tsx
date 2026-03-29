@@ -7,6 +7,10 @@ vi.mock('@/app/actions/audit', () => ({
   undoEntryBatch: vi.fn(),
 }));
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 const mockEntries = [
   {
     id: 1,
@@ -17,6 +21,7 @@ const mockEntries = [
     previous_value: null,
     new_value: { name: 'Savings', balance: 1000 },
     created_at: '2026-03-28T12:00:00Z',
+    undone_at: null,
   },
   {
     id: 2,
@@ -27,6 +32,7 @@ const mockEntries = [
     previous_value: { amount: 50 },
     new_value: { amount: 75 },
     created_at: '2026-03-28T11:00:00Z',
+    undone_at: null,
   },
   {
     id: 3,
@@ -37,6 +43,7 @@ const mockEntries = [
     previous_value: { name: 'Old Account' },
     new_value: null,
     created_at: '2026-03-28T10:00:00Z',
+    undone_at: '2026-03-28T10:05:00Z',
   },
 ];
 
@@ -54,7 +61,7 @@ describe('HistoryClient', () => {
     render(<HistoryClient entries={mockEntries} warnings={[]} />);
 
     expect(screen.getAllByText(/accounts/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/CREATE/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/CREATE/i).length).toBeGreaterThan(0);
   });
 
   it('should render integrity warnings when present', () => {
@@ -69,10 +76,17 @@ describe('HistoryClient', () => {
     expect(screen.getByText(/no activity/i)).toBeInTheDocument();
   });
 
-  it('should render undo buttons for each entry', () => {
+  it('should render undo buttons only for non-undone entries', () => {
     render(<HistoryClient entries={mockEntries} warnings={[]} />);
 
+    // 2 entries are not undone, 1 is undone
     const undoButtons = screen.getAllByRole('button', { name: /undo/i });
-    expect(undoButtons.length).toBe(3);
+    expect(undoButtons.length).toBe(2);
+  });
+
+  it('should show undone badge for undone entries', () => {
+    render(<HistoryClient entries={mockEntries} warnings={[]} />);
+
+    expect(screen.getByText('undone')).toBeInTheDocument();
   });
 });
