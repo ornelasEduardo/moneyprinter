@@ -3,6 +3,8 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { requireAuth } from '@/lib/action-middleware';
+import { withAuditContext } from '@/lib/audit-context';
+import { randomUUID } from 'node:crypto';
 
 // Internal helper to get or create default paycheck income source for a user
 async function _getOrCreateDefaultIncomeSource(userId: number): Promise<number> {
@@ -46,49 +48,51 @@ export async function saveIncomeBudgets(
 ) {
   const userId = await requireAuth();
 
-  try {
-    await prisma.$transaction(async (tx) => {
-      // Delete existing budgets for this income source and user
-      await tx.income_budgets.deleteMany({
-        where: {
-          income_source_id: incomeSourceId,
-          user_id: userId
-        }
-      });
-
-      // Update the income source amount
-      await tx.income_sources.updateMany({
-        where: {
-          id: incomeSourceId,
-          user_id: userId
-        },
-        data: {
-          amount: paycheckAmount
-        }
-      });
-
-      // Insert new budgets
-      if (budgets.length > 0) {
-        await tx.income_budgets.createMany({
-          data: budgets.map(b => ({
+  return withAuditContext({ userId, batchId: randomUUID() }, async () => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Delete existing budgets for this income source and user
+        await tx.income_budgets.deleteMany({
+          where: {
             income_source_id: incomeSourceId,
-            user_id: userId,
-            name: b.name,
-            unit: b.unit,
-            value: b.value,
-            type: b.type,
-            increases_net_worth: b.increasesNetWorth
-          }))
+            user_id: userId
+          }
         });
-      }
-    });
 
-    revalidatePath('/');
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to save allocations:', error);
-    throw new Error('Failed to save allocations');
-  }
+        // Update the income source amount
+        await tx.income_sources.updateMany({
+          where: {
+            id: incomeSourceId,
+            user_id: userId
+          },
+          data: {
+            amount: paycheckAmount
+          }
+        });
+
+        // Insert new budgets
+        if (budgets.length > 0) {
+          await tx.income_budgets.createMany({
+            data: budgets.map(b => ({
+              income_source_id: incomeSourceId,
+              user_id: userId,
+              name: b.name,
+              unit: b.unit,
+              value: b.value,
+              type: b.type,
+              increases_net_worth: b.increasesNetWorth
+            }))
+          });
+        }
+      });
+
+      revalidatePath('/');
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to save allocations:', error);
+      throw new Error('Failed to save allocations');
+    }
+  });
 }
 
 export async function saveDefaultIncomeBudgets(

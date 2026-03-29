@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAuth } from '@/lib/action-middleware';
+import { withAuditContext } from '@/lib/audit-context';
 
 export async function createIncomeSource(formData: FormData) {
   const userId = await requireAuth();
@@ -18,29 +19,31 @@ export async function createIncomeSource(formData: FormData) {
     throw new Error('Invalid form data');
   }
 
-  try {
-    await prisma.income_sources.create({
-      data: {
-        user_id: userId,
-        name,
-        amount,
-        frequency,
-        next_date: nextDate ? new Date(nextDate) : null,
-        type
-      }
-    });
-  } catch (error) {
-    console.error('Failed to create income source:', error);
-    throw new Error('Failed to create income source');
-  }
+  return withAuditContext({ userId }, async () => {
+    try {
+      await prisma.income_sources.create({
+        data: {
+          user_id: userId,
+          name,
+          amount,
+          frequency,
+          next_date: nextDate ? new Date(nextDate) : null,
+          type
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create income source:', error);
+      throw new Error('Failed to create income source');
+    }
 
-  const year = formData.get('year') as string;
+    const year = formData.get('year') as string;
 
-  revalidatePath('/');
-  
-  if (year) {
-    redirect(`/?tab=budget&year=${year}`);
-  } else {
-    redirect('/?tab=budget');
-  }
+    revalidatePath('/');
+
+    if (year) {
+      redirect(`/?tab=budget&year=${year}`);
+    } else {
+      redirect('/?tab=budget');
+    }
+  });
 }
