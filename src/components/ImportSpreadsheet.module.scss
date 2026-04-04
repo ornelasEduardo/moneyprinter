@@ -1,0 +1,49 @@
+.uploadCard {
+  padding: var(--spacing-8);
+  text-align: center;
+}
+
+.toolbar {
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.mappingBar {
+  padding: var(--spacing-2) var(--spacing-4);
+  overflow-x: auto;
+}
+
+.mappingChip {
+  padding: var(--spacing-1) var(--spacing-2);
+  border: var(--border-width) solid var(--card-border);
+  border-radius: var(--radius);
+  background: var(--background);
+  white-space: nowrap;
+}
+
+.gridContainer {
+  height: 500px;
+  border: var(--border-width) solid var(--card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.resultCard {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-left: 4px solid var(--success);
+}
+
+.configInput {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: var(--border-width) solid var(--card-border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: var(--text-sm);
+
+  &:focus {
+    outline: var(--outline-width) solid var(--primary);
+    outline-offset: var(--outline-offset);
+  }
+}
