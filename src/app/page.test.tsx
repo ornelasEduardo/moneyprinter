@@ -22,6 +22,19 @@ vi.mock("@/app/actions/goals", () => ({
   getEmergencyFundAmount: vi.fn(),
 }));
 
+vi.mock("@/app/actions/audit", () => ({
+  getRecentAuditLog: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/lib/integrity", () => ({
+  runIntegrityChecks: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/app/actions/backup", () => ({
+  getBackupHistory: vi.fn().mockResolvedValue([]),
+  getBackupReminderState: vi.fn().mockResolvedValue({ show: false }),
+}));
+
 vi.mock("@/lib/auth", () => ({
   getCurrentUser: vi.fn(),
 }));
