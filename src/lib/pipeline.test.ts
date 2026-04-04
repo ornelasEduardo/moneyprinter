@@ -63,7 +63,7 @@ describe('createPipeline', () => {
     pipeline.run([makeRow({})], behaviors, context);
 
     expect(capturedBehaviors).toEqual(behaviors);
-    expect(capturedContext?.existingTransactions).toHaveLength(1);
+    expect(capturedContext!.existingTransactions).toHaveLength(1);
   });
 
   it('should short-circuit: skip steps for rows already in error status', () => {

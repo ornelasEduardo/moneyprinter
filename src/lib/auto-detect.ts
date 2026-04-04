@@ -6,9 +6,9 @@ export interface ColumnMappingEntry {
   type: SystemType;
 }
 
-export interface ColumnMapping {
-  [columnName: string]: ColumnMappingEntry;
-  __detectedBehaviors?: Record<string, unknown>;
+export interface AutoDetectResult {
+  columns: Record<string, ColumnMappingEntry>;
+  detectedBehaviors: Record<string, unknown>;
 }
 
 // Column name hints — if the CSV header contains these strings, map to the field
@@ -67,18 +67,19 @@ function detectColumnType(
   return { type: 'string', field: null };
 }
 
-export function autoDetectColumns(rows: Record<string, string>[]): ColumnMapping {
-  if (rows.length === 0) return {};
+export function autoDetectColumns(rows: Record<string, string>[]): AutoDetectResult {
+  if (rows.length === 0) return { columns: {}, detectedBehaviors: {} };
 
-  const columns = Object.keys(rows[0]);
+  const columnNames = Object.keys(rows[0]);
   const sampleRows = rows.slice(0, 10);
-  const mapping: ColumnMapping = {};
+  const columns: Record<string, ColumnMappingEntry> = {};
+  const detectedBehaviors: Record<string, unknown> = {};
 
   const assignedFields = new Set<string>();
 
   // First pass: detect types and candidate fields
   const candidates: { column: string; type: SystemType; field: string | null }[] = [];
-  for (const col of columns) {
+  for (const col of columnNames) {
     const values = sampleRows.map((r) => r[col] || '');
     const detected = detectColumnType(col, values);
     candidates.push({ column: col, ...detected });
@@ -87,10 +88,10 @@ export function autoDetectColumns(rows: Record<string, string>[]): ColumnMapping
   // Second pass: resolve conflicts (only one column per field)
   for (const c of candidates) {
     if (c.field && !assignedFields.has(c.field)) {
-      mapping[c.column] = { field: c.field, type: c.type };
+      columns[c.column] = { field: c.field, type: c.type };
       assignedFields.add(c.field);
     } else {
-      mapping[c.column] = { field: c.field && assignedFields.has(c.field) ? null : c.field, type: c.type };
+      columns[c.column] = { field: c.field && assignedFields.has(c.field) ? null : c.field, type: c.type };
     }
   }
 
@@ -98,9 +99,9 @@ export function autoDetectColumns(rows: Record<string, string>[]): ColumnMapping
   if (!assignedFields.has('name')) {
     let bestCol = '';
     let bestAvgLen = 0;
-    for (const col of columns) {
-      if (mapping[col].field) continue;
-      if (mapping[col].type !== 'string') continue;
+    for (const col of columnNames) {
+      if (columns[col].field) continue;
+      if (columns[col].type !== 'string') continue;
       const avgLen = sampleRows.reduce((sum, r) => sum + (r[col]?.length || 0), 0) / sampleRows.length;
       if (avgLen > bestAvgLen) {
         bestAvgLen = avgLen;
@@ -108,20 +109,20 @@ export function autoDetectColumns(rows: Record<string, string>[]): ColumnMapping
       }
     }
     if (bestCol) {
-      mapping[bestCol] = { field: 'name', type: 'string' };
+      columns[bestCol] = { field: 'name', type: 'string' };
     }
   }
 
   // Detect amount sign convention
-  const amountCol = columns.find((c) => mapping[c]?.field === 'amount');
+  const amountCol = columnNames.find((c) => columns[c]?.field === 'amount');
   if (amountCol) {
     const values = sampleRows.map((r) => parseValue('currency', r[amountCol] || '0') as number);
     const hasNegative = values.some((v) => v < 0);
     const hasPositive = values.some((v) => v > 0);
     if (hasNegative && hasPositive) {
-      (mapping as any).__detectedBehaviors = { amount_convention: 'negative_is_debit' };
+      detectedBehaviors.amount_convention = 'negative_is_debit';
     }
   }
 
-  return mapping;
+  return { columns, detectedBehaviors };
 }
