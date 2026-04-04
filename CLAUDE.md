@@ -20,9 +20,14 @@ Every feature, every decision should serve that core value — data stays local,
 ```bash
 npm run dev:docker   # local dev with Docker (postgres included)
 npm run dev          # requires external postgres
-npm test             # vitest
+npm test             # vitest (runs once, exits)
+npm run test:watch   # vitest in watch mode
 npx tsc --noEmit     # type check
 ```
+
+## Running tests
+
+`npm test` runs vitest with `--run` flag (single run, no watch). This is important — vitest defaults to watch mode which holds the terminal and spawns zombie processes. Always use `npm test` or `npx vitest --run`, never bare `vitest` or `npx vitest` without `--run`.
 
 ## Database
 
