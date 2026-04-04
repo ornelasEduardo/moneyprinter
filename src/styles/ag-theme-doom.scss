@@ -1,0 +1,72 @@
+// AG Grid doom theme
+// Maps AG Grid CSS variables to doom design tokens.
+// Usage: <div className="ag-theme-doom">
+
+.ag-theme-doom {
+  // Core colors
+  --ag-background-color: var(--card-bg);
+  --ag-foreground-color: var(--foreground);
+  --ag-header-background-color: var(--card-bg);
+  --ag-header-foreground-color: var(--foreground);
+
+  // Borders
+  --ag-border-color: var(--card-border);
+  --ag-row-border-color: var(--card-border);
+  --ag-header-column-separator-color: var(--card-border);
+
+  // Typography
+  --ag-font-family: inherit;
+  --ag-font-size: var(--text-sm);
+  --ag-header-font-weight: var(--font-bold);
+
+  // Spacing
+  --ag-cell-horizontal-padding: var(--spacing-3);
+  --ag-row-height: 40px;
+  --ag-header-height: 44px;
+
+  // Selection & hover
+  --ag-row-hover-color: var(--muted);
+  --ag-selected-row-background-color: var(--primary);
+  --ag-range-selection-border-color: var(--primary);
+  --ag-checkbox-checked-color: var(--primary);
+
+  // Borders — doom uses 2px borders
+  --ag-borders: solid var(--border-width) var(--card-border);
+  --ag-border-radius: var(--radius);
+
+  // Override specific elements for doom aesthetic
+  .ag-header {
+    border-bottom: var(--border-width) solid var(--card-border);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: var(--text-xs);
+  }
+
+  .ag-row {
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .ag-cell {
+    line-height: 40px;
+  }
+
+  // Row status classes (applied via rowClassRules)
+  .row-valid {
+    border-left: 3px solid var(--success);
+  }
+
+  .row-duplicate {
+    border-left: 3px solid var(--warning);
+    background-color: color-mix(in srgb, var(--warning) 5%, transparent);
+  }
+
+  .row-error {
+    border-left: 3px solid var(--error);
+    background-color: color-mix(in srgb, var(--error) 5%, transparent);
+  }
+
+  .row-skipped {
+    border-left: 3px solid var(--muted);
+    opacity: 0.5;
+  }
+}
