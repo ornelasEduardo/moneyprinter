@@ -311,6 +311,12 @@ export default function DashboardClient(props: DashboardClientProps) {
           <DataTab
             backupHistory={props.backupHistory ?? []}
             showBackupReminder={props.showBackupReminder ?? false}
+            existingTransactions={props.transactions?.map(t => ({
+              date: new Date(t.date),
+              amount: t.amount,
+              name: t.name,
+            }))}
+            accounts={props.accounts?.map(a => ({ id: a.id, name: a.name }))}
           />
         );
 

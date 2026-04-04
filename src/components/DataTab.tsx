@@ -3,18 +3,20 @@
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Button, Card, Text, Stack, Flex, Badge, FileUpload, Select,
+  Button, Card, Text, Stack, Flex,
   Tabs, TabsList, TabsTrigger, TabsBody, TabsContent,
 } from 'doom-design-system';
-import { Download, Upload, Shield, X } from 'lucide-react';
-import { EXPORTABLE_ENTITIES, formatBytes, type BackupHistoryEntry, type ImportValidationResult, type ConflictReport } from '@/lib/constants';
-import { validateImport, commitImportAction } from '@/app/actions/import';
+import { Download, Shield, X } from 'lucide-react';
+import { EXPORTABLE_ENTITIES, formatBytes, type BackupHistoryEntry } from '@/lib/constants';
 import { getBackupEstimate, recordBackup, dismissBackupReminder } from '@/app/actions/backup';
+import ImportSpreadsheet from '@/components/ImportSpreadsheet';
 import styles from './DataTab.module.scss';
 
 interface DataTabProps {
   backupHistory: BackupHistoryEntry[];
   showBackupReminder: boolean;
+  existingTransactions?: Record<string, unknown>[];
+  accounts?: { id: number; name: string }[];
 }
 
 function toTitleCase(str: string): string {
@@ -23,19 +25,9 @@ function toTitleCase(str: string): string {
     .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
 }
 
-export default function DataTab({ backupHistory, showBackupReminder }: DataTabProps) {
+export default function DataTab({ backupHistory, showBackupReminder, existingTransactions, accounts }: DataTabProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
-
-  // Import state
-  const [importEntity, setImportEntity] = useState<string>(EXPORTABLE_ENTITIES[0] ?? 'accounts');
-  const [importValidation, setImportValidation] = useState<ImportValidationResult | null>(null);
-  const [importConflicts, setImportConflicts] = useState<ConflictReport | null>(null);
-  const [conflictMode, setConflictMode] = useState<'skip' | 'overwrite'>('skip');
-  const [importResult, setImportResult] = useState<{ created: number; updated: number; skipped: number } | null>(null);
-  const [importError, setImportError] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(false);
-  const [isCommitting, setIsCommitting] = useState(false);
 
   // Backup state
   const [backupEstimate, setBackupEstimate] = useState<{ totalRows: number; estimatedBytes: number; entities: Record<string, number> } | null>(null);
@@ -45,40 +37,6 @@ export default function DataTab({ backupHistory, showBackupReminder }: DataTabPr
   useEffect(() => {
     getBackupEstimate().then(setBackupEstimate).catch(() => null);
   }, []);
-
-  const handleFileSelect = async (file: File) => {
-    setImportResult(null);
-    setImportError(null);
-    setImportValidation(null);
-    setImportConflicts(null);
-    setIsValidating(true);
-    try {
-      const text = await file.text();
-      const { validation, conflicts } = await validateImport(importEntity, text);
-      setImportValidation(validation);
-      setImportConflicts(conflicts);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Validation failed');
-    } finally {
-      setIsValidating(false);
-    }
-  };
-
-  const handleCommitImport = async () => {
-    if (!importValidation) return;
-    setIsCommitting(true);
-    try {
-      const result = await commitImportAction(importEntity, importValidation.valid, conflictMode);
-      setImportResult(result);
-      setImportValidation(null);
-      setImportConflicts(null);
-      router.refresh();
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
-    } finally {
-      setIsCommitting(false);
-    }
-  };
 
   const handleBackupNow = async () => {
     setIsBackingUp(true);
@@ -176,103 +134,10 @@ export default function DataTab({ backupHistory, showBackupReminder }: DataTabPr
 
           {/* Import */}
           <TabsContent value="import">
-            <Stack gap={4}>
-              <Text color="muted">Upload a CSV file to add data for a specific entity.</Text>
-
-              <Select
-                label="Entity"
-                value={importEntity}
-                onChange={(e) => {
-                  setImportEntity(e.target.value);
-                  setImportValidation(null);
-                  setImportConflicts(null);
-                  setImportResult(null);
-                  setImportError(null);
-                }}
-                options={EXPORTABLE_ENTITIES.map((e) => ({ value: e, label: toTitleCase(e) }))}
-              />
-
-              <FileUpload
-                accept=".csv"
-                label="Upload CSV"
-                onChange={(files) => {
-                  if (files[0]) handleFileSelect(files[0]);
-                }}
-              />
-
-              {isValidating && <Text color="muted">Validating...</Text>}
-
-              {importError && (
-                <Card className={styles.resultCard}>
-                  <Text color="error">{importError}</Text>
-                </Card>
-              )}
-
-              {importValidation && (
-                <Card className={styles.previewCard}>
-                  <Stack gap={3}>
-                    <Flex gap={2} align="center">
-                      <Text weight="bold">Preview</Text>
-                      <Badge variant="success">{importValidation.valid.length} valid</Badge>
-                      {importValidation.errors.length > 0 && (
-                        <Badge variant="error">{importValidation.errors.length} errors</Badge>
-                      )}
-                    </Flex>
-                    <Text color="muted">
-                      {importValidation.total} rows total, {importValidation.valid.length} will be imported.
-                    </Text>
-
-                    {importValidation.errors.length > 0 && (
-                      <Stack gap={1}>
-                        {importValidation.errors.slice(0, 5).map((err, i) => (
-                          <Text key={i} color="error" variant="small">
-                            Row {err.row} — {err.field}: {err.message}
-                          </Text>
-                        ))}
-                        {importValidation.errors.length > 5 && (
-                          <Text color="muted" variant="small">
-                            ...and {importValidation.errors.length - 5} more errors
-                          </Text>
-                        )}
-                      </Stack>
-                    )}
-
-                    {importConflicts && importConflicts.existingCount > 0 && (
-                      <Stack gap={2}>
-                        <Text weight="bold" color="warning">
-                          {importConflicts.existingCount} conflict{importConflicts.existingCount !== 1 ? 's' : ''} detected
-                        </Text>
-                        <Select
-                          label="Conflict resolution"
-                          value={conflictMode}
-                          onChange={(e) => setConflictMode(e.target.value as 'skip' | 'overwrite')}
-                          options={[
-                            { value: 'skip', label: 'Skip existing records' },
-                            { value: 'overwrite', label: 'Overwrite existing records' },
-                          ]}
-                        />
-                      </Stack>
-                    )}
-
-                    {importValidation.valid.length > 0 && (
-                      <Button onClick={handleCommitImport} disabled={isCommitting}>
-                        {isCommitting ? 'Importing...' : `Import ${importValidation.valid.length} records`}
-                      </Button>
-                    )}
-                  </Stack>
-                </Card>
-              )}
-
-              {importResult && (
-                <Card className={styles.resultCard}>
-                  <Flex gap={3}>
-                    <Badge variant="success">{importResult.created} created</Badge>
-                    {importResult.updated > 0 && <Badge variant="secondary">{importResult.updated} updated</Badge>}
-                    {importResult.skipped > 0 && <Badge variant="outline">{importResult.skipped} skipped</Badge>}
-                  </Flex>
-                </Card>
-              )}
-            </Stack>
+            <ImportSpreadsheet
+              existingTransactions={existingTransactions}
+              accounts={accounts}
+            />
           </TabsContent>
 
           {/* Backup */}
