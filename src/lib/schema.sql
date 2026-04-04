@@ -116,3 +116,34 @@ CREATE TABLE IF NOT EXISTS user_settings (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, key)
 );
+
+CREATE TABLE IF NOT EXISTS import_configurations (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  name VARCHAR(255) NOT NULL,
+  column_mapping JSONB NOT NULL,
+  behaviors JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS import_history (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  configuration_id INTEGER REFERENCES import_configurations(id),
+  batch_id UUID,
+  filename VARCHAR(255) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'completed',
+  summary JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS import_errors (
+  id SERIAL PRIMARY KEY,
+  import_id INTEGER NOT NULL REFERENCES import_history(id) ON DELETE CASCADE,
+  row_number INTEGER NOT NULL,
+  field VARCHAR(255),
+  message TEXT NOT NULL,
+  severity VARCHAR(20) NOT NULL DEFAULT 'error',
+  raw_value TEXT
+);
