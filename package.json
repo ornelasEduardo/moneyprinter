@@ -16,6 +16,8 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.12",
     "@types/d3": "^7.4.3",
+    "ag-grid-community": "^35.2.0",
+    "ag-grid-react": "^35.2.0",
     "archiver": "^7.0.1",
     "bcryptjs": "^3.0.3",
     "d3": "^7.9.0",
