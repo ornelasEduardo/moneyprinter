@@ -90,6 +90,7 @@ export default function DashboardClient(props: DashboardClientProps) {
     const tab = searchParams.get("tab") || "home";
     setSelectedYear(year);
     setActiveTab(tab);
+    setActiveSection(tabToSection[tab] || 'overview');
   }, [searchParams, currentYear]);
 
   const handleYearChange = (year: string) => {
@@ -97,6 +98,22 @@ export default function DashboardClient(props: DashboardClientProps) {
     params.set("year", year);
     router.push(`/?${params.toString()}`);
   };
+
+  // Map tab IDs to their parent section
+  const tabToSection: Record<string, string> = {
+    home: 'overview',
+    transactions: 'finance',
+    accounts: 'finance',
+    budget: 'finance',
+    networth: 'finance',
+    history: 'system',
+    data: 'system',
+    settings: 'system',
+  };
+
+  const [activeSection, setActiveSection] = useState(
+    tabToSection[activeTab] || 'overview'
+  );
 
   const handleNavigation = (href: string, e?: React.MouseEvent) => {
     e?.preventDefault();
@@ -309,26 +326,27 @@ export default function DashboardClient(props: DashboardClientProps) {
     <DashboardStoreProvider {...props} selectedYear={selectedYear}>
       <div className={styles.layout}>
         <Sidebar
+          withRail
           activeItem={`/${activeTab}`}
+          activeSection={activeSection}
           onNavigate={handleNavigation}
+          onSectionChange={setActiveSection}
+          brandIcon={<Logo size={24} />}
         >
           <Sidebar.Header>
-            <Flex gap={3} align="center">
-              <Logo size={32} />
-              <Text variant="h5" weight="black" className="uppercase">MoneyPrinter</Text>
-            </Flex>
+            <Text variant="h5" weight="black" className="uppercase">MoneyPrinter</Text>
           </Sidebar.Header>
           <Sidebar.Nav>
-            <Sidebar.Section id="overview" label="Overview" icon={<Home size={20} strokeWidth={2.5} />} expanded>
+            <Sidebar.Section id="overview" label="Overview" icon={<Home size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/home" icon={<Home size={18} strokeWidth={2.5} />}>Home</Sidebar.Item>
             </Sidebar.Section>
-            <Sidebar.Section id="finance" label="Finance" icon={<Wallet size={20} strokeWidth={2.5} />} expanded>
+            <Sidebar.Section id="finance" label="Finance" icon={<Wallet size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/transactions" icon={<ArrowRightLeft size={18} strokeWidth={2.5} />}>Transactions</Sidebar.Item>
               <Sidebar.Item href="/accounts" icon={<Wallet size={18} strokeWidth={2.5} />}>Accounts</Sidebar.Item>
               <Sidebar.Item href="/budget" icon={<Receipt size={18} strokeWidth={2.5} />}>Budget</Sidebar.Item>
               <Sidebar.Item href="/networth" icon={<TrendingUp size={18} strokeWidth={2.5} />}>Net Worth</Sidebar.Item>
             </Sidebar.Section>
-            <Sidebar.Section id="system" label="System" icon={<Settings size={20} strokeWidth={2.5} />} expanded>
+            <Sidebar.Section id="system" label="System" icon={<Settings size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/history" icon={<Clock size={18} strokeWidth={2.5} />}>History</Sidebar.Item>
               <Sidebar.Item href="/data" icon={<Database size={18} strokeWidth={2.5} />}>Data</Sidebar.Item>
               <Sidebar.Item href="/settings" icon={<Settings size={18} strokeWidth={2.5} />}>Settings</Sidebar.Item>
