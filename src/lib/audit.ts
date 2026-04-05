@@ -109,18 +109,6 @@ async function undoEntry(entry: {
       where: { id: entry.id },
       data: { undone_at: new Date() },
     });
-
-    // Write compensating audit entry
-    await prisma.audit_log.create({
-      data: {
-        user_id: entry.user_id,
-        entity_type: entry.entity_type,
-        entity_id: entry.entity_id,
-        action: 'UPDATE',
-        previous_value: entry.new_value as any,
-        new_value: entry.previous_value as any,
-      },
-    });
   });
 }
 

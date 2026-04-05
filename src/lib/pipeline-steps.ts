@@ -1,5 +1,6 @@
 import { transactionSchema } from '@/lib/schemas';
 import { parseValue } from '@/lib/system-types';
+import { badDate, badAmount, fromZodIssue } from '@/lib/import-errors';
 import type { ProcessedRow, PipelineStep, PipelineContext } from './pipeline';
 
 export const parseDates: PipelineStep = (row, behaviors) => {
@@ -8,10 +9,11 @@ export const parseDates: PipelineStep = (row, behaviors) => {
 
   const parsed = parseValue('date', String(row.data.date), behaviors);
   if (parsed === null) {
+    const err = badDate(row.data.date);
     return {
       ...row,
       status: 'error',
-      errors: [...row.errors, { field: 'date', message: `Unable to parse date: "${row.data.date}"` }],
+      errors: [...row.errors, { field: err.field, message: err.message }],
     };
   }
   return { ...row, data: { ...row.data, date: parsed } };
@@ -20,16 +22,16 @@ export const parseDates: PipelineStep = (row, behaviors) => {
 export const normalizeAmounts: PipelineStep = (row, behaviors) => {
   if (row.data.amount === undefined || row.data.amount === null) return row;
   if (typeof row.data.amount === 'number') {
-    // Already a number — just handle convention
     return applyAmountConvention(row, row.data.amount, behaviors);
   }
 
   const parsed = parseValue('currency', String(row.data.amount));
   if (typeof parsed !== 'number' || isNaN(parsed)) {
+    const err = badAmount(row.data.amount);
     return {
       ...row,
       status: 'error',
-      errors: [...row.errors, { field: 'amount', message: `Unable to parse amount: "${row.data.amount}"` }],
+      errors: [...row.errors, { field: err.field, message: err.message }],
     };
   }
   return applyAmountConvention(
@@ -81,10 +83,10 @@ export const validateSchema: PipelineStep = (row) => {
   const result = transactionSchema.safeParse(row.data);
   if (result.success) return row;
 
-  const errors = result.error.issues.map((issue) => ({
-    field: issue.path.join('.'),
-    message: issue.message,
-  }));
+  const errors = result.error.issues.map((issue) => {
+    const err = fromZodIssue(issue.path.join('.'), issue.message);
+    return { field: err.field, message: err.message };
+  });
 
   return { ...row, status: 'error', errors: [...row.errors, ...errors] };
 };
@@ -102,14 +104,11 @@ export const detectDuplicates: PipelineStep = (row, behaviors, context) => {
     const existingAmount = Number(existing.amount);
     const existingName = String(existing.name || '').toLowerCase().trim();
 
-    // Check date within window
     const daysDiff = Math.abs(rowDate.getTime() - existingDate.getTime()) / (1000 * 60 * 60 * 24);
     if (daysDiff > windowDays) continue;
 
-    // Check amount match
     if (Math.abs(rowAmount - existingAmount) > 0.01) continue;
 
-    // Amount + date match — score name similarity
     const shorter = rowName.length <= existingName.length ? rowName : existingName;
     const longer = rowName.length <= existingName.length ? existingName : rowName;
     const isSubstring = longer.includes(shorter);

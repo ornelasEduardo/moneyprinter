@@ -35,11 +35,6 @@ describe('DataTab', () => {
     expect(screen.getByText(/export/i)).toBeInTheDocument();
   });
 
-  it('should render import section', () => {
-    render(<DataTab backupHistory={[]} showBackupReminder={false} />);
-    expect(screen.getByText(/import/i)).toBeInTheDocument();
-  });
-
   it('should render backup section', () => {
     render(<DataTab backupHistory={[]} showBackupReminder={false} />);
     expect(screen.getByText(/backup/i)).toBeInTheDocument();

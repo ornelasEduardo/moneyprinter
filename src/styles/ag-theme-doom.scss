@@ -1,72 +1,175 @@
-// AG Grid doom theme
-// Maps AG Grid CSS variables to doom design tokens.
-// Usage: <div className="ag-theme-doom">
+// AG Grid doom theme — comprehensive neubrutalist override
+// Maps every AG Grid surface to doom design tokens.
 
 .ag-theme-doom {
-  // Core colors
+  // ── Core surfaces ──────────────────────────────────────
   --ag-background-color: var(--card-bg);
   --ag-foreground-color: var(--foreground);
-  --ag-header-background-color: var(--card-bg);
+  --ag-header-background-color: var(--background);
   --ag-header-foreground-color: var(--foreground);
+  --ag-odd-row-background-color: var(--card-bg);
+  --ag-control-panel-background-color: var(--card-bg);
+  --ag-subheader-background-color: var(--background);
+  --ag-invalid-color: var(--error);
+  --ag-chip-background-color: var(--background);
 
-  // Borders
+  // ── Borders ────────────────────────────────────────────
   --ag-border-color: var(--card-border);
-  --ag-row-border-color: var(--card-border);
+  --ag-row-border-color: color-mix(in srgb, var(--card-border) 50%, transparent);
   --ag-header-column-separator-color: var(--card-border);
+  --ag-header-column-separator-display: block;
+  --ag-header-column-separator-width: 1px;
+  --ag-header-column-separator-height: 50%;
+  --ag-column-border: 0;
+  --ag-borders: none;
+  --ag-border-radius: 0;
+  --ag-wrapper-border: none;
+  --ag-wrapper-border-radius: 0;
 
-  // Typography
+  // ── Typography ─────────────────────────────────────────
   --ag-font-family: inherit;
   --ag-font-size: var(--text-sm);
+  --ag-header-font-family: inherit;
+  --ag-header-font-size: var(--text-xs);
   --ag-header-font-weight: var(--font-bold);
 
-  // Spacing
-  --ag-cell-horizontal-padding: var(--spacing-3);
-  --ag-row-height: 40px;
+  // ── Sizing ─────────────────────────────────────────────
+  --ag-cell-horizontal-padding: var(--spacing-4);
+  --ag-row-height: 44px;
   --ag-header-height: 44px;
+  --ag-grid-size: 6px;
 
-  // Selection & hover
-  --ag-row-hover-color: var(--muted);
-  --ag-selected-row-background-color: var(--primary);
+  // ── Selection & interaction ────────────────────────────
+  --ag-row-hover-color: color-mix(in srgb, var(--foreground) 3%, var(--card-bg));
+  --ag-selected-row-background-color: color-mix(in srgb, var(--primary) 8%, var(--card-bg));
+  --ag-range-selection-background-color: color-mix(in srgb, var(--primary) 12%, var(--card-bg));
   --ag-range-selection-border-color: var(--primary);
+  --ag-range-selection-border-style: solid;
   --ag-checkbox-checked-color: var(--primary);
+  --ag-checkbox-unchecked-color: var(--card-border);
+  --ag-checkbox-indeterminate-color: var(--primary);
+  --ag-input-focus-border-color: var(--primary);
+  --ag-input-border-color: var(--card-border);
 
-  // Borders — doom uses 2px borders
-  --ag-borders: solid var(--border-width) var(--card-border);
-  --ag-border-radius: var(--radius);
+  // ── Filters & menus ────────────────────────────────────
+  --ag-popup-shadow: var(--shadow-hard);
+  --ag-card-shadow: var(--shadow-hard);
+  --ag-modal-overlay-background-color: rgba(0, 0, 0, 0.3);
 
-  // Override specific elements for doom aesthetic
+  // ── Cell editing ───────────────────────────────────────
+  --ag-input-focus-box-shadow: 0 0 0 2px var(--primary);
+  --ag-cell-horizontal-border: none;
+
+  // ── Element overrides ──────────────────────────────────
+
+  // Root — remove AG Grid's default wrapper border
+  &.ag-root-wrapper {
+    border: none;
+    border-radius: 0;
+  }
+
+  // Header — bold doom treatment
   .ag-header {
     border-bottom: var(--border-width) solid var(--card-border);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-size: var(--text-xs);
   }
 
+  .ag-header-cell {
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
+  }
+
+  // Rows
   .ag-row {
-    border-bottom: 1px solid var(--card-border);
+    border-bottom: 1px solid color-mix(in srgb, var(--card-border) 40%, transparent);
+  }
+
+  .ag-row-hover {
+    border-bottom-color: var(--card-border);
   }
 
   .ag-cell {
-    line-height: 40px;
+    line-height: 44px;
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
   }
 
-  // Row status classes (applied via rowClassRules)
+  // Checkboxes — doom style
+  .ag-checkbox-input-wrapper {
+    border-radius: calc(var(--radius) / 2);
+  }
+
+  // Cell editing
+  .ag-cell-inline-editing {
+    border: var(--border-width) solid var(--primary) !important;
+    box-shadow: 0 0 0 1px var(--primary);
+    border-radius: 0;
+    background: var(--card-bg);
+  }
+
+  // Popups & menus
+  .ag-popup-child {
+    border: var(--border-width) solid var(--card-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-hard);
+  }
+
+  .ag-menu {
+    background: var(--card-bg);
+  }
+
+  .ag-menu-option-active {
+    background: color-mix(in srgb, var(--primary) 10%, var(--card-bg));
+  }
+
+  // Filter
+  .ag-filter {
+    background: var(--card-bg);
+  }
+
+  .ag-filter-toolpanel-body {
+    background: var(--card-bg);
+  }
+
+  // Horizontal scroll
+  .ag-body-horizontal-scroll-viewport,
+  .ag-body-viewport {
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: var(--background);
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--card-border);
+      border-radius: 4px;
+    }
+  }
+
+  // Pinned columns — subtle separator
+  .ag-pinned-left-header,
+  .ag-pinned-left-cols-container {
+    border-right: var(--border-width) solid var(--card-border);
+  }
+
+  // ── Row status classes — visible full-row tints ─────────
   .row-valid {
-    border-left: 3px solid var(--success);
+    // No tint — valid is the default state
   }
 
   .row-duplicate {
-    border-left: 3px solid var(--warning);
-    background-color: color-mix(in srgb, var(--warning) 5%, transparent);
+    background-color: color-mix(in srgb, var(--warning) 20%, var(--card-bg)) !important;
   }
 
   .row-error {
-    border-left: 3px solid var(--error);
-    background-color: color-mix(in srgb, var(--error) 5%, transparent);
+    background-color: color-mix(in srgb, var(--error) 18%, var(--card-bg)) !important;
+    color: color-mix(in srgb, var(--foreground) 60%, transparent);
   }
 
   .row-skipped {
-    border-left: 3px solid var(--muted);
-    opacity: 0.5;
+    background-color: color-mix(in srgb, var(--foreground) 8%, var(--card-bg)) !important;
+    color: color-mix(in srgb, var(--foreground) 45%, transparent);
   }
 }

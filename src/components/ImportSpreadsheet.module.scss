@@ -1,35 +1,215 @@
-.uploadCard {
-  padding: var(--spacing-8);
+@use '@/styles/mixins' as *;
+
+// ── Upload landing page ──────────────────────────────────
+
+.uploadPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: var(--spacing-8);
+  padding: var(--spacing-8) var(--spacing-6);
+  position: relative;
+}
+
+.uploadBackLink {
+  @include sheen;
+  position: absolute;
+  top: var(--spacing-6);
+  left: var(--spacing-6);
+  display: flex;
+  align-items: center;
+  color: var(--foreground);
+}
+
+.uploadHero {
   text-align: center;
 }
 
-.toolbar {
-  padding: var(--spacing-3) var(--spacing-4);
+.uploadTitle {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.mappingBar {
-  padding: var(--spacing-2) var(--spacing-4);
-  overflow-x: auto;
+.uploadSubtitle {
+  margin-top: var(--spacing-2);
 }
 
-.mappingChip {
-  padding: var(--spacing-1) var(--spacing-2);
+.uploadDropArea {
+  width: 100%;
+  max-width: 480px;
+}
+
+.uploadConfigs {
+  width: 100%;
+  max-width: 320px;
+}
+
+.uploadSteps {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6);
+  border: var(--border-width) solid var(--card-border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+}
+
+.uploadStep {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.uploadStepIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   border: var(--border-width) solid var(--card-border);
   border-radius: var(--radius);
   background: var(--background);
-  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.gridContainer {
-  height: 500px;
-  border: var(--border-width) solid var(--card-border);
-  border-radius: var(--radius);
+.uploadStepArrow {
+  color: var(--card-border);
+  flex-shrink: 0;
+}
+
+// ── Full-screen editor ───────────────────────────────────
+
+.editorPage {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   overflow: hidden;
 }
 
-.resultCard {
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) 0;
+  padding-right: var(--spacing-4);
+  border-bottom: var(--border-width) solid var(--card-border);
+  background: var(--card-bg);
+  flex-shrink: 0;
+}
+
+.topBarInfo {
+  padding-left: var(--spacing-4);
+}
+
+.backLink {
+  @include sheen;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  flex-shrink: 0;
+  color: var(--foreground);
+}
+
+.errorBadgeButton {
+  all: unset;
+  cursor: pointer;
+}
+
+.errorPopover {
+  min-width: 300px;
+  max-width: 400px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.errorPopoverFooter {
+  display: block;
   padding: var(--spacing-3) var(--spacing-4);
+  text-align: center;
+}
+
+.gridContainer {
+  flex: 1;
+  min-height: 0;
+}
+
+// Custom column header
+.mappingHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.mappingHeaderLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Header mapping indicators
+.mappingHeaderBadge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--primary) 15%, var(--background));
+  color: var(--foreground);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mappingHeaderSkipped {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  color: var(--card-border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// Column config modal
+.sampleValues {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  background: var(--background);
+}
+
+.sampleValue {
+  font-family: monospace;
+}
+
+.resultCard {
+  padding: var(--spacing-4) var(--spacing-6);
   border-left: 4px solid var(--success);
+  flex-shrink: 0;
+}
+
+.configSummary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  background: var(--background);
 }
 
 .configInput {

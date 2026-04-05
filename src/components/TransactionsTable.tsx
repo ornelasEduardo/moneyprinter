@@ -18,12 +18,13 @@ import {
   RadioGroupItem,
   Select,
   Spinner,
+  SplitButton,
   Table,
   Text,
   Tooltip,
   useToast,
 } from "doom-design-system";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Upload } from "lucide-react";
 
 import { Serialized, Transaction as PrismaTransaction } from "@/lib/types";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -254,14 +255,15 @@ export default function TransactionsTable({
           <Text variant="h4">Transactions ({selectedYear})</Text>
 
           <Flex gap={4} align="center">
-            <Button
-              onClick={() =>
+            <SplitButton
+              primaryLabel="Add"
+              onPrimaryClick={() =>
                 router.push(`/transactions/new?year=${selectedYear}`)
               }
-            >
-              <Plus size={16} strokeWidth={2.5} className="mr-2" />
-              Add
-            </Button>
+              items={[
+                { label: 'Import CSV', onClick: () => router.push('/import') },
+              ]}
+            />
           </Flex>
         </Flex>
 

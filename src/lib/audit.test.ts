@@ -136,8 +136,6 @@ describe('undoAuditEntry', () => {
       where: { id: 10 },
       data: { name: 'Old Name', balance: 100 },
     });
-    // Should write a compensating audit entry
-    expect(prisma.audit_log.create).toHaveBeenCalled();
   });
 
   it('should set deleted_at for a CREATE entry (undo creation = soft delete)', async () => {

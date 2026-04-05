@@ -37,7 +37,7 @@ describe('parseDates', () => {
     const row = makeRow({ date: 'not-a-date', name: 'Test' });
     const result = parseDates(row, {}, emptyContext);
     expect(result.status).toBe('error');
-    expect(result.errors[0].field).toBe('date');
+    expect(result.errors[0].field).toBe('Date');
   });
 
   it('should skip rows without date field', () => {
@@ -73,7 +73,7 @@ describe('normalizeAmounts', () => {
     const row = makeRow({ amount: 'abc', name: 'Test' });
     const result = normalizeAmounts(row, {}, emptyContext);
     expect(result.status).toBe('error');
-    expect(result.errors[0].field).toBe('amount');
+    expect(result.errors[0].field).toBe('Amount');
   });
 });
 

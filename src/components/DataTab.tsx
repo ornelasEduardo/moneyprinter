@@ -9,14 +9,11 @@ import {
 import { Download, Shield, X } from 'lucide-react';
 import { EXPORTABLE_ENTITIES, formatBytes, type BackupHistoryEntry } from '@/lib/constants';
 import { getBackupEstimate, recordBackup, dismissBackupReminder } from '@/app/actions/backup';
-import ImportSpreadsheet from '@/components/ImportSpreadsheet';
 import styles from './DataTab.module.scss';
 
 interface DataTabProps {
   backupHistory: BackupHistoryEntry[];
   showBackupReminder: boolean;
-  existingTransactions?: Record<string, unknown>[];
-  accounts?: { id: number; name: string }[];
 }
 
 function toTitleCase(str: string): string {
@@ -25,7 +22,7 @@ function toTitleCase(str: string): string {
     .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
 }
 
-export default function DataTab({ backupHistory, showBackupReminder, existingTransactions, accounts }: DataTabProps) {
+export default function DataTab({ backupHistory, showBackupReminder }: DataTabProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
@@ -89,7 +86,6 @@ export default function DataTab({ backupHistory, showBackupReminder, existingTra
       <Tabs defaultValue="export">
         <TabsList>
           <TabsTrigger value="export">Export</TabsTrigger>
-          <TabsTrigger value="import">Import</TabsTrigger>
           <TabsTrigger value="backup">Backup</TabsTrigger>
         </TabsList>
 
@@ -130,14 +126,6 @@ export default function DataTab({ backupHistory, showBackupReminder, existingTra
                 Download All (.zip)
               </Button>
             </Stack>
-          </TabsContent>
-
-          {/* Import */}
-          <TabsContent value="import">
-            <ImportSpreadsheet
-              existingTransactions={existingTransactions}
-              accounts={accounts}
-            />
           </TabsContent>
 
           {/* Backup */}

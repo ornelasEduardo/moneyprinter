@@ -44,7 +44,7 @@ const mockParsedData = [
 describe('ImportSpreadsheet', () => {
   it('should render upload prompt when no data', () => {
     render(<ImportSpreadsheet />);
-    expect(screen.getByText(/import bank transactions/i)).toBeInTheDocument();
+    expect(screen.getByText(/import transactions/i)).toBeInTheDocument();
   });
 
   it('should render grid when data is provided', () => {
