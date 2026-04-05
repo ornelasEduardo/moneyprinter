@@ -26,7 +26,7 @@ export default function Loading() {
         <Flex
           gap={2}
           style={{
-            borderBottom: "var(--border-width) solid var(--card-border)",
+            borderBottom: "var(--surface-border-width) solid var(--card-border)",
             paddingBottom: "0.5rem",
           }}
         >
@@ -36,7 +36,7 @@ export default function Loading() {
               variant="rectangular"
               width="100px"
               height="2.5rem"
-              style={{ borderRadius: "var(--radius)" }}
+              style={{ borderRadius: "var(--radius-md)" }}
             />
           ))}
         </Flex>

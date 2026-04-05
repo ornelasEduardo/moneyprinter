@@ -5,7 +5,7 @@
   background: var(--primary);
   color: var(--primary-foreground);
   padding: 1.5rem;
-  border-bottom: var(--border-width) solid var(--card-border);
+  border-bottom: var(--surface-border-width) solid var(--card-border);
   text-align: center;
 }
 
@@ -23,8 +23,8 @@
   max-width: 440px;
   padding: 0;
   overflow: hidden;
-  box-shadow: var(--shadow-hard);
-  border: var(--border-width) solid var(--card-border);
+  box-shadow: var(--shadow-md);
+  border: var(--surface-border-width) solid var(--card-border);
 }
 
 .loginHeaderTitle {

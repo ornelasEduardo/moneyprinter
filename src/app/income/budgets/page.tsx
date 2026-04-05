@@ -550,8 +550,8 @@ export default function IncomeBudgetPage() {
                   onClick={addBudget}
                   variant="ghost"
                   style={{
-                    border: "var(--border-width) dashed var(--card-border)",
-                    borderRadius: "var(--radius)",
+                    border: "var(--surface-border-width) dashed var(--card-border)",
+                    borderRadius: "var(--radius-md)",
                     justifyContent: "center",
                   }}
                 >
@@ -596,7 +596,7 @@ export default function IncomeBudgetPage() {
               variant="h4"
               className="mb-6 pb-2"
               style={{
-                borderBottom: "var(--border-width) solid var(--card-border)",
+                borderBottom: "var(--surface-border-width) solid var(--card-border)",
               }}
             >
               Summary

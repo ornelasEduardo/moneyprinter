@@ -70,8 +70,8 @@ export default function AccountWizard() {
                 borderRadius: "8px",
                 fontSize: "1.5rem",
                 margin: "0 auto 1rem auto",
-                border: "var(--border-width) solid var(--card-border)",
-                boxShadow: "var(--shadow-hard)",
+                border: "var(--surface-border-width) solid var(--card-border)",
+                boxShadow: "var(--shadow-md)",
               }}
             >
               <Wallet size={24} strokeWidth={2.5} />
@@ -103,7 +103,7 @@ export default function AccountWizard() {
                     : "hover:translate-y-[-2px] hover:shadow-hover"
                 }`}
                 style={{
-                  border: "var(--border-width) solid var(--card-border)",
+                  border: "var(--surface-border-width) solid var(--card-border)",
                   padding: "1.5rem",
                   cursor: "pointer",
                   background:
@@ -111,7 +111,7 @@ export default function AccountWizard() {
                       ? "var(--background)"
                       : "transparent",
                   boxShadow:
-                    connectionType === "manual" ? "var(--shadow-hard)" : "none",
+                    connectionType === "manual" ? "var(--shadow-md)" : "none",
                   width: "100%",
                 }}
               >
@@ -146,7 +146,7 @@ export default function AccountWizard() {
                 disabled
                 className="text-left opacity-70 cursor-not-allowed"
                 style={{
-                  border: "var(--border-width) solid var(--card-border)",
+                  border: "var(--surface-border-width) solid var(--card-border)",
                   padding: "1.5rem",
                   background: "var(--background)",
                   width: "100%",

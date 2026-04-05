@@ -34,7 +34,7 @@
   --ag-header-font-weight: var(--font-bold);
 
   // ── Sizing ─────────────────────────────────────────────
-  --ag-cell-horizontal-padding: var(--spacing-4);
+  --ag-cell-horizontal-padding: var(--space-4);
   --ag-row-height: 44px;
   --ag-header-height: 44px;
   --ag-grid-size: 6px;
@@ -52,8 +52,8 @@
   --ag-input-border-color: var(--card-border);
 
   // ── Filters & menus ────────────────────────────────────
-  --ag-popup-shadow: var(--shadow-hard);
-  --ag-card-shadow: var(--shadow-hard);
+  --ag-popup-shadow: var(--shadow-md);
+  --ag-card-shadow: var(--shadow-md);
   --ag-modal-overlay-background-color: rgba(0, 0, 0, 0.3);
 
   // ── Cell editing ───────────────────────────────────────
@@ -70,14 +70,14 @@
 
   // Header — bold doom treatment
   .ag-header {
-    border-bottom: var(--border-width) solid var(--card-border);
+    border-bottom: var(--surface-border-width) solid var(--card-border);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .ag-header-cell {
-    padding-left: var(--spacing-4);
-    padding-right: var(--spacing-4);
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
   }
 
   // Rows
@@ -91,18 +91,18 @@
 
   .ag-cell {
     line-height: 44px;
-    padding-left: var(--spacing-4);
-    padding-right: var(--spacing-4);
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
   }
 
   // Checkboxes — doom style
   .ag-checkbox-input-wrapper {
-    border-radius: calc(var(--radius) / 2);
+    border-radius: calc(var(--surface-radius) / 2);
   }
 
   // Cell editing
   .ag-cell-inline-editing {
-    border: var(--border-width) solid var(--primary) !important;
+    border: var(--surface-border-width) solid var(--primary) !important;
     box-shadow: 0 0 0 1px var(--primary);
     border-radius: 0;
     background: var(--card-bg);
@@ -110,9 +110,9 @@
 
   // Popups & menus
   .ag-popup-child {
-    border: var(--border-width) solid var(--card-border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-hard);
+    border: var(--surface-border-width) solid var(--card-border);
+    border-radius: var(--surface-radius);
+    box-shadow: var(--shadow-md);
   }
 
   .ag-menu {
@@ -151,7 +151,7 @@
   // Pinned columns — subtle separator
   .ag-pinned-left-header,
   .ag-pinned-left-cols-container {
-    border-right: var(--border-width) solid var(--card-border);
+    border-right: var(--surface-border-width) solid var(--card-border);
   }
 
   // ── Row status classes — visible full-row tints ─────────

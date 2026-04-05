@@ -150,11 +150,11 @@ export default function NetWorthChart({ data }: NetWorthChartProps) {
       .style('visibility', 'hidden')
       .style('background-color', 'var(--card-bg)')
       .style('border', '1px solid var(--card-border)')
-      .style('border-radius', 'var(--radius)')
+      .style('border-radius', 'var(--radius-md)')
       .style('padding', '0.75rem')
       .style('pointer-events', 'none')
       .style('z-index', '1000')
-      .style('box-shadow', 'var(--shadow-hard)');
+      .style('box-shadow', 'var(--shadow-md)');
 
     // Formatters
     const formatCurrency = (value: number) => 

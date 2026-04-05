@@ -86,8 +86,8 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
                 borderRadius: "8px",
                 fontSize: "1.5rem",
                 margin: "0 auto 1rem auto",
-                border: "var(--border-width) solid var(--card-border)",
-                boxShadow: "var(--shadow-hard)",
+                border: "var(--surface-border-width) solid var(--card-border)",
+                boxShadow: "var(--shadow-md)",
               }}
             >
               <Receipt size={24} strokeWidth={2.5} />

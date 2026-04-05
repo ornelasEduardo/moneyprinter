@@ -1,9 +1,9 @@
 .headerContainer {
   position: relative;
   z-index: var(--z-header);
-  padding: var(--spacing-4) 0;
-  margin-bottom: var(--spacing-4);
-  border-bottom: var(--border-width) solid var(--card-border);
+  padding: var(--space-4) 0;
+  margin-bottom: var(--space-4);
+  border-bottom: var(--surface-border-width) solid var(--card-border);
 }
 
 .yearSelectWrapper {

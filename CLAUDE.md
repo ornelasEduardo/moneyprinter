@@ -7,7 +7,7 @@ Every feature, every decision should serve that core value — data stays local,
 ## Stack
 
 - **Framework**: Next.js 15 (App Router, `src/app/`)
-- **UI**: `doom-design-system@0.5.1` — neubrutalist component library
+- **UI**: `doom-design-system@0.6.1` — neubrutalist component library
 - **Styling**: SASS modules (emotion was removed, see git history)
 - **DB**: Prisma + PostgreSQL (`pg`)
 - **Tables**: TanStack Table v8 + TanStack Virtual
@@ -45,6 +45,10 @@ Version `0.5.1`. `transpilePackages: ['doom-design-system']` is set in `next.con
 ## Test setup
 
 `src/test-utils.tsx` wraps renders with `ThemeProvider` + `ToastProvider`. Always import `render` from there, not from `@testing-library/react`.
+
+## System types
+
+MoneyPrinter defines a system-level type registry (`SystemType`) for data primitives: `string`, `number`, `currency`, `date`, `boolean`. These are NOT import-specific — they're app-wide. Import column mapping, export serialization, display formatting, and validation all reference the same types. See `src/lib/system-types.ts`. Extend by adding to the `SystemType` union + parser + formatter.
 
 ## Project structure
 

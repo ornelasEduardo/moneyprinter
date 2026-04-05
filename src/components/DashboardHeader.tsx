@@ -51,8 +51,8 @@ export default function DashboardHeader({
             gap={2}
             style={{
               padding: "0.5rem 1rem",
-              border: "var(--border-width) solid var(--card-border)",
-              borderRadius: "var(--radius)",
+              border: "var(--surface-border-width) solid var(--card-border)",
+              borderRadius: "var(--radius-md)",
               backgroundColor: user.is_sandbox
                 ? "var(--warning)"
                 : "var(--primary)",
