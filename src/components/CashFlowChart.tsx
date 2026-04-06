@@ -1,6 +1,8 @@
 'use client';
 
-import { Card, Chart, Flex, Stack, Text, Badge } from 'doom-design-system';
+import { useRef, useEffect } from 'react';
+import * as d3 from 'd3';
+import { Card, Flex, Stack, Text, Badge } from 'doom-design-system';
 import type { CashFlowPeriod } from '@/lib/analytics';
 
 interface CashFlowChartProps {
@@ -13,16 +15,88 @@ const formatCurrency = (n: number) =>
 function formatPeriodLabel(period: string): string {
   const [year, month] = period.split('-');
   const date = new Date(Number(year), Number(month) - 1);
-  return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-}
-
-interface ChartDatum {
-  period: string;
-  type: 'Income' | 'Expenses';
-  amount: number;
+  return date.toLocaleDateString('en-US', { month: 'short' });
 }
 
 export function CashFlowChart({ data }: CashFlowChartProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!svgRef.current || !containerRef.current || data.length === 0) return;
+
+    const container = containerRef.current;
+    const width = container.clientWidth;
+    const height = 280;
+    const margin = { top: 16, right: 16, bottom: 32, left: 56 };
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('*').remove();
+    svg.attr('width', width).attr('height', height);
+
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const periods = data.map((d) => formatPeriodLabel(d.period));
+    const maxVal = d3.max(data, (d) => Math.max(d.income, d.expenses)) ?? 0;
+
+    const x0 = d3.scaleBand().domain(periods).range([0, innerW]).padding(0.3);
+    const x1 = d3.scaleBand().domain(['income', 'expenses']).range([0, x0.bandwidth()]).padding(0.08);
+    const y = d3.scaleLinear().domain([0, maxVal * 1.1]).range([innerH, 0]);
+
+    // Grid lines
+    g.append('g')
+      .attr('class', 'grid')
+      .call(d3.axisLeft(y).tickSize(-innerW).tickFormat(() => ''))
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('.tick line')
+        .attr('stroke', 'var(--card-border)')
+        .attr('stroke-opacity', 0.3));
+
+    // X axis
+    g.append('g')
+      .attr('transform', `translate(0,${innerH})`)
+      .call(d3.axisBottom(x0).tickSize(0))
+      .call((g) => g.select('.domain').attr('stroke', 'var(--card-border)'))
+      .call((g) => g.selectAll('text')
+        .attr('fill', 'var(--muted-foreground)')
+        .attr('font-size', 'var(--text-xs)'));
+
+    // Y axis
+    g.append('g')
+      .call(d3.axisLeft(y).ticks(5).tickFormat((d) => `$${Number(d) >= 1000 ? `${Number(d) / 1000}k` : d}`))
+      .call((g) => g.select('.domain').remove())
+      .call((g) => g.selectAll('text')
+        .attr('fill', 'var(--muted-foreground)')
+        .attr('font-size', 'var(--text-xs)'));
+
+    // Bars
+    const barGroups = g.selectAll('.bar-group')
+      .data(data)
+      .join('g')
+      .attr('transform', (d) => `translate(${x0(formatPeriodLabel(d.period))},0)`);
+
+    // Income bars
+    barGroups.append('rect')
+      .attr('x', x1('income')!)
+      .attr('y', (d) => y(d.income))
+      .attr('width', x1.bandwidth())
+      .attr('height', (d) => innerH - y(d.income))
+      .attr('fill', 'var(--success)')
+      .attr('rx', 2);
+
+    // Expense bars
+    barGroups.append('rect')
+      .attr('x', x1('expenses')!)
+      .attr('y', (d) => y(d.expenses))
+      .attr('width', x1.bandwidth())
+      .attr('height', (d) => innerH - y(d.expenses))
+      .attr('fill', 'var(--error)')
+      .attr('rx', 2);
+
+  }, [data]);
+
   if (data.length === 0) {
     return (
       <Card>
@@ -38,14 +112,6 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   const totalIncome = data.reduce((sum, d) => sum + d.income, 0);
   const totalExpenses = data.reduce((sum, d) => sum + d.expenses, 0);
 
-  const chartData: ChartDatum[] = data.flatMap((d) => [
-    { period: formatPeriodLabel(d.period), type: 'Income', amount: d.income },
-    { period: formatPeriodLabel(d.period), type: 'Expenses', amount: d.expenses },
-  ]);
-
-  const incomeData = chartData.filter((d) => d.type === 'Income');
-  const expensesData = chartData.filter((d) => d.type === 'Expenses');
-
   return (
     <Card>
       <Stack gap={4}>
@@ -59,33 +125,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             </Badge>
           </Flex>
         </Stack>
-        <div style={{ height: 300, minHeight: 200 }}>
-          <Chart
-            data={chartData}
-            type="bar"
-            x={(d: ChartDatum) => d.period}
-            y={(d: ChartDatum) => d.amount}
-          >
-            <Chart.Series
-              data={incomeData}
-              type="bar"
-              label="Income"
-              color="var(--success)"
-              x={(d: ChartDatum) => d.period}
-              y={(d: ChartDatum) => d.amount}
-            />
-            <Chart.Series
-              data={expensesData}
-              type="bar"
-              label="Expenses"
-              color="var(--error)"
-              x={(d: ChartDatum) => d.period}
-              y={(d: ChartDatum) => d.amount}
-            />
-            <Chart.Axis />
-            <Chart.Grid />
-            <Chart.Cursor />
-          </Chart>
+        <div ref={containerRef} style={{ width: '100%', minHeight: 280 }}>
+          <svg ref={svgRef} style={{ display: 'block', width: '100%' }} />
         </div>
       </Stack>
     </Card>
