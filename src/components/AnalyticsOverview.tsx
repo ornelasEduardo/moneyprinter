@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { Card, Container, Grid, Stack, Switcher, Text, Flex } from 'doom-design-system';
-import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { TimeRangePicker } from './TimeRangePicker';
 import { SpendingChart } from './SpendingChart';
 import { CashFlowChart } from './CashFlowChart';
@@ -51,67 +50,48 @@ export default function AnalyticsOverview() {
     const totalSpent = spending.reduce((sum, c) => sum + c.amount, 0);
     const totalIncome = cashFlowData.reduce((sum, d) => sum + d.income, 0);
     const totalNet = cashFlowData.reduce((sum, d) => sum + d.net, 0);
-    const totalRecurring = recurring.reduce((sum, c) => sum + monthlyEquivalent(c), 0);
-    return { totalSpent, totalIncome, totalNet, totalRecurring };
-  }, [spending, cashFlowData, recurring]);
+    const savingsRate = totalIncome > 0 ? Math.round((totalNet / totalIncome) * 100) : 0;
+    return { totalSpent, totalIncome, totalNet, savingsRate };
+  }, [spending, cashFlowData]);
 
   return (
     <Container maxWidth="xl">
-      <Stack gap={6}>
+      <Stack gap={8}>
         <TimeRangePicker onChange={fetchData} />
 
         {loading ? (
           <Text color="muted">Loading...</Text>
         ) : (
-          <Stack gap={6}>
-            {/* Headline stats */}
-            <Grid columns="repeat(auto-fit, minmax(200px, 1fr))" gap={4}>
-              <Card className={styles.statCard}>
-                <Stack gap={1}>
-                  <Flex align="center" gap={2}>
-                    <TrendingUp size={14} strokeWidth={2.5} style={{ color: 'var(--success)' }} />
-                    <Text variant="caption" color="muted">Earned</Text>
-                  </Flex>
-                  <Text variant="h4" weight="bold">{formatCurrency(totals.totalIncome)}</Text>
-                </Stack>
-              </Card>
-              <Card className={styles.statCard}>
-                <Stack gap={1}>
-                  <Flex align="center" gap={2}>
-                    <TrendingDown size={14} strokeWidth={2.5} style={{ color: 'var(--error)' }} />
-                    <Text variant="caption" color="muted">Spent</Text>
-                  </Flex>
-                  <Text variant="h4" weight="bold">{formatCurrency(totals.totalSpent)}</Text>
-                </Stack>
-              </Card>
-              <Card className={styles.statCard}>
-                <Stack gap={1}>
-                  <Flex align="center" gap={2}>
-                    <Wallet size={14} strokeWidth={2.5} />
-                    <Text variant="caption" color="muted">Net</Text>
-                  </Flex>
-                  <Text
-                    variant="h4"
-                    weight="bold"
-                    style={{ color: totals.totalNet >= 0 ? 'var(--success)' : 'var(--error)' }}
-                  >
-                    {totals.totalNet >= 0 ? '+' : ''}{formatCurrency(totals.totalNet)}
-                  </Text>
-                </Stack>
-              </Card>
-            </Grid>
+          <Stack gap={8}>
+            {/* Hero stat — the answer to "am I doing well?" */}
+            <div className={styles.hero}>
+              <Text
+                variant="h1"
+                weight="black"
+                className={styles.heroNumber}
+                style={{ color: totals.totalNet >= 0 ? 'var(--success)' : 'var(--error)' }}
+              >
+                {totals.totalNet >= 0 ? '+' : ''}{formatCurrency(totals.totalNet)}
+              </Text>
+              <Text color="muted" className={styles.heroLabel}>
+                {totals.savingsRate > 0
+                  ? `saved ${totals.savingsRate}% of ${formatCurrency(totals.totalIncome)} earned`
+                  : `overspent by ${formatCurrency(Math.abs(totals.totalNet))}`
+                }
+              </Text>
+            </div>
 
-            {/* Main dashboard grid */}
-            <Switcher threshold="md" gap={6}>
+            {/* Two-column detail: where it went + when it happened */}
+            <Grid columns="1fr 1fr" gap={6} className={styles.chartGrid}>
               <SpendingChart
                 data={spending}
                 total={totals.totalSpent}
               />
-              <RecurringCharges charges={recurring} />
-            </Switcher>
+              <CashFlowChart data={cashFlowData} />
+            </Grid>
 
-            {/* Cash flow — full width */}
-            <CashFlowChart data={cashFlowData} />
+            {/* Recurring — de-emphasized, compact */}
+            <RecurringCharges charges={recurring} />
           </Stack>
         )}
       </Stack>
