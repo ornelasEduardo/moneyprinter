@@ -18,6 +18,8 @@ import type { AuditEntryRow } from "@/components/HistoryTab";
 import type { IntegrityWarning } from "@/lib/integrity";
 import DataTab from "@/components/DataTab";
 import type { BackupHistoryEntry } from "@/lib/constants";
+import AnalyticsOverview from "@/components/AnalyticsOverview";
+import AnalyticsReports from "@/components/AnalyticsReports";
 import {
   ActionRow,
   Card,
@@ -36,6 +38,8 @@ import {
   Database,
   Settings,
   Receipt,
+  BarChart3,
+  FileBarChart,
 } from "lucide-react";
 import styles from "./DashboardClient.module.scss";
 
@@ -106,6 +110,8 @@ export default function DashboardClient(props: DashboardClientProps) {
     accounts: 'finance',
     budget: 'finance',
     networth: 'finance',
+    analytics: 'analytics',
+    reports: 'analytics',
     history: 'system',
     data: 'system',
     settings: 'system',
@@ -317,6 +323,12 @@ export default function DashboardClient(props: DashboardClientProps) {
       case "settings":
         return <SettingsView />;
 
+      case "analytics":
+        return <AnalyticsOverview />;
+
+      case "reports":
+        return <AnalyticsReports />;
+
       default:
         return null;
     }
@@ -345,6 +357,10 @@ export default function DashboardClient(props: DashboardClientProps) {
               <Sidebar.Item href="/accounts" icon={<Wallet size={18} strokeWidth={2.5} />}>Accounts</Sidebar.Item>
               <Sidebar.Item href="/budget" icon={<Receipt size={18} strokeWidth={2.5} />}>Budget</Sidebar.Item>
               <Sidebar.Item href="/networth" icon={<TrendingUp size={18} strokeWidth={2.5} />}>Net Worth</Sidebar.Item>
+            </Sidebar.Section>
+            <Sidebar.Section id="analytics" label="Analytics" icon={<BarChart3 size={20} strokeWidth={2.5} />}>
+              <Sidebar.Item href="/analytics" icon={<BarChart3 size={18} strokeWidth={2.5} />}>Overview</Sidebar.Item>
+              <Sidebar.Item href="/reports" icon={<FileBarChart size={18} strokeWidth={2.5} />}>Reports</Sidebar.Item>
             </Sidebar.Section>
             <Sidebar.Section id="system" label="System" icon={<Settings size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/history" icon={<Clock size={18} strokeWidth={2.5} />}>History</Sidebar.Item>
