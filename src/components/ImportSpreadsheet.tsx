@@ -565,7 +565,6 @@ export default function ImportSpreadsheet({
     if (files.length === 0) return;
     const file = files[0];
     setCurrentFilename(file.name);
-    setImportResult(null);
     file.text().then((text) => {
       const result = Papa.parse<Record<string, string>>(text, { header: true, skipEmptyLines: true });
       setRawData(result.data);
