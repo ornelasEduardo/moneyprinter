@@ -3,10 +3,6 @@
 import { useState } from 'react';
 import * as d3 from 'd3';
 import { Card, Chart, Flex, Stack, Switcher, Text } from 'doom-design-system';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { Dim } = require('doom-design-system/dist/components/Chart/behaviors') as { Dim: (opts?: any) => any };
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { DataHoverSensor } = require('doom-design-system/dist/components/Chart/sensors') as { DataHoverSensor: (opts?: any) => any };
 import type { CategorySpending } from '@/lib/analytics';
 
 const COLORS = [
@@ -53,8 +49,6 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
                 data={data}
                 x={(d: CategorySpending) => d.category}
                 y={(d: CategorySpending) => d.amount}
-                behaviors={[Dim({ opacity: 0.3 })]}
-                sensors={[DataHoverSensor()]}
                 d3Config={{ showAxes: false, grid: false }}
                 withFrame={false}
                 flat

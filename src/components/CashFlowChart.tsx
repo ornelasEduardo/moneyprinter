@@ -2,10 +2,6 @@
 
 import * as d3 from 'd3';
 import { Card, Chart, Flex, Stack, Text } from 'doom-design-system';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { Tooltip } = require('doom-design-system/dist/components/Chart/behaviors') as { Tooltip: (opts?: any) => any };
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { DataHoverSensor } = require('doom-design-system/dist/components/Chart/sensors') as { DataHoverSensor: (opts?: any) => any };
 import type { CashFlowPeriod } from '@/lib/analytics';
 
 interface CashFlowChartProps {
@@ -76,8 +72,6 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             data={chartData}
             x={(d: ChartDatum) => d.period}
             y={(d: ChartDatum) => d.amount}
-            behaviors={[Tooltip({ render: (d: ChartDatum) => d.label })]}
-            sensors={[DataHoverSensor()]}
             d3Config={{ showAxes: true, grid: true }}
             withFrame={false}
             flat
