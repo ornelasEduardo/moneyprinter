@@ -25,7 +25,7 @@ interface SpendingChartProps {
 
 export function SpendingChart({ data, total }: SpendingChartProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const size = 180;
+  const size = 160;
   const radius = size / 2;
   const innerRadius = radius * 0.6;
 
@@ -73,7 +73,7 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
     <Card>
       <Stack gap={4}>
         <Text variant="h5" weight="bold">Spending by Category</Text>
-        <Switcher threshold="sm" gap={6} align="flex-start">
+        <Switcher threshold="md" gap={6} align="flex-start">
           <Flex justify="center">
             <svg ref={svgRef} width={size} height={size} style={{ flexShrink: 0 }} />
           </Flex>
