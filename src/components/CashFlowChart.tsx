@@ -28,7 +28,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
     const container = containerRef.current;
     const width = container.clientWidth;
     const height = 280;
-    const margin = { top: 16, right: 16, bottom: 32, left: 56 };
+    const margin = { top: 16, right: 24, bottom: 32, left: 56 };
     const innerW = width - margin.left - margin.right;
     const innerH = height - margin.top - margin.bottom;
 
@@ -138,8 +138,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             </Stack>
           </Flex>
         </Stack>
-        <div ref={containerRef} style={{ width: '100%', minHeight: 280 }}>
-          <svg ref={svgRef} style={{ display: 'block', width: '100%' }} />
+        <div ref={containerRef} style={{ width: '100%', minHeight: 280, overflow: 'hidden' }}>
+          <svg ref={svgRef} style={{ display: 'block' }} />
         </div>
       </Stack>
     </Card>

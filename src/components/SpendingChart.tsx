@@ -73,27 +73,23 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
     <Card>
       <Stack gap={4}>
         <Text variant="h5" weight="bold">Spending by Category</Text>
-        <Switcher threshold="md" gap={6} align="flex-start">
-          <Flex justify="center">
-            <svg ref={svgRef} width={size} height={size} style={{ flexShrink: 0 }} />
+        <Switcher threshold="md" gap={4} align="center">
+          <Flex justify="center" style={{ width: '100%' }}>
+            <svg ref={svgRef} width={size} height={size} />
           </Flex>
-          <Stack gap={2} style={{ flex: 1 }}>
+          <Stack gap={1} style={{ flex: 1, width: '100%' }}>
             {data.slice(0, 8).map((cat, i) => (
-              <Flex key={cat.category} align="center" justify="space-between" gap={3}>
-                <Flex align="center" gap={2} style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 2,
-                    backgroundColor: COLORS[i % COLORS.length],
-                    flexShrink: 0,
-                  }} />
-                  <Text variant="small" style={{ textTransform: 'capitalize' }}>{cat.category}</Text>
-                </Flex>
+              <Flex key={cat.category} align="center" gap={2} style={{ padding: '2px 0' }}>
+                <div style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 2,
+                  backgroundColor: COLORS[i % COLORS.length],
+                  flexShrink: 0,
+                }} />
+                <Text variant="small" style={{ textTransform: 'capitalize', flex: 1 }}>{cat.category}</Text>
                 <Text variant="small" weight="bold">{formatCurrency(cat.amount)}</Text>
-                <Text variant="caption" color="muted" style={{ width: 40, textAlign: 'right' }}>
-                  {Math.round(cat.percentage)}%
-                </Text>
+                <Text variant="caption" color="muted">{Math.round(cat.percentage)}%</Text>
               </Flex>
             ))}
           </Stack>
