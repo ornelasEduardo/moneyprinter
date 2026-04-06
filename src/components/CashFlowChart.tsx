@@ -41,8 +41,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
     const periods = data.map((d) => formatPeriodLabel(d.period));
     const maxVal = d3.max(data, (d) => Math.max(d.income, d.expenses)) ?? 0;
 
-    const x0 = d3.scaleBand().domain(periods).range([0, innerW]).padding(0.3);
-    const x1 = d3.scaleBand().domain(['income', 'expenses']).range([0, x0.bandwidth()]).padding(0.08);
+    const x0 = d3.scaleBand().domain(periods).range([0, innerW]).padding(0.35);
+    const x1 = d3.scaleBand().domain(['income', 'expenses']).range([0, x0.bandwidth()]).padding(0.1);
     const y = d3.scaleLinear().domain([0, maxVal * 1.1]).range([innerH, 0]);
 
     // Grid lines
@@ -121,17 +121,21 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
       <Stack gap={4}>
         <Stack gap={2}>
           <Text variant="h5" weight="bold">Cash Flow</Text>
-          <Flex gap={2} wrap align="center">
-            <Badge variant="success">{formatCurrency(totalIncome)}</Badge>
-            <Text variant="caption" color="muted">earned</Text>
-            <Text variant="caption" color="muted">&minus;</Text>
-            <Badge variant="error">{formatCurrency(totalExpenses)}</Badge>
-            <Text variant="caption" color="muted">spent</Text>
-            <Text variant="caption" color="muted">=</Text>
-            <Badge variant={totalNet >= 0 ? 'success' : 'error'}>
-              {totalNet >= 0 ? '+' : ''}{formatCurrency(totalNet)}
-            </Badge>
-            <Text variant="caption" color="muted">net</Text>
+          <Flex gap={6} wrap align="baseline">
+            <Stack gap={0}>
+              <Text variant="caption" color="muted">Earned</Text>
+              <Text weight="bold" style={{ color: 'var(--success)' }}>{formatCurrency(totalIncome)}</Text>
+            </Stack>
+            <Stack gap={0}>
+              <Text variant="caption" color="muted">Spent</Text>
+              <Text weight="bold" style={{ color: 'var(--error)' }}>{formatCurrency(totalExpenses)}</Text>
+            </Stack>
+            <Stack gap={0}>
+              <Text variant="caption" color="muted">Net</Text>
+              <Text weight="bold" style={{ color: totalNet >= 0 ? 'var(--success)' : 'var(--error)' }}>
+                {totalNet >= 0 ? '+' : ''}{formatCurrency(totalNet)}
+              </Text>
+            </Stack>
           </Flex>
         </Stack>
         <div ref={containerRef} style={{ width: '100%', minHeight: 280 }}>

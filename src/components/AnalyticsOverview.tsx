@@ -38,7 +38,7 @@ export default function AnalyticsOverview() {
       {loading ? (
         <Text color="muted">Loading...</Text>
       ) : (
-        <Stack gap={4}>
+        <Stack gap={6}>
           <SpendingChart
             data={spending}
             total={spending.reduce((sum, c) => sum + c.amount, 0)}
