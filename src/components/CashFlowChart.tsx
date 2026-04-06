@@ -26,33 +26,36 @@ interface ChartDatum {
   amount: number;
 }
 
-// Custom behavior: highlight hovered bar, dim others
+// Custom behavior: highlight hovered period's bars, dim others via chartStore subscription
 function highlightBar(): Behavior {
-  return (ctx: any) => {
-    const check = () => {
-      const interaction = ctx.getInteraction('primary-hover');
-      const chartCtx = ctx.getChartContext();
-      const g = chartCtx.g;
-      if (!g) return;
+  return ({ getChartContext, getInteraction }: any) => {
+    const ctx = getChartContext();
+    if (!ctx?.g) return;
+    const { g, chartStore } = ctx;
 
+    const update = () => {
+      const interaction = getInteraction('primary-hover');
+      const targets = interaction?.targets || [];
       const allBars = g.selectAll('rect.bar-income, rect.bar-expenses');
 
-      if (!interaction || !('targets' in interaction) || !interaction.targets?.length) {
-        allBars.attr('opacity', 1);
+      if (targets.length === 0) {
+        allBars.style('opacity', 1);
         return;
       }
 
-      const hovered = interaction.targets[0]?.data as ChartDatum | undefined;
+      const hovered = targets[0]?.data as ChartDatum | undefined;
       if (!hovered) return;
 
-      allBars.attr('opacity', function (this: any) {
-        const el = d3.select(this);
-        const period = el.attr('data-period');
-        return period === hovered.period ? 1 : 0.3;
+      allBars.style('opacity', function (this: any) {
+        return d3.select(this).attr('data-period') === hovered.period ? 1 : 0.3;
       });
     };
-    const interval = setInterval(check, 50);
-    return () => clearInterval(interval);
+
+    const unsubscribe = chartStore.subscribe(update);
+    return () => {
+      unsubscribe();
+      g.selectAll('rect.bar-income, rect.bar-expenses').style('opacity', 1);
+    };
   };
 }
 

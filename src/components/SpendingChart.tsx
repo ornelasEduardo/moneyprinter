@@ -20,29 +20,38 @@ const COLORS = [
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 
-// Custom behavior: dim non-hovered donut slices
+// Custom behavior: dim non-hovered donut slices via chartStore subscription
 function dimSlices(onHover: (category: string | null) => void): Behavior {
-  return (ctx: any) => {
-    const check = () => {
-      const interaction = ctx.getInteraction('primary-hover');
-      if (!interaction || !('targets' in interaction) || !interaction.targets?.length) {
+  return ({ getChartContext, getInteraction }: any) => {
+    const ctx = getChartContext();
+    if (!ctx?.g) return;
+    const { g, chartStore } = ctx;
+
+    const update = () => {
+      const interaction = getInteraction('primary-hover');
+      const targets = interaction?.targets || [];
+
+      if (targets.length === 0) {
         onHover(null);
-        const chartCtx = ctx.getChartContext();
-        chartCtx.g?.selectAll('path[data-chart-type="donut"]').attr('opacity', 1);
+        g.selectAll('path[data-chart-type="donut"]').style('opacity', 1);
         return;
       }
-      const hovered = interaction.targets[0]?.data as CategorySpending | undefined;
+
+      const hovered = targets[0]?.data as CategorySpending | undefined;
       if (!hovered) return;
       onHover(hovered.category);
-      const chartCtx = ctx.getChartContext();
-      chartCtx.g?.selectAll('path[data-chart-type="donut"]')
-        .attr('opacity', (_: unknown, i: number) => {
-          const d = (chartCtx.getChartContext() as any).chartStore?.getState()?.data?.[i];
-          return d?.category === hovered.category ? 1 : 0.3;
-        });
+
+      g.selectAll('path[data-chart-type="donut"]').style('opacity', function (this: any) {
+        const datum = this.__data__?.data;
+        return datum?.category === hovered.category ? 1 : 0.3;
+      });
     };
-    const interval = setInterval(check, 50);
-    return () => clearInterval(interval);
+
+    const unsubscribe = chartStore.subscribe(update);
+    return () => {
+      unsubscribe();
+      g.selectAll('path[data-chart-type="donut"]').style('opacity', 1);
+    };
   };
 }
 
