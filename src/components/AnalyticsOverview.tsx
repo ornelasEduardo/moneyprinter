@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { Card, Container, Grid, Stack, Switcher, Text, Flex } from 'doom-design-system';
+import { Card, Container, Stack, Text, Flex } from 'doom-design-system';
 import { TimeRangePicker } from './TimeRangePicker';
 import { SpendingChart } from './SpendingChart';
 import { CashFlowChart } from './CashFlowChart';
@@ -13,16 +13,6 @@ import styles from './AnalyticsOverview.module.scss';
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
-
-function monthlyEquivalent(charge: RecurringCharge): number {
-  switch (charge.frequency) {
-    case 'weekly': return charge.amount * 4.33;
-    case 'biweekly': return charge.amount * 2.17;
-    case 'monthly': return charge.amount;
-    case 'quarterly': return charge.amount / 3;
-    case 'annual': return charge.amount / 12;
-  }
-}
 
 export default function AnalyticsOverview() {
   const [spending, setSpending] = useState<CategorySpending[]>([]);
@@ -55,42 +45,31 @@ export default function AnalyticsOverview() {
   }, [spending, cashFlowData]);
 
   return (
-    <Container maxWidth="xl">
-      <Stack gap={8}>
-        <TimeRangePicker onChange={fetchData} />
+    <Container maxWidth="lg">
+      <Stack gap={6}>
+        {/* Header row: title + time picker */}
+        <Flex align="center" justify="space-between" wrap gap={3}>
+          <Stack gap={0}>
+            <Text variant="h4" weight="bold">Overview</Text>
+            {!loading && (
+              <Text variant="small" color="muted">
+                {formatCurrency(totals.totalIncome)} earned,{' '}
+                {formatCurrency(totals.totalSpent)} spent,{' '}
+                <span style={{ color: totals.totalNet >= 0 ? 'var(--success)' : 'var(--error)' }}>
+                  {totals.totalNet >= 0 ? '+' : ''}{formatCurrency(totals.totalNet)} net
+                </span>
+              </Text>
+            )}
+          </Stack>
+          <TimeRangePicker onChange={fetchData} />
+        </Flex>
 
         {loading ? (
           <Text color="muted">Loading...</Text>
         ) : (
-          <Stack gap={8}>
-            {/* Hero stat — the answer to "am I doing well?" */}
-            <div className={styles.hero}>
-              <Text
-                variant="h1"
-                weight="black"
-                className={styles.heroNumber}
-                style={{ color: totals.totalNet >= 0 ? 'var(--success)' : 'var(--error)' }}
-              >
-                {totals.totalNet >= 0 ? '+' : ''}{formatCurrency(totals.totalNet)}
-              </Text>
-              <Text color="muted" className={styles.heroLabel}>
-                {totals.savingsRate > 0
-                  ? `saved ${totals.savingsRate}% of ${formatCurrency(totals.totalIncome)} earned`
-                  : `overspent by ${formatCurrency(Math.abs(totals.totalNet))}`
-                }
-              </Text>
-            </div>
-
-            {/* Two-column detail: where it went + when it happened */}
-            <Grid columns="1fr 1fr" gap={6} className={styles.chartGrid}>
-              <SpendingChart
-                data={spending}
-                total={totals.totalSpent}
-              />
-              <CashFlowChart data={cashFlowData} />
-            </Grid>
-
-            {/* Recurring — de-emphasized, compact */}
+          <Stack gap={6}>
+            <SpendingChart data={spending} total={totals.totalSpent} />
+            <CashFlowChart data={cashFlowData} />
             <RecurringCharges charges={recurring} />
           </Stack>
         )}

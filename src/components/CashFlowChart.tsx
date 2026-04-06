@@ -85,7 +85,25 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <Card>
       <Stack gap={4}>
-        <Text variant="h5" weight="bold">Cash Flow</Text>
+        <Flex align="center" justify="space-between" wrap gap={3}>
+          <Text variant="h5" weight="bold">Cash Flow</Text>
+          <Flex gap={4} align="baseline">
+            <Stack gap={0}>
+              <Text variant="caption" color="muted">Earned</Text>
+              <Text weight="bold" variant="small" style={{ color: 'var(--success)' }}>{formatCurrency(totalIncome)}</Text>
+            </Stack>
+            <Stack gap={0}>
+              <Text variant="caption" color="muted">Spent</Text>
+              <Text weight="bold" variant="small" style={{ color: 'var(--error)' }}>{formatCurrency(totalExpenses)}</Text>
+            </Stack>
+            <Stack gap={0}>
+              <Text variant="caption" color="muted">Net</Text>
+              <Text weight="bold" variant="small" style={{ color: totalNet >= 0 ? 'var(--success)' : 'var(--error)' }}>
+                {totalNet >= 0 ? '+' : ''}{formatCurrency(totalNet)}
+              </Text>
+            </Stack>
+          </Flex>
+        </Flex>
         <div style={{ height: 300 }}>
           <Chart
             data={chartData}
