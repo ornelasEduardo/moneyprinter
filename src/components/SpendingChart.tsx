@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
-import { Card, Flex, Stack, Text } from 'doom-design-system';
+import { Card, Flex, Stack, Switcher, Text } from 'doom-design-system';
 import type { CategorySpending } from '@/lib/analytics';
 
 const COLORS = [
@@ -73,8 +73,10 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
     <Card>
       <Stack gap={4}>
         <Text variant="h5" weight="bold">Spending by Category</Text>
-        <Flex gap={6} align="flex-start">
-          <svg ref={svgRef} width={size} height={size} style={{ flexShrink: 0 }} />
+        <Switcher threshold="sm" gap={6} align="flex-start">
+          <Flex justify="center">
+            <svg ref={svgRef} width={size} height={size} style={{ flexShrink: 0 }} />
+          </Flex>
           <Stack gap={2} style={{ flex: 1 }}>
             {data.slice(0, 8).map((cat, i) => (
               <Flex key={cat.category} align="center" justify="space-between" gap={3}>
@@ -95,7 +97,7 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
               </Flex>
             ))}
           </Stack>
-        </Flex>
+        </Switcher>
       </Stack>
     </Card>
   );

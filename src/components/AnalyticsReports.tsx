@@ -124,7 +124,7 @@ export default function AnalyticsReports() {
         {REPORTS.map((report) => (
           <Card key={report.id}>
             <Stack gap={3}>
-              <Flex align="center" justify="space-between">
+              <Stack gap={3}>
                 <Stack gap={1}>
                   <Flex align="center" gap={2}>
                     <FileBarChart size={16} strokeWidth={2.5} />
@@ -132,7 +132,7 @@ export default function AnalyticsReports() {
                   </Flex>
                   <Text variant="small" color="muted">{report.description}</Text>
                 </Stack>
-                <Flex gap={2}>
+                <Flex gap={2} wrap>
                   <Button
                     size="sm"
                     onClick={() => generateReport(report.id)}
@@ -147,7 +147,7 @@ export default function AnalyticsReports() {
                     </Button>
                   )}
                 </Flex>
-              </Flex>
+              </Stack>
 
               {activeReport === report.id && reportData.length > 0 && (
                 <Table

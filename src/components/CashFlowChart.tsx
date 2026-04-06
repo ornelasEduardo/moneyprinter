@@ -49,17 +49,17 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <Card>
       <Stack gap={4}>
-        <Flex align="center" justify="space-between">
+        <Stack gap={2}>
           <Text variant="h5" weight="bold">Cash Flow</Text>
-          <Flex gap={3}>
+          <Flex gap={2} wrap>
             <Badge variant="success">{formatCurrency(totalIncome)} in</Badge>
             <Badge variant="error">{formatCurrency(totalExpenses)} out</Badge>
             <Badge variant={totalNet >= 0 ? 'success' : 'error'}>
               {totalNet >= 0 ? '+' : ''}{formatCurrency(totalNet)} net
             </Badge>
           </Flex>
-        </Flex>
-        <div style={{ height: 300 }}>
+        </Stack>
+        <div style={{ height: 300, minHeight: 200 }}>
           <Chart
             data={chartData}
             type="bar"
