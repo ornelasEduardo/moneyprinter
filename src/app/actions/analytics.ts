@@ -2,7 +2,7 @@
 
 import { requireAuth } from '@/lib/action-middleware';
 import prisma from '@/lib/prisma';
-import { spendingByCategory, cashFlow, spendingTrend, type Transaction } from '@/lib/analytics';
+import { spendingByCategory, cashFlow, spendingTrend, detectAnomalies, type Transaction } from '@/lib/analytics';
 import { detectRecurring, type RecurringCharge } from '@/lib/recurring';
 
 // Cache for recurring charges: key = "userId:start:end"
@@ -64,6 +64,40 @@ export async function getRecurringCharges(startDate: Date, endDate: Date) {
 
   recurringCache.set(cacheKey, { data: result, timestamp: Date.now() });
   return result;
+}
+
+export async function getSpendingAnomalies(startDate: Date, endDate: Date) {
+  const userId = await requireAuth();
+  const currentTxs = await fetchTransactions(userId, startDate, endDate);
+  const currentSpending = spendingByCategory(currentTxs);
+
+  // Get 6 months of historical data for comparison
+  const historicalStart = new Date(startDate);
+  historicalStart.setMonth(historicalStart.getMonth() - 6);
+  const historicalTxs = await fetchTransactions(userId, historicalStart, startDate);
+
+  const periodMonths = Math.max(
+    1,
+    (startDate.getTime() - historicalStart.getTime()) / (1000 * 60 * 60 * 24 * 30),
+  );
+
+  return detectAnomalies(currentSpending, historicalTxs, periodMonths);
+}
+
+export async function getNetWorthTrend(startDate: Date, endDate: Date) {
+  const userId = await requireAuth();
+  const rows = await prisma.net_worth_history.findMany({
+    where: {
+      user_id: userId,
+      date: { gte: startDate, lt: endDate },
+      deleted_at: null,
+    },
+    orderBy: { date: 'asc' },
+  });
+  return rows.map((row) => ({
+    date: row.date.toISOString().split('T')[0],
+    netWorth: Number(row.net_worth),
+  }));
 }
 
 export async function invalidateRecurringCache() {

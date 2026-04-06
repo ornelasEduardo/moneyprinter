@@ -16,10 +16,17 @@ export interface Transaction {
   accountName?: string;
 }
 
+export interface MerchantSpending {
+  merchant: string;
+  amount: number;
+  count: number;
+}
+
 export interface CategorySpending {
   category: string;
   amount: number;
   percentage: number;
+  merchants: MerchantSpending[];
 }
 
 export interface CashFlowPeriod {
@@ -36,23 +43,32 @@ export interface SpendingTrendPeriod {
 
 export function spendingByCategory(transactions: Transaction[]): CategorySpending[] {
   const expenses = transactions.filter((t) => t.type === 'expense');
-  const categoryTotals = new Map<string, number>();
+  const categoryData = new Map<string, { total: number; merchants: Map<string, { amount: number; count: number }> }>();
 
   for (const tx of expenses) {
     const tags = splitTags(tx.tags);
     const categories = tags.length > 0 ? tags : ['uncategorized'];
     for (const category of categories) {
-      categoryTotals.set(category, (categoryTotals.get(category) ?? 0) + tx.amount);
+      const cat = categoryData.get(category) ?? { total: 0, merchants: new Map() };
+      cat.total += tx.amount;
+      const merchant = cat.merchants.get(tx.name) ?? { amount: 0, count: 0 };
+      merchant.amount += tx.amount;
+      merchant.count++;
+      cat.merchants.set(tx.name, merchant);
+      categoryData.set(category, cat);
     }
   }
 
-  const total = Array.from(categoryTotals.values()).reduce((sum, amt) => sum + amt, 0);
+  const total = Array.from(categoryData.values()).reduce((sum, c) => sum + c.total, 0);
 
-  return Array.from(categoryTotals.entries())
-    .map(([category, amount]) => ({
+  return Array.from(categoryData.entries())
+    .map(([category, data]) => ({
       category,
-      amount,
-      percentage: total > 0 ? (amount / total) * 100 : 0,
+      amount: data.total,
+      percentage: total > 0 ? (data.total / total) * 100 : 0,
+      merchants: Array.from(data.merchants.entries())
+        .map(([merchant, m]) => ({ merchant, amount: m.amount, count: m.count }))
+        .sort((a, b) => b.amount - a.amount),
     }))
     .sort((a, b) => b.amount - a.amount);
 }
@@ -98,6 +114,44 @@ export function cashFlow(
       net: data.income - data.expenses,
     }))
     .sort((a, b) => a.period.localeCompare(b.period));
+}
+
+export interface SpendingAnomaly {
+  category: string;
+  currentAmount: number;
+  averageAmount: number;
+  multiplier: number;
+}
+
+export function detectAnomalies(
+  currentSpending: CategorySpending[],
+  historicalTransactions: Transaction[],
+  periodMonths: number,
+): SpendingAnomaly[] {
+  // Calculate historical monthly average per category
+  const historicalByCategory = spendingByCategory(historicalTransactions);
+  const historicalMonthlyAvg = new Map<string, number>();
+  for (const cat of historicalByCategory) {
+    historicalMonthlyAvg.set(cat.category, cat.amount / Math.max(periodMonths, 1));
+  }
+
+  // Current period's monthly rate (assume current period data represents ~1 month for comparison)
+  const anomalies: SpendingAnomaly[] = [];
+  for (const cat of currentSpending) {
+    const avg = historicalMonthlyAvg.get(cat.category);
+    if (!avg || avg < 10) continue; // skip tiny categories
+    const multiplier = cat.amount / avg;
+    if (multiplier >= 1.5) {
+      anomalies.push({
+        category: cat.category,
+        currentAmount: cat.amount,
+        averageAmount: avg,
+        multiplier: Math.round(multiplier * 10) / 10,
+      });
+    }
+  }
+
+  return anomalies.sort((a, b) => b.multiplier - a.multiplier);
 }
 
 export function spendingTrend(

@@ -56,6 +56,15 @@ describe('spendingByCategory', () => {
     expect(food!.amount).toBe(20);
     expect(work!.amount).toBe(20);
   });
+
+  it('should include merchant breakdown per category', () => {
+    const result = spendingByCategory(mockTransactions);
+    const groceries = result.find((c) => c.category === 'groceries');
+    expect(groceries!.merchants).toHaveLength(2);
+    expect(groceries!.merchants[0].merchant).toBe('Whole Foods');
+    expect(groceries!.merchants[0].amount).toBeCloseTo(85.50);
+    expect(groceries!.merchants[1].merchant).toBe('Trader Joes');
+  });
 });
 
 const multiMonthTransactions: Transaction[] = [

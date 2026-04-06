@@ -1,0 +1,51 @@
+@use '@/styles/mixins' as *;
+
+.categoryRow {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) 0;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--card-border) 30%, transparent);
+  transition: background-color 0.1s;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--foreground) 3%, transparent);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.chevron {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.barTrack {
+  flex: 1;
+  height: 8px;
+  background: color-mix(in srgb, var(--card-border) 20%, transparent);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.merchantList {
+  padding: var(--space-2) 0 var(--space-3) var(--space-8);
+  border-bottom: 1px solid color-mix(in srgb, var(--card-border) 30%, transparent);
+}
+
+.merchantRow {
+  padding: var(--space-1) 0;
+  gap: var(--space-3);
+}
