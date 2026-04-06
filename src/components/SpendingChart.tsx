@@ -52,6 +52,7 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
                 d3Config={{ showAxes: false, grid: false }}
                 withFrame={false}
                 flat
+                style={{ width: '100%', height: '100%' }}
                 onValueChange={(d) => setHoveredCategory(d ? (d as CategorySpending).category : null)}
                 render={(frame) => {
                   const { container, data: frameData, size: chartSize } = frame;

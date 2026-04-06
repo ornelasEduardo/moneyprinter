@@ -67,14 +67,15 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             </Stack>
           </Flex>
         </Stack>
-        <div style={{ height: 300, minHeight: 200 }}>
+        <div style={{ height: 300 }}>
           <Chart
             data={chartData}
             x={(d: ChartDatum) => d.period}
             y={(d: ChartDatum) => d.amount}
-            d3Config={{ showAxes: true, grid: true }}
+            d3Config={{ showAxes: false, grid: false }}
             withFrame={false}
             flat
+            style={{ width: '100%', height: '100%' }}
             render={(frame) => {
               const { container, data: frameData, size, scales } = frame;
               if (!scales.x || !scales.y || !frameData.length) return;
