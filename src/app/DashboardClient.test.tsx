@@ -26,6 +26,8 @@ vi.mock('@/components/TransactionsTable', () => ({ default: () => <div data-test
 vi.mock('@/components/AccountsTable', () => ({ default: () => <div data-testid="accounts-table" /> }));
 vi.mock('@/components/NetWorthHistoryTable', () => ({ default: () => <div data-testid="net-worth-history-table" /> }));
 vi.mock('@/components/SettingsView', () => ({ default: () => <div data-testid="settings-view" /> }));
+vi.mock('@/components/AnalyticsOverview', () => ({ default: () => <div data-testid="analytics-overview" /> }));
+vi.mock('@/components/AnalyticsReports', () => ({ default: () => <div data-testid="analytics-reports" /> }));
 
 const mockProps: any = {
   user: { id: 1, username: 'test', display_name: 'Test', is_sandbox: false },

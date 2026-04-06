@@ -12,29 +12,16 @@ vi.mock('@/app/actions/analytics', () => ({
   getRecurringCharges: vi.fn().mockResolvedValue([]),
 }));
 
-// Mock D3 for SpendingChart's SVG rendering
-vi.mock('d3', () => ({
-  select: vi.fn(() => ({
-    selectAll: vi.fn().mockReturnThis(),
-    remove: vi.fn().mockReturnThis(),
-    append: vi.fn().mockReturnThis(),
-    attr: vi.fn().mockReturnThis(),
-    text: vi.fn().mockReturnThis(),
-    data: vi.fn().mockReturnThis(),
-    join: vi.fn().mockReturnThis(),
-  })),
-  pie: vi.fn(() => {
-    const fn = vi.fn(() => []) as any;
-    fn.value = vi.fn().mockReturnValue(fn);
-    fn.sort = vi.fn().mockReturnValue(fn);
-    return fn;
-  }),
-  arc: vi.fn(() => {
-    const fn = vi.fn(() => '') as any;
-    fn.innerRadius = vi.fn().mockReturnValue(fn);
-    fn.outerRadius = vi.fn().mockReturnValue(fn);
-    return fn;
-  }),
+vi.mock('./SpendingChart', () => ({
+  SpendingChart: (props: any) => <div data-testid="spending-chart">Spending Chart</div>,
+}));
+
+vi.mock('./CashFlowChart', () => ({
+  CashFlowChart: (props: any) => <div data-testid="cashflow-chart">Cash Flow Chart</div>,
+}));
+
+vi.mock('./RecurringCharges', () => ({
+  RecurringCharges: (props: any) => <div data-testid="recurring-charges">Recurring Charges</div>,
 }));
 
 vi.mock('next/navigation', () => ({

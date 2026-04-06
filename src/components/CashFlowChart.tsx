@@ -1,8 +1,11 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
-import { Card, Flex, Stack, Text, Badge } from 'doom-design-system';
+import { Card, Chart, Flex, Stack, Text } from 'doom-design-system';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { Tooltip } = require('doom-design-system/dist/components/Chart/behaviors') as { Tooltip: (opts?: any) => any };
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { DataHoverSensor } = require('doom-design-system/dist/components/Chart/sensors') as { DataHoverSensor: (opts?: any) => any };
 import type { CashFlowPeriod } from '@/lib/analytics';
 
 interface CashFlowChartProps {
@@ -18,89 +21,14 @@ function formatPeriodLabel(period: string): string {
   return date.toLocaleDateString('en-US', { month: 'short' });
 }
 
+interface ChartDatum {
+  period: string;
+  type: string;
+  amount: number;
+  label: string;
+}
+
 export function CashFlowChart({ data }: CashFlowChartProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!svgRef.current || !containerRef.current || data.length === 0) return;
-
-    const container = containerRef.current;
-    const width = container.clientWidth;
-    const height = 280;
-    const margin = { top: 16, right: 24, bottom: 32, left: 56 };
-    const innerW = width - margin.left - margin.right;
-    const innerH = height - margin.top - margin.bottom;
-
-    const svg = d3.select(svgRef.current);
-    svg.selectAll('*').remove();
-    svg.attr('width', width).attr('height', height);
-
-    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-
-    const periods = data.map((d) => formatPeriodLabel(d.period));
-    const maxVal = d3.max(data, (d) => Math.max(d.income, d.expenses)) ?? 0;
-
-    const x0 = d3.scaleBand().domain(periods).range([0, innerW]).padding(0.35);
-    const x1 = d3.scaleBand().domain(['income', 'expenses']).range([0, x0.bandwidth()]).padding(0.1);
-    const y = d3.scaleLinear().domain([0, maxVal * 1.1]).range([innerH, 0]);
-
-    // Grid lines
-    g.append('g')
-      .attr('class', 'grid')
-      .call(d3.axisLeft(y).tickSize(-innerW).tickFormat(() => ''))
-      .call((g) => g.select('.domain').remove())
-      .call((g) => g.selectAll('.tick line')
-        .attr('stroke', 'var(--card-border)')
-        .attr('stroke-opacity', 0.3));
-
-    // X axis
-    g.append('g')
-      .attr('transform', `translate(0,${innerH})`)
-      .call(d3.axisBottom(x0).tickSize(0))
-      .call((g) => g.select('.domain').attr('stroke', 'var(--card-border)'))
-      .call((g) => g.selectAll('text')
-        .attr('fill', 'var(--muted-foreground)')
-        .attr('font-size', 'var(--text-xs)'));
-
-    // Y axis
-    g.append('g')
-      .call(d3.axisLeft(y).ticks(5).tickFormat((d) => `$${Number(d) >= 1000 ? `${Number(d) / 1000}k` : d}`))
-      .call((g) => g.select('.domain').remove())
-      .call((g) => g.selectAll('text')
-        .attr('fill', 'var(--muted-foreground)')
-        .attr('font-size', 'var(--text-xs)'));
-
-    // Bars
-    const barGroups = g.selectAll('.bar-group')
-      .data(data)
-      .join('g')
-      .attr('transform', (d) => `translate(${x0(formatPeriodLabel(d.period))},0)`);
-
-    // Income bars — doom style: fill + border stroke
-    barGroups.append('rect')
-      .attr('x', x1('income')!)
-      .attr('y', (d) => y(d.income))
-      .attr('width', x1.bandwidth())
-      .attr('height', (d) => innerH - y(d.income))
-      .attr('fill', 'var(--success)')
-      .attr('stroke', 'var(--card-border)')
-      .attr('stroke-width', 1.5)
-      .attr('rx', 2);
-
-    // Expense bars — doom style
-    barGroups.append('rect')
-      .attr('x', x1('expenses')!)
-      .attr('y', (d) => y(d.expenses))
-      .attr('width', x1.bandwidth())
-      .attr('height', (d) => innerH - y(d.expenses))
-      .attr('fill', 'var(--error)')
-      .attr('stroke', 'var(--card-border)')
-      .attr('stroke-width', 1.5)
-      .attr('rx', 2);
-
-  }, [data]);
-
   if (data.length === 0) {
     return (
       <Card>
@@ -115,6 +43,11 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   const totalNet = data.reduce((sum, d) => sum + d.net, 0);
   const totalIncome = data.reduce((sum, d) => sum + d.income, 0);
   const totalExpenses = data.reduce((sum, d) => sum + d.expenses, 0);
+
+  const chartData: ChartDatum[] = data.flatMap((d) => [
+    { period: formatPeriodLabel(d.period), type: 'Income', amount: d.income, label: `${formatPeriodLabel(d.period)} income: ${formatCurrency(d.income)}` },
+    { period: formatPeriodLabel(d.period), type: 'Expenses', amount: d.expenses, label: `${formatPeriodLabel(d.period)} spent: ${formatCurrency(d.expenses)}` },
+  ]);
 
   return (
     <Card>
@@ -138,8 +71,58 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             </Stack>
           </Flex>
         </Stack>
-        <div ref={containerRef} style={{ width: '100%', minHeight: 280, overflow: 'hidden' }}>
-          <svg ref={svgRef} style={{ display: 'block' }} />
+        <div style={{ height: 300, minHeight: 200 }}>
+          <Chart
+            data={chartData}
+            x={(d: ChartDatum) => d.period}
+            y={(d: ChartDatum) => d.amount}
+            behaviors={[Tooltip({ render: (d: ChartDatum) => d.label })]}
+            sensors={[DataHoverSensor()]}
+            d3Config={{ showAxes: true, grid: true }}
+            withFrame={false}
+            flat
+            render={(frame) => {
+              const { container, data: frameData, size, scales } = frame;
+              if (!scales.x || !scales.y || !frameData.length) return;
+
+              // d3 imported at top level
+              const innerH = size.height;
+
+              const periods = [...new Set(frameData.map((d: ChartDatum) => d.period))];
+              const x0 = d3.scaleBand().domain(periods).range([0, size.width]).padding(0.35);
+              const x1 = d3.scaleBand().domain(['Income', 'Expenses']).range([0, x0.bandwidth()]).padding(0.1);
+              const maxVal = d3.max(frameData, (d: ChartDatum) => d.amount) ?? 0;
+              const y = d3.scaleLinear().domain([0, maxVal * 1.1]).range([innerH, 0]);
+
+              // Income bars
+              container.selectAll('.bar-income')
+                .data(frameData.filter((d: ChartDatum) => d.type === 'Income'))
+                .join('rect')
+                .attr('class', 'bar-income')
+                .attr('x', (d: ChartDatum) => x0(d.period)! + x1('Income')!)
+                .attr('y', (d: ChartDatum) => y(d.amount))
+                .attr('width', x1.bandwidth())
+                .attr('height', (d: ChartDatum) => innerH - y(d.amount))
+                .attr('fill', 'var(--success)')
+                .attr('stroke', 'var(--card-border)')
+                .attr('stroke-width', 1.5)
+                .attr('rx', 2);
+
+              // Expense bars
+              container.selectAll('.bar-expenses')
+                .data(frameData.filter((d: ChartDatum) => d.type === 'Expenses'))
+                .join('rect')
+                .attr('class', 'bar-expenses')
+                .attr('x', (d: ChartDatum) => x0(d.period)! + x1('Expenses')!)
+                .attr('y', (d: ChartDatum) => y(d.amount))
+                .attr('width', x1.bandwidth())
+                .attr('height', (d: ChartDatum) => innerH - y(d.amount))
+                .attr('fill', 'var(--error)')
+                .attr('stroke', 'var(--card-border)')
+                .attr('stroke-width', 1.5)
+                .attr('rx', 2);
+            }}
+          />
         </div>
       </Stack>
     </Card>
