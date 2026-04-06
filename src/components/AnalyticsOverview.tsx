@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Stack, Text } from 'doom-design-system';
+import { Container, Stack, Text } from 'doom-design-system';
 import { TimeRangePicker } from './TimeRangePicker';
 import { SpendingChart } from './SpendingChart';
 import { CashFlowChart } from './CashFlowChart';
@@ -33,6 +33,7 @@ export default function AnalyticsOverview() {
   }, []);
 
   return (
+    <Container maxWidth="lg">
     <Stack gap={6}>
       <TimeRangePicker onChange={fetchData} />
       {loading ? (
@@ -48,5 +49,6 @@ export default function AnalyticsOverview() {
         </Stack>
       )}
     </Stack>
+    </Container>
   );
 }
