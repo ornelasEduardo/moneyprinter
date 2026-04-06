@@ -7,7 +7,7 @@ import type { ColDef, RowClassRules } from 'ag-grid-community';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import Papa from 'papaparse';
 import {
-  Button, Card, Popover, Slat, Text, Stack, Flex, Badge, FileUpload, Select, Modal, Switch,
+  Button, Card, Popover, Slat, Text, Stack, Flex, Badge, FileUpload, Select, Modal, Switch, useToast,
 } from 'doom-design-system';
 import { Upload, Download, Settings2, Check, ArrowRight, FileSpreadsheet, Columns3, ScanSearch, Trash2 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -367,19 +367,6 @@ function ConfigModal({
   );
 }
 
-function ImportResultBar({ result }: { result: { created: number; updated: number; skipped: number } }) {
-  return (
-    <Card className={styles.resultCard}>
-      <Flex gap={3} align="center">
-        <Check size={20} strokeWidth={2.5} />
-        <Text weight="bold">All done!</Text>
-        <Badge variant="success">{result.created} created</Badge>
-        {result.updated > 0 && <Badge variant="warning">{result.updated} updated</Badge>}
-        {result.skipped > 0 && <Badge variant="secondary">{result.skipped} skipped</Badge>}
-      </Flex>
-    </Card>
-  );
-}
 
 // ── Pipeline helpers ─────────────────────────────────────
 
@@ -509,9 +496,10 @@ export default function ImportSpreadsheet({
   const [processedRows, setProcessedRows] = useState<ProcessedRow[]>([]);
   const [defaultAccountId, setDefaultAccountId] = useState<number | null>(null);
 
+  const { toastSuccess, toastError } = useToast();
+
   // UI state
   const [isImporting, setIsImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ created: number; updated: number; skipped: number } | null>(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [configName, setConfigName] = useState('');
   const [savedConfigs, setSavedConfigs] = useState<{ id: number; name: string }[]>([]);
@@ -608,7 +596,6 @@ export default function ImportSpreadsheet({
     setIsImporting(true);
     try {
       const result = await commitImportAction('transactions', rowsToImport, 'skip');
-      setImportResult(result);
       const errorRows = processedRows.filter((r) => r.status === 'error');
       await recordImportHistory({
         filename: currentFilename,
@@ -623,8 +610,15 @@ export default function ImportSpreadsheet({
           r.errors.map((e) => ({ row_number: i + 2, field: e.field, message: e.message, severity: 'error' as const }))
         ),
       });
-      router.refresh();
-    } finally {
+
+      const parts = [`${result.created} imported`];
+      if (result.updated > 0) parts.push(`${result.updated} updated`);
+      if (result.skipped > 0) parts.push(`${result.skipped} skipped`);
+      toastSuccess(parts.join(', '));
+
+      router.push('/?tab=transactions');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Import failed');
       setIsImporting(false);
     }
   }, [processedRows, currentFilename, summary, router]);
@@ -726,8 +720,6 @@ export default function ImportSpreadsheet({
           onSelectionChanged={(e) => setSelectedCount(e.api.getSelectedNodes().length)}
         />
       </div>
-
-      {importResult && <ImportResultBar result={importResult} />}
 
       {configuringColumn && (
         <ColumnConfigModal
