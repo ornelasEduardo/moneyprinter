@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import { Card, Chart, Flex, Stack, Switcher, Text } from 'doom-design-system';
+// Behavior type matches doom's Chart behavior contract
+type Behavior = (ctx: any) => (() => void) | void;
 import type { CategorySpending } from '@/lib/analytics';
 
 const COLORS = [
@@ -18,6 +20,32 @@ const COLORS = [
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 
+// Custom behavior: dim non-hovered donut slices
+function dimSlices(onHover: (category: string | null) => void): Behavior {
+  return (ctx: any) => {
+    const check = () => {
+      const interaction = ctx.getInteraction('primary-hover');
+      if (!interaction || !('targets' in interaction) || !interaction.targets?.length) {
+        onHover(null);
+        const chartCtx = ctx.getChartContext();
+        chartCtx.g?.selectAll('path[data-chart-type="donut"]').attr('opacity', 1);
+        return;
+      }
+      const hovered = interaction.targets[0]?.data as CategorySpending | undefined;
+      if (!hovered) return;
+      onHover(hovered.category);
+      const chartCtx = ctx.getChartContext();
+      chartCtx.g?.selectAll('path[data-chart-type="donut"]')
+        .attr('opacity', (_: unknown, i: number) => {
+          const d = (chartCtx.getChartContext() as any).chartStore?.getState()?.data?.[i];
+          return d?.category === hovered.category ? 1 : 0.3;
+        });
+    };
+    const interval = setInterval(check, 50);
+    return () => clearInterval(interval);
+  };
+}
+
 interface SpendingChartProps {
   data: CategorySpending[];
   total: number;
@@ -26,6 +54,8 @@ interface SpendingChartProps {
 export function SpendingChart({ data, total }: SpendingChartProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const size = 160;
+
+  const behaviors = useMemo(() => [dimSlices(setHoveredCategory)], []);
 
   if (data.length === 0) {
     return (
@@ -53,12 +83,12 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
                 withFrame={false}
                 flat
                 style={{ width: '100%', height: '100%' }}
+                behaviors={behaviors}
                 onValueChange={(d) => setHoveredCategory(d ? (d as CategorySpending).category : null)}
                 render={(frame) => {
                   const { container, data: frameData, size: chartSize } = frame;
                   if (!frameData.length) return;
 
-                  // d3 imported at top level
                   const radius = Math.min(chartSize.width, chartSize.height) / 2;
                   const innerRadius = radius * 0.6;
                   const cx = chartSize.width / 2;
@@ -83,7 +113,11 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
                     .attr('data-chart-type', 'donut')
                     .attr('data-chart-index', (_: unknown, i: number) => i);
 
-                  // Center text
+                  // Center text — show hovered category or total
+                  const centerAmount = hoveredCategory
+                    ? frameData.find((d: CategorySpending) => d.category === hoveredCategory)?.amount ?? total
+                    : total;
+
                   g.selectAll('.center-text').data([null]).join('text')
                     .attr('class', 'center-text')
                     .attr('text-anchor', 'middle')
@@ -91,7 +125,7 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
                     .attr('font-size', '16px')
                     .attr('font-weight', '700')
                     .attr('fill', 'var(--foreground)')
-                    .text(formatCurrency(total));
+                    .text(formatCurrency(centerAmount));
                 }}
               />
             </div>
@@ -106,6 +140,7 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
                   padding: '2px 0',
                   opacity: hoveredCategory && hoveredCategory !== cat.category ? 0.3 : 1,
                   transition: 'opacity 0.15s',
+                  cursor: 'default',
                 }}
                 onMouseEnter={() => setHoveredCategory(cat.category)}
                 onMouseLeave={() => setHoveredCategory(null)}

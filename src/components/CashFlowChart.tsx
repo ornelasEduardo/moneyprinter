@@ -1,7 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import * as d3 from 'd3';
 import { Card, Chart, Flex, Stack, Text } from 'doom-design-system';
+// Behavior type matches doom's Chart behavior contract
+type Behavior = (ctx: any) => (() => void) | void;
 import type { CashFlowPeriod } from '@/lib/analytics';
 
 interface CashFlowChartProps {
@@ -21,10 +24,41 @@ interface ChartDatum {
   period: string;
   type: string;
   amount: number;
-  label: string;
+}
+
+// Custom behavior: highlight hovered bar, dim others
+function highlightBar(): Behavior {
+  return (ctx: any) => {
+    const check = () => {
+      const interaction = ctx.getInteraction('primary-hover');
+      const chartCtx = ctx.getChartContext();
+      const g = chartCtx.g;
+      if (!g) return;
+
+      const allBars = g.selectAll('rect.bar-income, rect.bar-expenses');
+
+      if (!interaction || !('targets' in interaction) || !interaction.targets?.length) {
+        allBars.attr('opacity', 1);
+        return;
+      }
+
+      const hovered = interaction.targets[0]?.data as ChartDatum | undefined;
+      if (!hovered) return;
+
+      allBars.attr('opacity', function (this: any) {
+        const el = d3.select(this);
+        const period = el.attr('data-period');
+        return period === hovered.period ? 1 : 0.3;
+      });
+    };
+    const interval = setInterval(check, 50);
+    return () => clearInterval(interval);
+  };
 }
 
 export function CashFlowChart({ data }: CashFlowChartProps) {
+  const behaviors = useMemo(() => [highlightBar()], []);
+
   if (data.length === 0) {
     return (
       <Card>
@@ -41,8 +75,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   const totalExpenses = data.reduce((sum, d) => sum + d.expenses, 0);
 
   const chartData: ChartDatum[] = data.flatMap((d) => [
-    { period: formatPeriodLabel(d.period), type: 'Income', amount: d.income, label: `${formatPeriodLabel(d.period)} income: ${formatCurrency(d.income)}` },
-    { period: formatPeriodLabel(d.period), type: 'Expenses', amount: d.expenses, label: `${formatPeriodLabel(d.period)} spent: ${formatCurrency(d.expenses)}` },
+    { period: formatPeriodLabel(d.period), type: 'Income', amount: d.income },
+    { period: formatPeriodLabel(d.period), type: 'Expenses', amount: d.expenses },
   ]);
 
   return (
@@ -76,13 +110,12 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             withFrame={false}
             flat
             style={{ width: '100%', height: '100%' }}
+            behaviors={behaviors}
             render={(frame) => {
-              const { container, data: frameData, size, scales } = frame;
-              if (!scales.x || !scales.y || !frameData.length) return;
+              const { container, data: frameData, size } = frame;
+              if (!frameData.length) return;
 
-              // d3 imported at top level
               const innerH = size.height;
-
               const periods = [...new Set(frameData.map((d: ChartDatum) => d.period))];
               const x0 = d3.scaleBand().domain(periods).range([0, size.width]).padding(0.35);
               const x1 = d3.scaleBand().domain(['Income', 'Expenses']).range([0, x0.bandwidth()]).padding(0.1);
@@ -94,6 +127,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
                 .data(frameData.filter((d: ChartDatum) => d.type === 'Income'))
                 .join('rect')
                 .attr('class', 'bar-income')
+                .attr('data-period', (d: ChartDatum) => d.period)
                 .attr('x', (d: ChartDatum) => x0(d.period)! + x1('Income')!)
                 .attr('y', (d: ChartDatum) => y(d.amount))
                 .attr('width', x1.bandwidth())
@@ -108,6 +142,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
                 .data(frameData.filter((d: ChartDatum) => d.type === 'Expenses'))
                 .join('rect')
                 .attr('class', 'bar-expenses')
+                .attr('data-period', (d: ChartDatum) => d.period)
                 .attr('x', (d: ChartDatum) => x0(d.period)! + x1('Expenses')!)
                 .attr('y', (d: ChartDatum) => y(d.amount))
                 .attr('width', x1.bandwidth())
