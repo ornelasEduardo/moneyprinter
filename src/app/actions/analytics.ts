@@ -66,6 +66,6 @@ export async function getRecurringCharges(startDate: Date, endDate: Date) {
   return result;
 }
 
-export function invalidateRecurringCache() {
+export async function invalidateRecurringCache() {
   recurringCache.clear();
 }
