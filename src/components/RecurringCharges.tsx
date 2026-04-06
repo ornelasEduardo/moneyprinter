@@ -50,7 +50,7 @@ export function RecurringCharges({ charges }: RecurringChargesProps) {
           {charges.length === 0 ? (
             <Text color="muted">No recurring charges detected</Text>
           ) : (
-            <Stack gap={0}>
+            <Stack gap={2}>
               {displayCharges.map((charge) => (
                 <Slat
                   key={charge.name}
@@ -80,7 +80,7 @@ export function RecurringCharges({ charges }: RecurringChargesProps) {
         title={<Text variant="h5" as="h1">All recurring charges</Text>}
       >
         <Sheet.Body>
-          <Stack gap={0}>
+          <Stack gap={2}>
             {charges.map((charge) => (
               <Slat
                 key={charge.name}
