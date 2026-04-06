@@ -77,22 +77,26 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
       .join('g')
       .attr('transform', (d) => `translate(${x0(formatPeriodLabel(d.period))},0)`);
 
-    // Income bars
+    // Income bars — doom style: fill + border stroke
     barGroups.append('rect')
       .attr('x', x1('income')!)
       .attr('y', (d) => y(d.income))
       .attr('width', x1.bandwidth())
       .attr('height', (d) => innerH - y(d.income))
       .attr('fill', 'var(--success)')
+      .attr('stroke', 'var(--card-border)')
+      .attr('stroke-width', 1.5)
       .attr('rx', 2);
 
-    // Expense bars
+    // Expense bars — doom style
     barGroups.append('rect')
       .attr('x', x1('expenses')!)
       .attr('y', (d) => y(d.expenses))
       .attr('width', x1.bandwidth())
       .attr('height', (d) => innerH - y(d.expenses))
       .attr('fill', 'var(--error)')
+      .attr('stroke', 'var(--card-border)')
+      .attr('stroke-width', 1.5)
       .attr('rx', 2);
 
   }, [data]);
@@ -117,12 +121,17 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
       <Stack gap={4}>
         <Stack gap={2}>
           <Text variant="h5" weight="bold">Cash Flow</Text>
-          <Flex gap={2} wrap>
-            <Badge variant="success">{formatCurrency(totalIncome)} in</Badge>
-            <Badge variant="error">{formatCurrency(totalExpenses)} out</Badge>
+          <Flex gap={2} wrap align="center">
+            <Badge variant="success">{formatCurrency(totalIncome)}</Badge>
+            <Text variant="caption" color="muted">earned</Text>
+            <Text variant="caption" color="muted">&minus;</Text>
+            <Badge variant="error">{formatCurrency(totalExpenses)}</Badge>
+            <Text variant="caption" color="muted">spent</Text>
+            <Text variant="caption" color="muted">=</Text>
             <Badge variant={totalNet >= 0 ? 'success' : 'error'}>
-              {totalNet >= 0 ? '+' : ''}{formatCurrency(totalNet)} net
+              {totalNet >= 0 ? '+' : ''}{formatCurrency(totalNet)}
             </Badge>
+            <Text variant="caption" color="muted">net</Text>
           </Flex>
         </Stack>
         <div ref={containerRef} style={{ width: '100%', minHeight: 280 }}>
