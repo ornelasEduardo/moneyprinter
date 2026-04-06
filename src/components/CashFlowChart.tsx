@@ -72,7 +72,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             data={chartData}
             x={(d: ChartDatum) => d.period}
             y={(d: ChartDatum) => d.amount}
-            d3Config={{ showAxes: false, grid: false }}
+            d3Config={{ showAxes: true, grid: true }}
             withFrame={false}
             flat
             style={{ width: '100%', height: '100%' }}
