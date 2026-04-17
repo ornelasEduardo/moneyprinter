@@ -268,7 +268,10 @@ export default function DashboardClient(props: DashboardClientProps) {
       case "transactions":
         return (
           <TransactionsTable
-            transactions={props.transactions}
+            transactions={props.transactions.map((t) => ({
+              ...t,
+              kind: (t.type ?? "expense") as "income" | "expense",
+            }))}
             selectedYear={selectedYear}
             accounts={props.accounts}
           />

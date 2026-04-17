@@ -11,6 +11,12 @@ vi.mock("@/app/actions/transactions", () => ({
   deleteTransaction: vi.fn(),
 }));
 
+vi.mock("@/app/actions/transfers", () => ({
+  createTransfer: vi.fn(),
+  updateTransfer: vi.fn(),
+  deleteTransfer: vi.fn(),
+}));
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -24,22 +30,24 @@ vi.mock("next/navigation", () => ({
 describe("TransactionsTable", () => {
   const mockTransactions = [
     {
+      kind: "expense" as const,
       id: 1,
       name: "Grocery Store",
       amount: 150.5,
       date: "2024-01-15",
       tags: "Food",
-      type: "expense",
+      type: "expense" as const,
       accountId: 1,
       accountName: "Checking",
     },
     {
+      kind: "income" as const,
       id: 2,
       name: "Paycheck",
       amount: 3000,
       date: "2024-01-30",
       tags: "Salary",
-      type: "income",
+      type: "income" as const,
       accountId: 1,
       accountName: "Checking",
     },
@@ -132,4 +140,58 @@ describe("TransactionsTable", () => {
       expect(transactionActions.deleteTransaction).toHaveBeenCalledWith(1);
     });
   });
+
+  it('renders a transfer row with arrow label and neutral styling', () => {
+    const movements = [
+      {
+        kind: 'transfer' as const,
+        id: 1,
+        amount: 250,
+        date: '2026-04-15',
+        note: 'Sweep',
+        tags: null,
+        from_account_id: 1,
+        to_account_id: 2,
+        fromAccountName: 'Checking',
+        toAccountName: 'Savings',
+      },
+    ];
+    render(
+      <TransactionsTable
+        transactions={movements as any}
+        selectedYear={2026}
+        accounts={[{ id: 1, name: 'Checking' }, { id: 2, name: 'Savings' }]}
+      />
+    );
+    expect(screen.getByText(/Checking/)).toBeInTheDocument();
+    expect(screen.getByText(/Savings/)).toBeInTheDocument();
+    expect(screen.getByTestId('movement-row-transfer')).toBeInTheDocument();
+  });
+
+  it('clicking a transfer row opens the TransferModal in edit mode', () => {
+    const movements = [
+      {
+        kind: 'transfer' as const,
+        id: 42,
+        amount: 100,
+        date: '2026-04-15',
+        note: null,
+        tags: null,
+        from_account_id: 1,
+        to_account_id: 2,
+        fromAccountName: 'Checking',
+        toAccountName: 'Savings',
+      },
+    ];
+    render(
+      <TransactionsTable
+        transactions={movements as any}
+        selectedYear={2026}
+        accounts={[{ id: 1, name: 'Checking' }, { id: 2, name: 'Savings' }]}
+      />
+    );
+    fireEvent.click(screen.getByTestId('movement-row-transfer'));
+    expect(screen.getByText(/edit transfer/i)).toBeInTheDocument();
+  });
+
 });

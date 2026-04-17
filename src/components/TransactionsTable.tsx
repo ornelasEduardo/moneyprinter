@@ -24,21 +24,38 @@ import {
   Tooltip,
   useToast,
 } from "doom-design-system";
-import { Pencil, Trash2, Plus, Upload } from "lucide-react";
+import { Pencil, Trash2, Plus, Upload, ArrowRight } from "lucide-react";
 
 import { Serialized, Transaction as PrismaTransaction } from "@/lib/types";
 import { ConfirmDialog } from "./ConfirmDialog";
+import TransferModal, { type TransferModalInitial } from "./TransferModal";
 
-interface Transaction
+interface TransactionRow
   extends Serialized<
     Pick<PrismaTransaction, "id" | "name" | "amount" | "date" | "tags" | "type">
   > {
+  kind: "income" | "expense";
   accountId: number | null;
   accountName?: string;
 }
 
+interface TransferRow {
+  kind: "transfer";
+  id: number;
+  amount: number;
+  date: string;
+  note: string | null;
+  tags: string | null;
+  from_account_id: number;
+  to_account_id: number;
+  fromAccountName?: string;
+  toAccountName?: string;
+}
+
+type Row = TransactionRow | TransferRow;
+
 interface TransactionsTableProps {
-  transactions: Transaction[];
+  transactions: Row[];
   selectedYear: number;
   accounts?: { id: number; name: string }[];
 }
@@ -70,20 +87,31 @@ export default function TransactionsTable({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [editingTransaction, setEditingTransaction] =
-    useState<Transaction | null>(null);
+    useState<TransactionRow | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<number | null>(
     null
   );
+  const [editingTransfer, setEditingTransfer] =
+    useState<TransferModalInitial | null>(null);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
 
   const filteredTransactions = useMemo(() => {
     let result = transactions;
 
     // Filter by account
     if (selectedAccount !== "all") {
-      result = result.filter((t) => t.accountName === selectedAccount);
+      result = result.filter((t) => {
+        if (t.kind === "transfer") {
+          return (
+            t.fromAccountName === selectedAccount ||
+            t.toAccountName === selectedAccount
+          );
+        }
+        return t.accountName === selectedAccount;
+      });
     }
 
     // Filter by date range
@@ -97,9 +125,22 @@ export default function TransactionsTable({
     return result;
   }, [transactions, selectedAccount, startDate, endDate]);
 
-  const handleEditClick = useCallback((transaction: Transaction) => {
+  const handleEditClick = useCallback((transaction: TransactionRow) => {
     setEditingTransaction(transaction);
     setIsEditModalOpen(true);
+  }, []);
+
+  const openTransferEdit = useCallback((row: TransferRow) => {
+    setEditingTransfer({
+      id: row.id,
+      from_account_id: row.from_account_id,
+      to_account_id: row.to_account_id,
+      amount: row.amount,
+      transfer_date: row.date,
+      note: row.note,
+      tags: row.tags,
+    });
+    setIsTransferModalOpen(true);
   }, []);
 
   const handleDeleteClick = useCallback((id: number) => {
@@ -142,7 +183,7 @@ export default function TransactionsTable({
     }
   };
 
-  const columns = useMemo<ColumnDef<Transaction>[]>(
+  const columns = useMemo<ColumnDef<Row>[]>(
     () => [
       {
         accessorKey: "date",
@@ -154,21 +195,40 @@ export default function TransactionsTable({
       {
         accessorKey: "name",
         header: "Name",
-        cell: (info) => (
-          <Text weight="medium">{info.getValue() as string}</Text>
-        ),
+        cell: (info) => {
+          const row = info.row.original;
+          if (row.kind === "transfer") {
+            return (
+              <div
+                data-testid="movement-row-transfer"
+                onClick={() => openTransferEdit(row)}
+                style={{ cursor: "pointer" }}
+              >
+                <Flex align="center" gap={2}>
+                  <Text weight="medium">{row.fromAccountName ?? "?"}</Text>
+                  <ArrowRight size={14} />
+                  <Text weight="medium">{row.toAccountName ?? "?"}</Text>
+                </Flex>
+              </div>
+            );
+          }
+          return <Text weight="medium">{row.name}</Text>;
+        },
       },
       {
-        accessorKey: "type",
+        accessorKey: "kind",
         header: "Type",
         cell: (info) => {
-          const type = (info.getValue() as string) || "expense";
+          const kind = info.row.original.kind;
+          const variant =
+            kind === "income"
+              ? "success"
+              : kind === "transfer"
+              ? "default"
+              : "secondary";
           return (
-            <Badge
-              variant={type === "income" ? "success" : "secondary"}
-              className="text-xs"
-            >
-              {type}
+            <Badge variant={variant as any} className="text-xs">
+              {kind}
             </Badge>
           );
         },
@@ -176,15 +236,19 @@ export default function TransactionsTable({
       {
         accessorKey: "accountName",
         header: "Account",
-        cell: (info) => (
-          <Text weight="medium">{(info.getValue() as string) || "-"}</Text>
-        ),
+        cell: (info) => {
+          const row = info.row.original;
+          if (row.kind === "transfer") {
+            return <Text weight="medium">-</Text>;
+          }
+          return <Text weight="medium">{row.accountName || "-"}</Text>;
+        },
       },
       {
         accessorKey: "tags",
         header: "Tags",
         cell: (info) => {
-          const value = info.getValue() as string;
+          const value = info.getValue() as string | null;
           if (!value) return null;
           return (
             <Flex gap={1} wrap={true}>
@@ -200,11 +264,15 @@ export default function TransactionsTable({
       {
         accessorKey: "amount",
         header: "Amount",
-        cell: (info) => (
-          <Text weight="bold" align="right" as="div">
-            {formatCurrency(info.getValue() as number)}
-          </Text>
-        ),
+        cell: (info) => {
+          const row = info.row.original;
+          const color = row.kind === "transfer" ? "muted" : undefined;
+          return (
+            <Text weight="bold" align="right" as="div" color={color}>
+              {formatCurrency(row.amount)}
+            </Text>
+          );
+        },
         meta: {
           style: { textAlign: "right" },
         },
@@ -212,34 +280,38 @@ export default function TransactionsTable({
       {
         id: "actions",
         header: "",
-        cell: (info) => (
-          <Flex gap={2} justify="flex-end" className="row-actions">
-            <Tooltip content="Edit transaction">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEditClick(info.row.original)}
-                aria-label="Edit transaction"
-              >
-                <Pencil size={16} strokeWidth={2.5} />
-              </Button>
-            </Tooltip>
-            <Tooltip content="Delete transaction">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDeleteClick(info.row.original.id)}
-                className="text-error"
-                aria-label="Delete transaction"
-              >
-                <Trash2 size={16} strokeWidth={2.5} />
-              </Button>
-            </Tooltip>
-          </Flex>
-        ),
+        cell: (info) => {
+          const row = info.row.original;
+          if (row.kind === "transfer") return null;
+          return (
+            <Flex gap={2} justify="flex-end" className="row-actions">
+              <Tooltip content="Edit transaction">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEditClick(row)}
+                  aria-label="Edit transaction"
+                >
+                  <Pencil size={16} strokeWidth={2.5} />
+                </Button>
+              </Tooltip>
+              <Tooltip content="Delete transaction">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteClick(row.id)}
+                  className="text-error"
+                  aria-label="Delete transaction"
+                >
+                  <Trash2 size={16} strokeWidth={2.5} />
+                </Button>
+              </Tooltip>
+            </Flex>
+          );
+        },
       },
     ],
-    [handleDeleteClick, handleEditClick]
+    [handleDeleteClick, handleEditClick, openTransferEdit]
   );
 
   return (
@@ -422,6 +494,16 @@ export default function TransactionsTable({
         message="Are you sure you want to delete this transaction? This action cannot be undone."
         confirmText="Delete"
         variant="danger"
+      />
+
+      <TransferModal
+        isOpen={isTransferModalOpen}
+        onClose={() => {
+          setIsTransferModalOpen(false);
+          setEditingTransfer(null);
+        }}
+        accounts={accounts ?? []}
+        initial={editingTransfer}
       />
     </>
   );
