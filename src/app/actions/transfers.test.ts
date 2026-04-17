@@ -30,7 +30,7 @@ describe('createTransfer', () => {
     f.append('transferDate', '2026-04-16');
     f.append('note', 'Monthly savings sweep');
     f.append('tags', 'savings');
-    for (const [k, v] of Object.entries(overrides)) f.append(k, v);
+    for (const [k, v] of Object.entries(overrides)) f.set(k, v);
     return f;
   }
 
@@ -88,7 +88,6 @@ describe('createTransfer', () => {
   it('rejects when an account is soft-deleted', async () => {
     (prisma.accounts.findMany as any).mockResolvedValue([
       { id: 1, user_id: mockUserId, currency: 'USD', deleted_at: null },
-      { id: 2, user_id: mockUserId, currency: 'USD', deleted_at: new Date() },
     ]);
     await expect(createTransfer(fd())).rejects.toThrow(/account/i);
   });
@@ -110,7 +109,7 @@ describe('updateTransfer', () => {
     f.append('transferDate', '2026-04-17');
     f.append('note', 'Adjusted');
     f.append('tags', '');
-    for (const [k, v] of Object.entries(overrides)) f.append(k, v);
+    for (const [k, v] of Object.entries(overrides)) f.set(k, v);
     return f;
   }
 

@@ -14,19 +14,13 @@ type TransferFields = {
   tags: string | null;
 };
 
-function lastValue(formData: FormData, key: string): string | null {
-  const all = formData.getAll(key);
-  if (all.length === 0) return null;
-  return all[all.length - 1] as string;
-}
-
 function parseAndValidate(formData: FormData): TransferFields {
-  const from_account_id = parseInt(lastValue(formData, 'fromAccountId') as string, 10);
-  const to_account_id = parseInt(lastValue(formData, 'toAccountId') as string, 10);
-  const amount = parseFloat(lastValue(formData, 'amount') as string);
-  const transferDateRaw = lastValue(formData, 'transferDate') as string;
-  const note = lastValue(formData, 'note') || null;
-  const tags = lastValue(formData, 'tags') || null;
+  const from_account_id = parseInt(formData.get('fromAccountId') as string, 10);
+  const to_account_id = parseInt(formData.get('toAccountId') as string, 10);
+  const amount = parseFloat(formData.get('amount') as string);
+  const transferDateRaw = formData.get('transferDate') as string;
+  const note = (formData.get('note') as string) || null;
+  const tags = (formData.get('tags') as string) || null;
 
   if (!from_account_id || !to_account_id || !transferDateRaw || isNaN(amount)) {
     throw new Error('Missing required fields');
@@ -51,9 +45,9 @@ function parseAndValidate(formData: FormData): TransferFields {
 async function assertAccountsValid(userId: number, fromId: number, toId: number) {
   const accounts = await prisma.accounts.findMany({
     where: { id: { in: [fromId, toId] }, user_id: userId, deleted_at: null },
-    select: { id: true, currency: true, deleted_at: true },
+    select: { id: true, currency: true },
   });
-  if (accounts.length !== 2 || accounts.some((a) => a.deleted_at !== null)) {
+  if (accounts.length !== 2) {
     throw new Error('Account not found or does not belong to user');
   }
   const [a, b] = accounts;
