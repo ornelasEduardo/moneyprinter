@@ -107,14 +107,12 @@ export default function TransferModal({
     }
   };
 
-  const fromOptions = accounts.map((a) => ({
-    value: String(a.id),
-    label: String(a.id) === toId ? `${a.name} (in use)` : a.name,
-  }));
-  const toOptions = accounts.map((a) => ({
-    value: String(a.id),
-    label: String(a.id) === fromId ? `${a.name} (in use)` : a.name,
-  }));
+  const fromOptions = accounts
+    .filter((a) => String(a.id) !== toId)
+    .map((a) => ({ value: String(a.id), label: a.name }));
+  const toOptions = accounts
+    .filter((a) => String(a.id) !== fromId)
+    .map((a) => ({ value: String(a.id), label: a.name }));
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -131,7 +129,11 @@ export default function TransferModal({
                 name="fromAccountId"
                 aria-label="From"
                 value={fromId}
-                onChange={(e) => setFromId(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFromId(v);
+                  if (v === toId) setToId('');
+                }}
                 placeholder="Select account…"
                 options={fromOptions}
                 required
@@ -142,7 +144,11 @@ export default function TransferModal({
                 name="toAccountId"
                 aria-label="To"
                 value={toId}
-                onChange={(e) => setToId(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setToId(v);
+                  if (v === fromId) setFromId('');
+                }}
                 placeholder="Select account…"
                 options={toOptions}
                 required
