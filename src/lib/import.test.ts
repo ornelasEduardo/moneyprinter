@@ -42,4 +42,24 @@ describe('validateRows', () => {
   it('should reject unknown entity type', () => {
     expect(() => validateRows('unknown', [])).toThrow('Unknown entity: unknown');
   });
+
+  it('validates a transfers CSV against transferSchema', () => {
+    const csv = [
+      'from_account_id,to_account_id,amount,transfer_date,note,tags',
+      '1,2,250.00,2026-04-16,Sweep,savings',
+      '1,1,100.00,2026-04-16,Invalid,',
+    ].join('\n');
+
+    const rows = parseCsvEntity(csv);
+    const result = validateRows('transfers', rows);
+
+    expect(result.valid).toHaveLength(1);
+    expect(result.valid[0]).toMatchObject({
+      from_account_id: 1,
+      to_account_id: 2,
+      amount: 250,
+    });
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0].message).toMatch(/differ/i);
+  });
 });
