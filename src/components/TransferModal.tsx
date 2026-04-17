@@ -9,6 +9,7 @@ import {
   Form,
   Input,
   Modal,
+  Select,
   Spinner,
   Text,
   useToast,
@@ -39,9 +40,9 @@ interface TransferModalProps {
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
-// Field ids used for htmlFor/id association so getByLabelText resolves in tests.
-const FROM_ID = 'transfer-from-account';
-const TO_ID = 'transfer-to-account';
+// Field ids used for htmlFor/id association on native inputs so
+// getByLabelText resolves in tests. The From/To selects use doom's Select
+// which handles labeling via aria-label.
 const AMOUNT_ID = 'transfer-amount';
 const DATE_ID = 'transfer-date';
 const NOTE_ID = 'transfer-note';
@@ -106,6 +107,15 @@ export default function TransferModal({
     }
   };
 
+  const fromOptions = accounts.map((a) => ({
+    value: String(a.id),
+    label: String(a.id) === toId ? `${a.name} (in use)` : a.name,
+  }));
+  const toOptions = accounts.map((a) => ({
+    value: String(a.id),
+    label: String(a.id) === fromId ? `${a.name} (in use)` : a.name,
+  }));
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <Modal.Header>
@@ -116,49 +126,27 @@ export default function TransferModal({
       <Modal.Body>
         <Form id="transfer-form" onSubmit={handleSubmit}>
           <Flex direction="column" gap={4}>
-            <Field label="From" htmlFor={FROM_ID} required>
-              <select
-                id={FROM_ID}
+            <Field label="From" required>
+              <Select
                 name="fromAccountId"
+                aria-label="From"
                 value={fromId}
                 onChange={(e) => setFromId(e.target.value)}
+                placeholder="Select account…"
+                options={fromOptions}
                 required
-              >
-                <option value="" disabled>
-                  Select account…
-                </option>
-                {accounts.map((a) => (
-                  <option
-                    key={a.id}
-                    value={String(a.id)}
-                    disabled={String(a.id) === toId}
-                  >
-                    {a.name}
-                  </option>
-                ))}
-              </select>
+              />
             </Field>
-            <Field label="To" htmlFor={TO_ID} required>
-              <select
-                id={TO_ID}
+            <Field label="To" required>
+              <Select
                 name="toAccountId"
+                aria-label="To"
                 value={toId}
                 onChange={(e) => setToId(e.target.value)}
+                placeholder="Select account…"
+                options={toOptions}
                 required
-              >
-                <option value="" disabled>
-                  Select account…
-                </option>
-                {accounts.map((a) => (
-                  <option
-                    key={a.id}
-                    value={String(a.id)}
-                    disabled={String(a.id) === fromId}
-                  >
-                    {a.name}
-                  </option>
-                ))}
-              </select>
+              />
             </Field>
             <Field label="Amount" htmlFor={AMOUNT_ID} required>
               <Input

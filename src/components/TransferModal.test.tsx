@@ -31,8 +31,8 @@ describe('TransferModal — create', () => {
   it('renders the create form when open', () => {
     render(<TransferModal isOpen={true} onClose={() => {}} accounts={accounts} />);
     expect(screen.getByText(/new transfer/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/from/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/to/i)).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /from/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /to/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/amount/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/date/i)).toBeInTheDocument();
   });
@@ -42,8 +42,14 @@ describe('TransferModal — create', () => {
     const onClose = vi.fn();
     render(<TransferModal isOpen={true} onClose={onClose} accounts={accounts} />);
 
-    fireEvent.change(screen.getByLabelText(/from/i), { target: { value: '1' } });
-    fireEvent.change(screen.getByLabelText(/to/i), { target: { value: '2' } });
+    // Open the "From" combobox and pick Checking
+    fireEvent.click(screen.getByRole('combobox', { name: /from/i }));
+    fireEvent.click(screen.getByText('Checking'));
+
+    // Open the "To" combobox and pick Savings
+    fireEvent.click(screen.getByRole('combobox', { name: /to/i }));
+    fireEvent.click(screen.getByText('Savings'));
+
     fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '250' } });
     fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2026-04-16' } });
 
