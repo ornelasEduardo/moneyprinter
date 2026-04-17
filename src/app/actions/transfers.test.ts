@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTransfer } from './transfers';
+import { createTransfer, updateTransfer } from './transfers';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/action-middleware';
 import { revalidatePath } from 'next/cache';
@@ -91,5 +91,49 @@ describe('createTransfer', () => {
       { id: 2, user_id: mockUserId, currency: 'USD', deleted_at: new Date() },
     ]);
     await expect(createTransfer(fd())).rejects.toThrow(/account/i);
+  });
+});
+
+describe('updateTransfer', () => {
+  const mockUserId = 42;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (requireAuth as any).mockResolvedValue(mockUserId);
+  });
+
+  function fd(overrides: Record<string, string> = {}) {
+    const f = new FormData();
+    f.append('fromAccountId', '1');
+    f.append('toAccountId', '2');
+    f.append('amount', '300');
+    f.append('transferDate', '2026-04-17');
+    f.append('note', 'Adjusted');
+    f.append('tags', '');
+    for (const [k, v] of Object.entries(overrides)) f.append(k, v);
+    return f;
+  }
+
+  it('updates a transfer owned by the user', async () => {
+    (prisma as any).transfers.findFirst = vi.fn().mockResolvedValue({
+      id: 99, user_id: mockUserId,
+    });
+    (prisma as any).transfers.update = vi.fn().mockResolvedValue({ id: 99 });
+    (prisma.accounts.findMany as any).mockResolvedValue([
+      { id: 1, user_id: mockUserId, currency: 'USD', deleted_at: null },
+      { id: 2, user_id: mockUserId, currency: 'USD', deleted_at: null },
+    ]);
+
+    await updateTransfer(99, fd());
+
+    expect((prisma as any).transfers.update).toHaveBeenCalledWith({
+      where: { id: 99 },
+      data: expect.objectContaining({ amount: 300, note: 'Adjusted', tags: null }),
+    });
+  });
+
+  it('rejects when transfer is not owned by user', async () => {
+    (prisma as any).transfers.findFirst = vi.fn().mockResolvedValue(null);
+    await expect(updateTransfer(99, fd())).rejects.toThrow(/not found|unauthorized/i);
   });
 });

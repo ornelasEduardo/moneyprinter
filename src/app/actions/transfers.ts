@@ -76,3 +76,26 @@ export async function createTransfer(formData: FormData) {
     revalidatePath('/');
   });
 }
+
+export async function updateTransfer(id: number, formData: FormData) {
+  const userId = await requireAuth();
+  const fields = parseAndValidate(formData);
+
+  return withAuditContext({ userId }, async () => {
+    const existing = await prisma.transfers.findFirst({
+      where: { id, user_id: userId, deleted_at: null },
+    });
+    if (!existing) {
+      throw new Error('Transfer not found or unauthorized');
+    }
+
+    await assertAccountsValid(userId, fields.from_account_id, fields.to_account_id);
+
+    await prisma.transfers.update({
+      where: { id },
+      data: { ...fields, updated_at: new Date() },
+    });
+
+    revalidatePath('/');
+  });
+}
