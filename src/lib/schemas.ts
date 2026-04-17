@@ -62,6 +62,18 @@ export const goalSchema = z.object({
   target_date: coerceDate.nullable().optional(),
 });
 
+export const transferSchema = z.object({
+  from_account_id: coerceNumber,
+  to_account_id: coerceNumber,
+  amount: coerceNumber.refine((v) => v > 0, { message: 'Amount must be positive' }),
+  transfer_date: coerceDate,
+  note: z.string().nullable().optional(),
+  tags: z.string().nullable().optional(),
+}).refine((data) => data.from_account_id !== data.to_account_id, {
+  message: 'Source and destination accounts must differ',
+  path: ['to_account_id'],
+});
+
 export const userSettingSchema = z.object({
   key: z.string().min(1, 'Key is required'),
   value: z.string(),
@@ -74,6 +86,7 @@ export type IncomeSourceImport = z.infer<typeof incomeSourceSchema>;
 export type IncomeBudgetImport = z.infer<typeof incomeBudgetSchema>;
 export type BudgetLimitImport = z.infer<typeof budgetLimitSchema>;
 export type GoalImport = z.infer<typeof goalSchema>;
+export type TransferImport = z.infer<typeof transferSchema>;
 export type UserSettingImport = z.infer<typeof userSettingSchema>;
 
 export const entitySchemas: Record<string, z.ZodSchema> = {
@@ -84,5 +97,6 @@ export const entitySchemas: Record<string, z.ZodSchema> = {
   income_budgets: incomeBudgetSchema,
   budget_limits: budgetLimitSchema,
   goals: goalSchema,
+  transfers: transferSchema,
   user_settings: userSettingSchema,
 };

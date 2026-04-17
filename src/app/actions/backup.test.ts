@@ -16,6 +16,7 @@ vi.mock('@/lib/prisma', () => ({
     budget_limits: { count: vi.fn().mockResolvedValue(4) },
     goals: { count: vi.fn().mockResolvedValue(1) },
     user_settings: { count: vi.fn().mockResolvedValue(3) },
+    transfers: { count: vi.fn().mockResolvedValue(0) },
   },
 }));
 

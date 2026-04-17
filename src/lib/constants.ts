@@ -8,6 +8,7 @@ export const EXPORTABLE_ENTITIES = [
   'budget_limits',
   'goals',
   'user_settings',
+  'transfers',
 ] as const;
 
 export type ExportableEntity = (typeof EXPORTABLE_ENTITIES)[number];

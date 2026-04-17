@@ -12,6 +12,7 @@ vi.mock('@/lib/prisma', () => ({
     budget_limits: { count: vi.fn() },
     goals: { count: vi.fn() },
     user_settings: { count: vi.fn() },
+    transfers: { count: vi.fn() },
   },
 }));
 
@@ -29,6 +30,7 @@ describe('estimateBackupSize', () => {
     (prisma.budget_limits.count as any).mockResolvedValue(8);
     (prisma.goals.count as any).mockResolvedValue(2);
     (prisma.user_settings.count as any).mockResolvedValue(5);
+    ((prisma as any).transfers.count as any).mockResolvedValue(0);
 
     const estimate = await estimateBackupSize(1);
 
