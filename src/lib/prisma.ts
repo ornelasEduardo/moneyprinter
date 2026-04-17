@@ -11,7 +11,7 @@ export const UNAUDITED_MODELS = [
 
 const MUTATING_OPS = ['create', 'update', 'delete', 'updateMany', 'deleteMany'];
 
-const SOFT_DELETE_MODELS = ['accounts', 'transactions', 'net_worth_history', 'income_sources'];
+const SOFT_DELETE_MODELS = ['accounts', 'transactions', 'net_worth_history', 'income_sources', 'transfers'];
 
 export function shouldAudit(model: string | undefined, operation: string): boolean {
   if (!model) return false;

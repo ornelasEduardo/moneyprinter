@@ -62,6 +62,7 @@ function getModelDelegate(entityType: string) {
     transactions: prisma.transactions,
     net_worth_history: prisma.net_worth_history,
     income_sources: prisma.income_sources,
+    transfers: prisma.transfers,
   };
   const model = models[entityType];
   if (!model) throw new Error(`Unknown entity type: ${entityType}`);
