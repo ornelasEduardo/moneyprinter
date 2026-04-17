@@ -58,3 +58,45 @@ describe('TransferModal — create', () => {
     expect(onClose).toHaveBeenCalled();
   });
 });
+
+describe('TransferModal — edit', () => {
+  const initial = {
+    id: 77,
+    from_account_id: 1,
+    to_account_id: 2,
+    amount: 100,
+    transfer_date: '2026-04-10',
+    note: 'Old note',
+    tags: 'savings',
+  };
+
+  beforeEach(() => vi.clearAllMocks());
+
+  it('prefills form and submits to updateTransfer with the transfer id', async () => {
+    (updateTransfer as any).mockResolvedValue(undefined);
+    const onClose = vi.fn();
+    render(
+      <TransferModal isOpen={true} onClose={onClose} accounts={accounts} initial={initial} />
+    );
+
+    expect(screen.getByText(/edit transfer/i)).toBeInTheDocument();
+    expect((screen.getByLabelText(/amount/i) as HTMLInputElement).value).toBe('100');
+
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+    await waitFor(() => expect(updateTransfer).toHaveBeenCalled());
+    expect((updateTransfer as any).mock.calls[0][0]).toBe(77);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('delete button calls deleteTransfer with id and closes', async () => {
+    (deleteTransfer as any).mockResolvedValue(undefined);
+    const onClose = vi.fn();
+    render(
+      <TransferModal isOpen={true} onClose={onClose} accounts={accounts} initial={initial} />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+    await waitFor(() => expect(deleteTransfer).toHaveBeenCalledWith(77));
+    expect(onClose).toHaveBeenCalled();
+  });
+});
