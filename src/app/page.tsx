@@ -4,7 +4,6 @@ import {
   getProjectedNetWorthHistory,
   calculateMonthlyNetWorthIncrease,
   getWindfalls,
-  getTransactionsForYear,
   getNetWorthHistoryForYear,
   getAccounts,
   getAvailableYears
@@ -16,6 +15,7 @@ import DashboardClient from "./DashboardClient";
 import { getPrimaryGoal, getEmergencyFundAmount } from "@/app/actions/goals";
 import { getCurrentUser } from "@/lib/auth";
 import { getUser } from "@/app/actions/auth";
+import { listMovements } from "@/lib/movements";
 import { redirect } from "next/navigation";
 import { Page } from 'doom-design-system';
 export const dynamic = 'force-dynamic';
@@ -62,7 +62,36 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const selectedYear = yearParam ? parseInt(yearParam) : currentYear;
   const initialTab = tabParam || 'home';
 
-  const transactions = await getTransactionsForYear(selectedYear);
+  const rawMovements = await listMovements({ userId, year: selectedYear });
+  const accountNameById = new Map(accounts.map((a) => [a.id, a.name]));
+
+  const transactions = rawMovements.map((m) => {
+    if (m.kind === 'transfer') {
+      return {
+        kind: 'transfer' as const,
+        id: m.id,
+        amount: m.amount,
+        date: m.date.toISOString().slice(0, 10),
+        note: m.note,
+        tags: m.tags,
+        from_account_id: m.from_account_id,
+        to_account_id: m.to_account_id,
+        fromAccountName: accountNameById.get(m.from_account_id),
+        toAccountName: accountNameById.get(m.to_account_id),
+      };
+    }
+    return {
+      kind: m.kind,
+      id: m.id,
+      name: m.name,
+      amount: m.amount,
+      date: m.date.toISOString().slice(0, 10),
+      tags: m.tags,
+      type: m.kind,
+      accountId: m.account_id,
+      accountName: m.account_id ? accountNameById.get(m.account_id) : undefined,
+    };
+  });
 
   const timeframe = params.timeframe || '30';
 
@@ -71,9 +100,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
 
   // Placeholder budget for now (Yearly)
   const budget = 30_000;
-  
+
   const yearlySpending = transactions
-    .filter(t => t.type === 'expense')
+    .filter((t) => t.kind === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
   const spendingPercentage = Math.min((yearlySpending / budget) * 100, 100);

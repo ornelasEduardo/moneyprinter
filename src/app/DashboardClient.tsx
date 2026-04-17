@@ -8,7 +8,7 @@ import { Logo } from "@/components/Logo";
 import AppHeader from "@/components/AppHeader";
 import SummaryCards from "@/components/SummaryCards";
 import ProjectionsTable from "@/components/ProjectionsTable";
-import TransactionsTable from "@/components/TransactionsTable";
+import TransactionsTable, { type Row as MovementRow } from "@/components/TransactionsTable";
 import AccountsTable from "@/components/AccountsTable";
 import NetWorthHistoryTable from "@/components/NetWorthHistoryTable";
 import { DashboardStoreProvider } from "@/lib/store";
@@ -43,15 +43,7 @@ import {
 } from "lucide-react";
 import styles from "./DashboardClient.module.scss";
 
-import { Serialized, Transaction, SafeUser, SafeAccount } from "@/lib/types";
-
-interface DashboardTransaction
-  extends Serialized<
-    Pick<Transaction, "id" | "name" | "amount" | "date" | "tags" | "type">
-  > {
-  accountId: number | null;
-  accountName?: string;
-}
+import { SafeUser, SafeAccount } from "@/lib/types";
 
 interface DashboardClientProps {
   user: SafeUser | null;
@@ -64,7 +56,7 @@ interface DashboardClientProps {
   currentTimeframe: string;
   monthlyNetWorthIncrease: number;
   windfalls: { name: string; amount: number; date: string; type: string }[];
-  transactions: DashboardTransaction[];
+  transactions: MovementRow[];
   primaryGoal: { name: string; target_amount: number } | null;
   emergencyFund: number;
   accounts: SafeAccount[];
@@ -180,11 +172,11 @@ export default function DashboardClient(props: DashboardClientProps) {
       });
 
       const monthlyExpenseTotal = monthlyTransactions
-        .filter((t) => t.type === "expense")
+        .filter((t) => t.kind === "expense")
         .reduce((sum, t) => sum + t.amount, 0);
 
       const monthlyIncomeTotal = monthlyTransactions
-        .filter((t) => t.type === "income")
+        .filter((t) => t.kind === "income")
         .reduce((sum, t) => sum + t.amount, 0);
 
       const monthlyChange =
@@ -268,10 +260,7 @@ export default function DashboardClient(props: DashboardClientProps) {
       case "transactions":
         return (
           <TransactionsTable
-            transactions={props.transactions.map((t) => ({
-              ...t,
-              kind: (t.type ?? "expense") as "income" | "expense",
-            }))}
+            transactions={props.transactions}
             selectedYear={selectedYear}
             accounts={props.accounts}
           />

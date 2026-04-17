@@ -30,7 +30,7 @@ import { Serialized, Transaction as PrismaTransaction } from "@/lib/types";
 import { ConfirmDialog } from "./ConfirmDialog";
 import TransferModal, { type TransferModalInitial } from "./TransferModal";
 
-interface TransactionRow
+export interface TransactionRow
   extends Serialized<
     Pick<PrismaTransaction, "id" | "name" | "amount" | "date" | "tags" | "type">
   > {
@@ -39,7 +39,7 @@ interface TransactionRow
   accountName?: string;
 }
 
-interface TransferRow {
+export interface TransferRow {
   kind: "transfer";
   id: number;
   amount: number;
@@ -52,7 +52,7 @@ interface TransferRow {
   toAccountName?: string;
 }
 
-type Row = TransactionRow | TransferRow;
+export type Row = TransactionRow | TransferRow;
 
 interface TransactionsTableProps {
   transactions: Row[];

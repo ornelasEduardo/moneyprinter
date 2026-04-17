@@ -3,12 +3,8 @@
 import React, { createContext, useContext, useRef, useEffect } from 'react';
 import { createStore, useStore } from 'zustand';
 
-import { Serialized, Transaction, SafeUser, SafeAccount } from '@/lib/types';
-
-interface DashboardTransaction extends Serialized<Pick<Transaction, 'id' | 'name' | 'amount' | 'date' | 'tags' | 'type'>> {
-  accountId: number | null;
-  accountName?: string;
-}
+import { SafeUser, SafeAccount } from '@/lib/types';
+import type { Row as MovementRow } from '@/components/TransactionsTable';
 
 export interface DashboardProps {
   user: SafeUser | null;
@@ -21,7 +17,7 @@ export interface DashboardProps {
   currentTimeframe: string;
   monthlyNetWorthIncrease: number;
   windfalls: { name: string; amount: number; date: string; type: string }[];
-  transactions: DashboardTransaction[];
+  transactions: MovementRow[];
   primaryGoal: { name: string; target_amount: number } | null;
   emergencyFund: number;
   accounts: SafeAccount[];
