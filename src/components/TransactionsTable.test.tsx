@@ -194,4 +194,17 @@ describe("TransactionsTable", () => {
     expect(screen.getByText(/edit transfer/i)).toBeInTheDocument();
   });
 
+  it('SplitButton dropdown exposes a Transfer option that opens the modal in create mode', () => {
+    render(
+      <TransactionsTable
+        transactions={[]}
+        selectedYear={2026}
+        accounts={[{ id: 1, name: 'Checking' }, { id: 2, name: 'Savings' }]}
+      />
+    );
+    // Open the split button dropdown
+    fireEvent.click(screen.getByRole('button', { name: /more options|open menu|add options/i }));
+    fireEvent.click(screen.getByText(/^transfer$/i));
+    expect(screen.getByText(/new transfer/i)).toBeInTheDocument();
+  });
 });

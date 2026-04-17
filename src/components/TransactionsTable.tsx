@@ -333,6 +333,13 @@ export default function TransactionsTable({
                 router.push(`/transactions/new?year=${selectedYear}`)
               }
               items={[
+                {
+                  label: 'Transfer',
+                  onClick: () => {
+                    setEditingTransfer(null);
+                    setIsTransferModalOpen(true);
+                  },
+                },
                 { label: 'Import CSV', onClick: () => router.push('/import') },
               ]}
             />
