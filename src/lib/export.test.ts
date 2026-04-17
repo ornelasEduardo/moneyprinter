@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { exportEntity, exportEntityCsv, EXPORTABLE_ENTITIES } from './export';
+import { exportEntity, exportEntityCsv, exportAllEntities, EXPORTABLE_ENTITIES } from './export';
 import prisma from '@/lib/prisma';
 
 vi.mock('@/lib/prisma', () => ({
@@ -12,6 +12,7 @@ vi.mock('@/lib/prisma', () => ({
     budget_limits: { findMany: vi.fn() },
     goals: { findMany: vi.fn() },
     user_settings: { findMany: vi.fn() },
+    transfers: { findMany: vi.fn() },
   },
 }));
 
@@ -83,6 +84,44 @@ describe('exportEntityCsv', () => {
   });
 });
 
+describe('exportAllEntities', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    for (const entity of EXPORTABLE_ENTITIES) {
+      ((prisma as any)[entity].findMany as any).mockResolvedValue([]);
+    }
+  });
+
+  it('includes transfers in exportAllEntities result', async () => {
+    (prisma.transfers.findMany as any).mockResolvedValue([
+      {
+        id: 1,
+        user_id: 1,
+        from_account_id: 1,
+        to_account_id: 2,
+        amount: { toNumber: () => 250 },
+        transfer_date: new Date('2026-04-16'),
+        note: 'Sweep',
+        tags: null,
+        deleted_at: null,
+      },
+    ]);
+
+    const result = await exportAllEntities(1);
+
+    expect(Object.keys(result)).toContain('transfers');
+    expect(result.transfers).toHaveLength(1);
+    expect(result.transfers[0]).toMatchObject({
+      from_account_id: 1,
+      to_account_id: 2,
+      amount: 250,
+    });
+    expect(prisma.transfers.findMany).toHaveBeenCalledWith({
+      where: { user_id: 1, deleted_at: null },
+    });
+  });
+});
+
 describe('EXPORTABLE_ENTITIES', () => {
   it('should include all financial entities', () => {
     expect(EXPORTABLE_ENTITIES).toContain('accounts');
@@ -93,6 +132,7 @@ describe('EXPORTABLE_ENTITIES', () => {
     expect(EXPORTABLE_ENTITIES).toContain('budget_limits');
     expect(EXPORTABLE_ENTITIES).toContain('goals');
     expect(EXPORTABLE_ENTITIES).toContain('user_settings');
+    expect(EXPORTABLE_ENTITIES).toContain('transfers');
   });
 
   it('should NOT include system tables', () => {
