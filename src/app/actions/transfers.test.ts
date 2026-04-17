@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTransfer, updateTransfer } from './transfers';
+import { createTransfer, updateTransfer, deleteTransfer } from './transfers';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/action-middleware';
 import { revalidatePath } from 'next/cache';
@@ -135,5 +135,30 @@ describe('updateTransfer', () => {
   it('rejects when transfer is not owned by user', async () => {
     (prisma as any).transfers.findFirst = vi.fn().mockResolvedValue(null);
     await expect(updateTransfer(99, fd())).rejects.toThrow(/not found|unauthorized/i);
+  });
+});
+
+describe('deleteTransfer', () => {
+  const mockUserId = 42;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (requireAuth as any).mockResolvedValue(mockUserId);
+  });
+
+  it('soft-deletes a transfer the user owns', async () => {
+    (prisma as any).transfers.deleteMany = vi.fn().mockResolvedValue({ count: 1 });
+
+    await deleteTransfer(7);
+
+    expect((prisma as any).transfers.deleteMany).toHaveBeenCalledWith({
+      where: { id: 7, user_id: mockUserId },
+    });
+    expect(revalidatePath).toHaveBeenCalledWith('/');
+  });
+
+  it('throws when nothing was deleted', async () => {
+    (prisma as any).transfers.deleteMany = vi.fn().mockResolvedValue({ count: 0 });
+    await expect(deleteTransfer(99)).rejects.toThrow(/not found|unauthorized/i);
   });
 });

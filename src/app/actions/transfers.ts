@@ -99,3 +99,17 @@ export async function updateTransfer(id: number, formData: FormData) {
     revalidatePath('/');
   });
 }
+
+export async function deleteTransfer(id: number) {
+  const userId = await requireAuth();
+
+  return withAuditContext({ userId }, async () => {
+    const result = await prisma.transfers.deleteMany({
+      where: { id, user_id: userId },
+    });
+    if (result.count === 0) {
+      throw new Error('Transfer not found or unauthorized');
+    }
+    revalidatePath('/');
+  });
+}
