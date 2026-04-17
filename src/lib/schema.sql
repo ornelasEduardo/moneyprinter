@@ -147,3 +147,22 @@ CREATE TABLE IF NOT EXISTS import_errors (
   severity VARCHAR(20) NOT NULL DEFAULT 'error',
   raw_value TEXT
 );
+
+CREATE TABLE IF NOT EXISTS transfers (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  from_account_id INTEGER NOT NULL REFERENCES accounts(id),
+  to_account_id INTEGER NOT NULL REFERENCES accounts(id),
+  amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
+  transfer_date DATE NOT NULL,
+  note VARCHAR(255),
+  tags VARCHAR(255),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  CHECK (from_account_id <> to_account_id)
+);
+
+CREATE INDEX IF NOT EXISTS transfers_user_date_idx
+  ON transfers(user_id, transfer_date DESC)
+  WHERE deleted_at IS NULL;
