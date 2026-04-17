@@ -113,3 +113,11 @@ export async function deleteTransfer(id: number) {
     revalidatePath('/');
   });
 }
+
+export async function listTransfers() {
+  const userId = await requireAuth();
+  return prisma.transfers.findMany({
+    where: { user_id: userId, deleted_at: null },
+    orderBy: { transfer_date: 'desc' },
+  });
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTransfer, updateTransfer, deleteTransfer } from './transfers';
+import { createTransfer, updateTransfer, deleteTransfer, listTransfers } from './transfers';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/action-middleware';
 import { revalidatePath } from 'next/cache';
@@ -160,5 +160,30 @@ describe('deleteTransfer', () => {
   it('throws when nothing was deleted', async () => {
     (prisma as any).transfers.deleteMany = vi.fn().mockResolvedValue({ count: 0 });
     await expect(deleteTransfer(99)).rejects.toThrow(/not found|unauthorized/i);
+  });
+});
+
+describe('listTransfers', () => {
+  const mockUserId = 42;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (requireAuth as any).mockResolvedValue(mockUserId);
+  });
+
+  it('returns non-deleted transfers for the user, sorted by date desc', async () => {
+    const rows = [
+      { id: 2, user_id: mockUserId, transfer_date: new Date('2026-04-10') },
+      { id: 1, user_id: mockUserId, transfer_date: new Date('2026-03-01') },
+    ];
+    (prisma as any).transfers.findMany = vi.fn().mockResolvedValue(rows);
+
+    const result = await listTransfers();
+
+    expect((prisma as any).transfers.findMany).toHaveBeenCalledWith({
+      where: { user_id: mockUserId, deleted_at: null },
+      orderBy: { transfer_date: 'desc' },
+    });
+    expect(result).toEqual(rows);
   });
 });
