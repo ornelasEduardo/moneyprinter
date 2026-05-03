@@ -166,3 +166,33 @@ CREATE TABLE IF NOT EXISTS transfers (
 CREATE INDEX IF NOT EXISTS transfers_user_date_idx
   ON transfers(user_id, transfer_date DESC)
   WHERE deleted_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS provenance (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  entity_type VARCHAR(50) NOT NULL,
+  entity_id INTEGER NOT NULL,
+  field VARCHAR(100) NOT NULL,
+  value VARCHAR(255),
+  source_type VARCHAR(50) NOT NULL,
+  source_id INTEGER,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS provenance_entity_idx ON provenance (entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS provenance_source_idx ON provenance (source_type, source_id);
+
+CREATE TABLE IF NOT EXISTS categorization_rules (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  name VARCHAR(255) NOT NULL,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  priority INTEGER NOT NULL DEFAULT 0,
+  conditions JSONB NOT NULL,
+  actions JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP WITH TIME ZONE
+);
+CREATE INDEX IF NOT EXISTS categorization_rules_priority_idx
+  ON categorization_rules (user_id, priority DESC)
+  WHERE deleted_at IS NULL AND enabled = TRUE;

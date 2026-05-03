@@ -139,12 +139,14 @@ model users {
   accounts              accounts[]
   audit_log             audit_log[]
   budget_limits         budget_limits[]
+  categorization_rules  categorization_rules[]
   goals                 goals[]
   import_configurations import_configurations[]
   import_history        import_history[]
   income_budgets        income_budgets[]
   income_sources        income_sources[]
   net_worth_history     net_worth_history[]
+  provenance            provenance[]
   transactions          transactions[]
   transfers             transfers[]
   user_passwords        user_passwords?
@@ -211,4 +213,34 @@ model transfers {
   accounts_transfers_from_account_idToaccounts accounts  @relation("transfers_from_account_idToaccounts", fields: [from_account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   accounts_transfers_to_account_idToaccounts   accounts  @relation("transfers_to_account_idToaccounts", fields: [to_account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users                                        users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model categorization_rules {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  name       String    @db.VarChar(255)
+  enabled    Boolean   @default(true)
+  priority   Int       @default(0)
+  conditions Json
+  actions    Json
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model provenance {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  entity_type String    @db.VarChar(50)
+  entity_id   Int
+  field       String    @db.VarChar(100)
+  value       String?   @db.VarChar(255)
+  source_type String    @db.VarChar(50)
+  source_id   Int?
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  users       users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([entity_type, entity_id], map: "provenance_entity_idx")
+  @@index([source_type, source_id], map: "provenance_source_idx")
 }
