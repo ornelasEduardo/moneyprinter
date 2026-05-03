@@ -194,6 +194,33 @@ describe("TransactionsTable", () => {
     expect(screen.getByText(/edit transfer/i)).toBeInTheDocument();
   });
 
+  it('renders rule indicator on tags that came from a rule', () => {
+    const movements = [
+      {
+        kind: 'expense' as const,
+        id: 1,
+        name: 'Starbucks',
+        amount: 5,
+        date: '2026-05-01',
+        type: 'expense' as const,
+        tags: 'coffee,morning',
+        accountId: 1,
+        accountName: 'Checking',
+      },
+    ];
+    render(
+      <TransactionsTable
+        transactions={movements as any}
+        selectedYear={2026}
+        accounts={[{ id: 1, name: 'Checking' }]}
+        tagProvenance={{ 1: { coffee: 'Coffee Shops' } }}
+      />
+    );
+    // 'coffee' has the rule indicator; 'morning' does not
+    const indicators = screen.getAllByTestId('tag-rule-indicator');
+    expect(indicators).toHaveLength(1);
+  });
+
   it('SplitButton dropdown exposes a Transfer option that opens the modal in create mode', () => {
     render(
       <TransactionsTable

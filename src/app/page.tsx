@@ -16,6 +16,7 @@ import { getPrimaryGoal, getEmergencyFundAmount } from "@/app/actions/goals";
 import { getCurrentUser } from "@/lib/auth";
 import { getUser } from "@/app/actions/auth";
 import { listMovements } from "@/lib/movements";
+import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Page } from 'doom-design-system';
 export const dynamic = 'force-dynamic';
@@ -93,6 +94,32 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
     };
   });
 
+  // Fetch tag provenance for rule-applied tags so the table can render rule indicators
+  const provenanceRows = await prisma.provenance.findMany({
+    where: {
+      user_id: userId,
+      entity_type: 'transactions',
+      field: 'tags',
+      source_type: 'rule',
+    },
+  });
+  const ruleNameById = new Map(
+    (
+      await prisma.categorization_rules.findMany({
+        where: { user_id: userId, deleted_at: null },
+        select: { id: true, name: true },
+      })
+    ).map((r: { id: number; name: string }) => [r.id, r.name])
+  );
+  const tagProvenance: Record<number, Record<string, string>> = {};
+  for (const p of provenanceRows) {
+    if (!p.value || !p.source_id) continue;
+    const ruleName = ruleNameById.get(p.source_id);
+    if (!ruleName) continue;
+    if (!tagProvenance[p.entity_id]) tagProvenance[p.entity_id] = {};
+    tagProvenance[p.entity_id][p.value] = ruleName;
+  }
+
   const timeframe = params.timeframe || '30';
 
   // Always get history for the selected year (defaults to current year)
@@ -135,6 +162,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
         integrityWarnings={integrityWarnings}
         backupHistory={backupHistoryData}
         showBackupReminder={backupReminderState.show}
+        tagProvenance={tagProvenance}
       />
     </Page>
   );

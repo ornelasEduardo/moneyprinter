@@ -68,6 +68,7 @@ interface DashboardClientProps {
   integrityWarnings?: IntegrityWarning[];
   backupHistory?: BackupHistoryEntry[];
   showBackupReminder?: boolean;
+  tagProvenance?: Record<number, Record<string, string>>;
 }
 
 
@@ -263,6 +264,7 @@ export default function DashboardClient(props: DashboardClientProps) {
             transactions={props.transactions}
             selectedYear={selectedYear}
             accounts={props.accounts}
+            tagProvenance={props.tagProvenance}
           />
         );
 
