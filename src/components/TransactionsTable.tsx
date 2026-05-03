@@ -354,6 +354,7 @@ export default function TransactionsTable({
                     setIsTransferModalOpen(true);
                   },
                 },
+                { label: 'Manage rules', onClick: () => router.push('/rules') },
                 { label: 'Import CSV', onClick: () => router.push('/import') },
               ]}
             />

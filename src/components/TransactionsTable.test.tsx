@@ -17,10 +17,11 @@ vi.mock("@/app/actions/transfers", () => ({
   deleteTransfer: vi.fn(),
 }));
 
-// Mock next/navigation
+// Mock next/navigation with a shared push mock so individual tests can assert
+const pushMock = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: pushMock,
     refresh: vi.fn(),
   }),
 }));
@@ -233,5 +234,21 @@ describe("TransactionsTable", () => {
     fireEvent.click(screen.getByRole('button', { name: /more options|open menu|add options/i }));
     fireEvent.click(screen.getByText(/^transfer$/i));
     expect(screen.getByText(/new transfer/i)).toBeInTheDocument();
+  });
+
+  it('SplitButton dropdown exposes a Manage rules option that navigates to /rules', () => {
+    pushMock.mockClear();
+    render(
+      <TransactionsTable
+        transactions={[]}
+        selectedYear={2026}
+        accounts={[{ id: 1, name: 'Checking' }]}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /more options|open menu|add options/i })
+    );
+    fireEvent.click(screen.getByText(/manage rules/i));
+    expect(pushMock).toHaveBeenCalledWith('/rules');
   });
 });
