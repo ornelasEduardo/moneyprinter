@@ -9,6 +9,8 @@ export const EXPORTABLE_ENTITIES = [
   'goals',
   'user_settings',
   'transfers',
+  'provenance',
+  'categorization_rules',
 ] as const;
 
 export type ExportableEntity = (typeof EXPORTABLE_ENTITIES)[number];

@@ -17,6 +17,8 @@ vi.mock('@/lib/prisma', () => ({
     goals: { count: vi.fn().mockResolvedValue(1) },
     user_settings: { count: vi.fn().mockResolvedValue(3) },
     transfers: { count: vi.fn().mockResolvedValue(0) },
+    provenance: { count: vi.fn().mockResolvedValue(0) },
+    categorization_rules: { count: vi.fn().mockResolvedValue(0) },
   },
 }));
 

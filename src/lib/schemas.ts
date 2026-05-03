@@ -79,6 +79,53 @@ export const userSettingSchema = z.object({
   value: z.string(),
 });
 
+const filterOperatorEnum = z.enum([
+  'eq', 'neq', 'contains', 'startsWith', 'endsWith',
+  'gt', 'gte', 'lt', 'lte',
+  'in', 'notIn', 'isEmpty', 'isNotEmpty',
+]);
+
+const filterConditionSchema = z.object({
+  type: z.literal('condition'),
+  id: z.string().optional(),
+  field: z.string().min(1),
+  operator: filterOperatorEnum,
+  value: z.unknown(),
+  logic: z.enum(['and', 'or']).optional(),
+});
+
+export const filterSchema: z.ZodType<unknown> = z.lazy(() =>
+  z.union([
+    filterConditionSchema,
+    z.object({
+      type: z.literal('group'),
+      id: z.string().optional(),
+      conditions: z.array(filterSchema),
+      logic: z.enum(['and', 'or']).optional(),
+    }),
+  ])
+);
+
+export const provenanceSchema = z.object({
+  entity_type: z.string().min(1),
+  entity_id: coerceNumber,
+  field: z.string().min(1),
+  value: z.string().nullable().optional(),
+  source_type: z.string().min(1),
+  source_id: coerceNumber.nullable().optional(),
+});
+
+export const categorizationRuleSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  enabled: coerceBoolean.default(true),
+  priority: coerceNumber.default(0),
+  conditions: filterSchema,
+  actions: z.object({
+    addTags: z.array(z.string()).default([]),
+    setType: z.enum(['income', 'expense']).optional(),
+  }),
+});
+
 export type AccountImport = z.infer<typeof accountSchema>;
 export type TransactionImport = z.infer<typeof transactionSchema>;
 export type NetWorthHistoryImport = z.infer<typeof netWorthHistorySchema>;
@@ -88,6 +135,8 @@ export type BudgetLimitImport = z.infer<typeof budgetLimitSchema>;
 export type GoalImport = z.infer<typeof goalSchema>;
 export type TransferImport = z.infer<typeof transferSchema>;
 export type UserSettingImport = z.infer<typeof userSettingSchema>;
+export type ProvenanceImport = z.infer<typeof provenanceSchema>;
+export type CategorizationRuleImport = z.infer<typeof categorizationRuleSchema>;
 
 export const entitySchemas: Record<string, z.ZodSchema> = {
   accounts: accountSchema,
@@ -99,4 +148,6 @@ export const entitySchemas: Record<string, z.ZodSchema> = {
   goals: goalSchema,
   transfers: transferSchema,
   user_settings: userSettingSchema,
+  provenance: provenanceSchema,
+  categorization_rules: categorizationRuleSchema,
 };

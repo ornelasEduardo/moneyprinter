@@ -13,6 +13,8 @@ vi.mock('@/lib/prisma', () => ({
     goals: { findMany: vi.fn() },
     user_settings: { findMany: vi.fn() },
     transfers: { findMany: vi.fn() },
+    provenance: { findMany: vi.fn() },
+    categorization_rules: { findMany: vi.fn() },
   },
 }));
 
