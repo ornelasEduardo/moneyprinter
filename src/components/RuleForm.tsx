@@ -15,6 +15,7 @@ import {
   Text,
   useToast,
 } from 'doom-design-system';
+import BackLink from './BackLink';
 import {
   FilterBuilder,
   type Filter,
@@ -113,8 +114,10 @@ export default function RuleForm({ accounts, initial }: RuleFormProps) {
   };
 
   return (
-    <Card>
-      <Form onSubmit={handleSubmit}>
+    <>
+      <BackLink href="/rules" />
+      <Card>
+        <Form onSubmit={handleSubmit}>
         <Flex direction="column" gap={6}>
           <Field label="Name" htmlFor={NAME_ID} required>
             <Input
@@ -184,7 +187,8 @@ export default function RuleForm({ accounts, initial }: RuleFormProps) {
             </Button>
           </Flex>
         </Flex>
-      </Form>
-    </Card>
+        </Form>
+      </Card>
+    </>
   );
 }
