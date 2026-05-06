@@ -126,15 +126,11 @@ async function fetchRuleAsCompiled(id: number, userId: number): Promise<Compiled
   };
 }
 
-export async function previewRuleAgainstHistory(id: number) {
-  const userId = await requireAuth();
-  const rule = await fetchRuleAsCompiled(id, userId);
-  if (!rule) throw new Error('Rule not found or unauthorized');
-
+async function findRuleMatches(rule: CompiledRule, userId: number) {
   const txs = await prisma.transactions.findMany({
     where: { user_id: userId, deleted_at: null },
   });
-  const matches = txs.filter((t) =>
+  return txs.filter((t) =>
     evaluateFilter(rule.conditions, {
       name: t.name,
       amount: Number(t.amount),
@@ -144,7 +140,23 @@ export async function previewRuleAgainstHistory(id: number) {
       date: t.date,
     })
   );
-  return { matches };
+}
+
+export async function previewRuleAgainstHistory(id: number) {
+  const userId = await requireAuth();
+  const rule = await fetchRuleAsCompiled(id, userId);
+  if (!rule) throw new Error('Rule not found or unauthorized');
+
+  const matches = await findRuleMatches(rule, userId);
+  return {
+    matches: matches.map((t) => ({
+      id: t.id,
+      name: t.name,
+      amount: Number(t.amount),
+      date: t.date instanceof Date ? t.date.toISOString().slice(0, 10) : String(t.date),
+      type: t.type,
+    })),
+  };
 }
 
 export async function applyRuleToHistory(id: number): Promise<{ applied: number }> {
@@ -153,10 +165,10 @@ export async function applyRuleToHistory(id: number): Promise<{ applied: number 
   if (!rule) throw new Error('Rule not found or unauthorized');
 
   return withAuditContext({ userId }, async () => {
-    const { matches } = await previewRuleAgainstHistory(id);
+    const matches = await findRuleMatches(rule, userId);
     for (const tx of matches) {
       await applyRulesAtCreate({
-        transactionId: (tx as { id: number }).id,
+        transactionId: tx.id,
         userId,
         rules: [rule],
       });
