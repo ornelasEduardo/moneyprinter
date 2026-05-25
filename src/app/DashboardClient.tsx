@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { GoalTracker } from "@/components/GoalTracker";
 import NetWorthChart from "@/components/NetWorthChart";
 import { Logo } from "@/components/Logo";
-import AppHeader from "@/components/AppHeader";
+import SidebarFooter from "@/components/SidebarFooter";
 import SummaryCards from "@/components/SummaryCards";
 import ProjectionsTable from "@/components/ProjectionsTable";
 import TransactionsTable, { type Row as MovementRow } from "@/components/TransactionsTable";
@@ -362,15 +362,17 @@ export default function DashboardClient(props: DashboardClientProps) {
               <Sidebar.Item href="/settings" icon={<Settings size={18} strokeWidth={2.5} />}>Settings</Sidebar.Item>
             </Sidebar.Section>
           </Sidebar.Nav>
+          <Sidebar.Footer>
+            <SidebarFooter
+              user={props.user}
+              selectedYear={selectedYear}
+              availableYears={props.availableYears}
+              onYearChange={handleYearChange}
+            />
+          </Sidebar.Footer>
         </Sidebar>
 
         <main className={styles.main}>
-          <AppHeader
-            user={props.user}
-            selectedYear={selectedYear}
-            availableYears={props.availableYears}
-            onYearChange={handleYearChange}
-          />
           <div className={styles.content}>
             {renderContent()}
           </div>

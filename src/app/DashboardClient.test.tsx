@@ -17,6 +17,7 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
+vi.mock('@/components/SidebarFooter', () => ({ default: () => <div data-testid="sidebar-footer" /> }));
 vi.mock('@/components/GoalTracker', () => ({ GoalTracker: () => <div data-testid="goal-tracker" /> }));
 vi.mock('@/components/NetWorthChart', () => ({ default: () => <div data-testid="net-worth-chart" /> }));
 vi.mock('@/components/DashboardHeader', () => ({ default: () => <div data-testid="dashboard-header" /> }));
