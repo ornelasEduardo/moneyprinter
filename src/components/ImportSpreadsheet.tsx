@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef, RowClassRules } from 'ag-grid-community';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
@@ -105,11 +106,11 @@ function UploadLanding({
 }) {
   return (
     <div className={styles.uploadPage}>
-      <a href="/" className={styles.uploadBackLink}><Logo size={28} /></a>
+      <Link href="/" className={styles.uploadBackLink}><Logo size={28} /></Link>
       <div className={styles.uploadHero}>
         <Text variant="h2" weight="bold" className={styles.uploadTitle}>Import Transactions</Text>
         <Text color="muted" className={styles.uploadSubtitle}>
-          Drop a CSV from your bank and we'll take it from there.
+          Drop a CSV from your bank and we&apos;ll take it from there.
         </Text>
       </div>
 
@@ -231,7 +232,7 @@ function ColumnConfigModal({
       <Modal.Body>
         <Stack gap={4}>
           <Stack gap={1}>
-            <Text variant="caption" color="muted">Here's what's in this column</Text>
+            <Text variant="caption" color="muted">Here&apos;s what&apos;s in this column</Text>
             <div className={styles.sampleValues}>
               {rawData.slice(0, 5).map((row, i) => (
                 <Text key={i} variant="small" className={styles.sampleValue}>{row[column] || '-'}</Text>
@@ -662,7 +663,7 @@ export default function ImportSpreadsheet({
     <div className={styles.editorPage}>
       <div className={styles.topBar}>
         <Flex align="center" gap={0}>
-          <a href="/" className={styles.backLink}><Logo size={22} /></a>
+          <Link href="/" className={styles.backLink}><Logo size={22} /></Link>
           <Flex align="center" gap={3} className={styles.topBarInfo}>
             <Text weight="bold" variant="small">{currentFilename}</Text>
             <Badge variant="success">{summary.valid} valid</Badge>

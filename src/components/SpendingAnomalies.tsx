@@ -28,7 +28,7 @@ export function SpendingAnomalies({ anomalies }: SpendingAnomaliesProps) {
               <Text weight="bold" variant="small" as="span" style={{ textTransform: 'capitalize' }}>
                 {anomaly.category}
               </Text>
-              {' '}is at {formatCurrency(anomaly.currentAmount)}, that's{' '}
+              {' '}is at {formatCurrency(anomaly.currentAmount)}, that&apos;s{' '}
               <Text weight="bold" variant="small" as="span" style={{ color: 'var(--error)' }}>
                 {anomaly.multiplier}x
               </Text>
