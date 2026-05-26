@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAuth } from '@/lib/action-middleware';
 import { withAuditContext } from '@/lib/audit-context';
+import { applyRulesAtCreate, type CompiledRule } from '@/lib/tagging';
+import type { Filter } from 'doom-design-system/filter';
 
 export async function createTransaction(formData: FormData) {
   const userId = await requireAuth();
@@ -34,7 +36,7 @@ export async function createTransaction(formData: FormData) {
         throw new Error('Account not found or does not belong to user');
       }
 
-      await prisma.transactions.create({
+      const created = await prisma.transactions.create({
         data: {
           user_id: userId,
           name,
@@ -46,6 +48,18 @@ export async function createTransaction(formData: FormData) {
           pending: false
         }
       });
+
+      const ruleRows = await prisma.categorization_rules.findMany({
+        where: { user_id: userId, enabled: true, deleted_at: null },
+        orderBy: { priority: 'desc' },
+      });
+      const rules: CompiledRule[] = ruleRows.map((r) => ({
+        id: r.id,
+        priority: r.priority,
+        conditions: r.conditions as unknown as Filter,
+        actions: r.actions as unknown as CompiledRule['actions'],
+      }));
+      await applyRulesAtCreate({ transactionId: created.id, userId, rules });
     } catch (error: any) {
       console.error('Failed to create transaction:', error.message);
       throw new Error('Failed to create transaction');

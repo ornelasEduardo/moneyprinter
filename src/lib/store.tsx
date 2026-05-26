@@ -23,6 +23,7 @@ export interface DashboardProps {
   accounts: SafeAccount[];
   availableYears: number[];
   selectedYear?: number;
+  tagProvenance?: Record<number, Record<string, string>>;
 }
 
 export type DashboardState = DashboardProps;

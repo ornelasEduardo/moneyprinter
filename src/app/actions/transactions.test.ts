@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/action-middleware';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import * as tagging from '@/lib/tagging';
 
 // Mock dependencies
 vi.mock('@/lib/prisma', () => ({
@@ -18,7 +19,15 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       findMany: vi.fn(),
     },
+    categorization_rules: {
+      findMany: vi.fn(),
+    },
   },
+}));
+
+vi.mock('@/lib/tagging', async (orig) => ({
+  ...(await (orig as () => Promise<unknown>)() as object),
+  applyRulesAtCreate: vi.fn(),
 }));
 
 vi.mock('@/lib/action-middleware', () => ({
@@ -52,6 +61,8 @@ describe('Transaction Actions', () => {
 
       // Mock account check
       (prisma.accounts.findFirst as any).mockResolvedValue({ id: 1, user_id: mockUserId });
+      (prisma.transactions.create as any).mockResolvedValue({ id: 1 });
+      (prisma.categorization_rules.findMany as any).mockResolvedValue([]);
 
       await createTransaction(formData);
 
@@ -73,6 +84,25 @@ describe('Transaction Actions', () => {
       });
       expect(revalidatePath).toHaveBeenCalledWith('/');
       expect(redirect).toHaveBeenCalledWith('/?tab=transactions');
+    });
+
+    it('calls applyRulesAtCreate after creating a transaction', async () => {
+      const formData = new FormData();
+      formData.append('name', 'Test');
+      formData.append('amount', '5');
+      formData.append('date', '2026-05-01');
+      formData.append('accountId', '1');
+
+      (prisma.accounts.findFirst as any).mockResolvedValue({ id: 1 });
+      (prisma.transactions.create as any).mockResolvedValue({ id: 99 });
+      (prisma.categorization_rules.findMany as any).mockResolvedValue([]);
+
+      await createTransaction(formData);
+
+      expect(tagging.applyRulesAtCreate).toHaveBeenCalledWith(expect.objectContaining({
+        transactionId: 99,
+        userId: mockUserId,
+      }));
     });
 
     it('should throw if account does not exist', async () => {

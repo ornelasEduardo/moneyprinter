@@ -13,6 +13,8 @@ vi.mock('@/lib/prisma', () => ({
     goals: { count: vi.fn() },
     user_settings: { count: vi.fn() },
     transfers: { count: vi.fn() },
+    provenance: { count: vi.fn() },
+    categorization_rules: { count: vi.fn() },
   },
 }));
 
@@ -31,6 +33,8 @@ describe('estimateBackupSize', () => {
     (prisma.goals.count as any).mockResolvedValue(2);
     (prisma.user_settings.count as any).mockResolvedValue(5);
     ((prisma as any).transfers.count as any).mockResolvedValue(0);
+    ((prisma as any).provenance.count as any).mockResolvedValue(0);
+    ((prisma as any).categorization_rules.count as any).mockResolvedValue(0);
 
     const estimate = await estimateBackupSize(1);
 

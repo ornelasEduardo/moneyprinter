@@ -12,6 +12,8 @@ const AVG_ROW_BYTES: Record<string, number> = {
   goals: 150,
   user_settings: 100,
   transfers: 150,
+  provenance: 100,
+  categorization_rules: 400,
 };
 
 export interface BackupSizeEstimate {
@@ -30,7 +32,7 @@ export async function estimateBackupSize(userId: number): Promise<BackupSizeEsti
   for (const entity of EXPORTABLE_ENTITIES) {
     const model = (prisma as any)[entity];
     const where: Record<string, unknown> = { user_id: userId };
-    const softDeleteEntities = ['accounts', 'transactions', 'net_worth_history', 'income_sources', 'transfers'];
+    const softDeleteEntities = ['accounts', 'transactions', 'net_worth_history', 'income_sources', 'transfers', 'categorization_rules'];
     if (softDeleteEntities.includes(entity)) {
       where.deleted_at = null;
     }

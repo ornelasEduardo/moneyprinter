@@ -70,7 +70,7 @@ export async function commitImport(
   entity: string,
   rows: Record<string, unknown>[],
   mode: 'skip' | 'overwrite',
-): Promise<{ created: number; updated: number; skipped: number }> {
+): Promise<{ created: number; updated: number; skipped: number; insertedIds: number[] }> {
   if (!EXPORTABLE_ENTITIES.includes(entity as ExportableEntity)) {
     throw new Error(`Unknown entity: ${entity}`);
   }
@@ -79,6 +79,7 @@ export async function commitImport(
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  const insertedIds: number[] = [];
 
   const batchId = randomUUID();
 
@@ -99,10 +100,13 @@ export async function commitImport(
         }
       }
 
-      await model.create({ data: { ...data, user_id: userId } });
+      const inserted = await model.create({ data: { ...data, user_id: userId } });
+      if (inserted && typeof inserted.id === 'number') {
+        insertedIds.push(inserted.id);
+      }
       created++;
     }
   });
 
-  return { created, updated, skipped };
+  return { created, updated, skipped, insertedIds };
 }

@@ -1,0 +1,12 @@
+@use '@/styles/mixins' as *;
+
+.backLink {
+  @include sheen;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground);
+  margin-bottom: var(--space-6);
+  text-decoration: none;
+  width: fit-content;
+}

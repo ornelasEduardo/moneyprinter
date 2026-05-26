@@ -29,6 +29,7 @@ import { Pencil, Trash2, Plus, Upload, ArrowRight } from "lucide-react";
 import { Serialized, Transaction as PrismaTransaction } from "@/lib/types";
 import { ConfirmDialog } from "./ConfirmDialog";
 import TransferModal, { type TransferModalInitial } from "./TransferModal";
+import TagBadge from "./TagBadge";
 
 export interface TransactionRow
   extends Serialized<
@@ -54,10 +55,15 @@ export interface TransferRow {
 
 export type Row = TransactionRow | TransferRow;
 
+interface TagProvenanceMap {
+  [transactionId: number]: { [tag: string]: string | undefined };
+}
+
 interface TransactionsTableProps {
   transactions: Row[];
   selectedYear: number;
   accounts?: { id: number; name: string }[];
+  tagProvenance?: TagProvenanceMap;
 }
 
 function formatCurrency(amount: number) {
@@ -80,6 +86,7 @@ export default function TransactionsTable({
   transactions,
   selectedYear,
   accounts = [],
+  tagProvenance = {},
 }: TransactionsTableProps) {
   const router = useRouter();
   const { toastSuccess, toastError } = useToast();
@@ -250,13 +257,20 @@ export default function TransactionsTable({
         cell: (info) => {
           const value = info.getValue() as string | null;
           if (!value) return null;
+          const row = info.row.original;
+          const txProv = (tagProvenance ?? {})[row.id] ?? {};
           return (
             <Flex gap={1} wrap={true}>
-              {value.split(",").map((tag, i) => (
-                <Badge key={i} variant="primary" className="text-xs">
-                  {tag.trim()}
-                </Badge>
-              ))}
+              {value.split(",").map((tag, i) => {
+                const trimmed = tag.trim();
+                return (
+                  <TagBadge
+                    key={i}
+                    tag={trimmed}
+                    ruleName={txProv[trimmed]}
+                  />
+                );
+              })}
             </Flex>
           );
         },
@@ -311,7 +325,7 @@ export default function TransactionsTable({
         },
       },
     ],
-    [handleDeleteClick, handleEditClick, openTransferEdit]
+    [handleDeleteClick, handleEditClick, openTransferEdit, tagProvenance]
   );
 
   return (
@@ -340,6 +354,7 @@ export default function TransactionsTable({
                     setIsTransferModalOpen(true);
                   },
                 },
+                { label: 'Manage rules', onClick: () => router.push('/rules') },
                 { label: 'Import CSV', onClick: () => router.push('/import') },
               ]}
             />
