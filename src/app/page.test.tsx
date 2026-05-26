@@ -43,6 +43,17 @@ vi.mock("@/app/actions/auth", () => ({
   getUser: vi.fn(),
 }));
 
+vi.mock("@/lib/movements", () => ({
+  listMovements: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/lib/prisma", () => ({
+  default: {
+    provenance: { findMany: vi.fn().mockResolvedValue([]) },
+    categorization_rules: { findMany: vi.fn().mockResolvedValue([]) },
+  },
+}));
+
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
 }));
