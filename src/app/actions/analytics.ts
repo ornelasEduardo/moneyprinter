@@ -2,8 +2,9 @@
 
 import { requireAuth } from '@/lib/action-middleware';
 import prisma from '@/lib/prisma';
-import { spendingByCategory, cashFlow, spendingTrend, detectAnomalies, type Transaction } from '@/lib/analytics';
+import { spendingByCategory, cashFlow, spendingTrend, detectAnomalies, filterTransactions, type Transaction, type SpendingFilters } from '@/lib/analytics';
 import { detectRecurring, type RecurringCharge } from '@/lib/recurring';
+import { splitTags } from '@/lib/tags';
 
 // Cache for recurring charges: key = "userId:start:end"
 const recurringCache = new Map<string, { data: RecurringCharge[]; timestamp: number }>();
@@ -32,10 +33,10 @@ async function fetchTransactions(userId: number, startDate: Date, endDate: Date)
   }));
 }
 
-export async function getSpendingByCategory(startDate: Date, endDate: Date) {
+export async function getSpendingByCategory(startDate: Date, endDate: Date, filters?: SpendingFilters) {
   const userId = await requireAuth();
   const transactions = await fetchTransactions(userId, startDate, endDate);
-  return spendingByCategory(transactions);
+  return spendingByCategory(filterTransactions(transactions, filters));
 }
 
 export async function getCashFlow(startDate: Date, endDate: Date, granularity: 'month' | 'week' = 'month') {
@@ -87,19 +88,40 @@ export async function getSpendingAnomalies(startDate: Date, endDate: Date) {
 export async function getNetWorthTrend(startDate: Date, endDate: Date) {
   const userId = await requireAuth();
   const rows = await prisma.net_worth_history.findMany({
-    where: {
-      user_id: userId,
-      date: { gte: startDate, lt: endDate },
-      deleted_at: null,
-    },
+    where: { user_id: userId, date: { gte: startDate, lt: endDate }, deleted_at: null },
     orderBy: { date: 'asc' },
   });
-  return rows.map((row) => ({
+  const history = rows.map((row) => ({
     date: row.date.toISOString().split('T')[0],
     netWorth: Number(row.net_worth),
   }));
+  return { history };
 }
 
 export async function invalidateRecurringCache() {
   recurringCache.clear();
+}
+
+export async function getSpendingFilterOptions() {
+  const userId = await requireAuth();
+  const [accounts, txRows] = await Promise.all([
+    prisma.accounts.findMany({
+      where: { user_id: userId, deleted_at: null },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.transactions.findMany({
+      where: { user_id: userId, deleted_at: null },
+      select: { tags: true },
+      // Let Postgres collapse to distinct tag strings so we don't stream one row
+      // per transaction; we still split combos ("food, travel") app-side.
+      distinct: ['tags'],
+    }),
+  ]);
+  const tagSet = new Set<string>();
+  for (const row of txRows) for (const t of splitTags(row.tags)) tagSet.add(t);
+  return {
+    accounts: accounts.map((a) => ({ id: a.id, name: a.name })),
+    tags: Array.from(tagSet).sort(),
+  };
 }

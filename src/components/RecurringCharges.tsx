@@ -20,6 +20,16 @@ const FREQ_LABELS: Record<string, string> = {
   annual: '/yr',
 };
 
+function PriceHikeBadge({ charge }: { charge: RecurringCharge }) {
+  if (!charge.priceChange) return null;
+  const { previousAmount, currentAmount } = charge.priceChange;
+  return (
+    <Badge variant="error" size="sm">
+      ↑ {formatCurrency(previousAmount)} → {formatCurrency(currentAmount)}
+    </Badge>
+  );
+}
+
 function monthlyEquivalent(charge: RecurringCharge): number {
   switch (charge.frequency) {
     case 'weekly': return charge.amount * 4.33;
@@ -55,7 +65,17 @@ export function RecurringCharges({ charges }: RecurringChargesProps) {
                 <Slat
                   key={charge.name}
                   label={charge.name}
-                  secondaryLabel={`${charge.confidence === 'medium' ? 'likely ' : ''}${charge.frequency}`}
+                  secondaryLabel={
+                    <Flex gap={2} align="center">
+                      <Text variant="caption" color="muted">
+                        {charge.confidence === 'medium' ? 'likely ' : ''}{charge.frequency}
+                      </Text>
+                      <Badge variant={charge.kind === 'subscription' ? 'success' : 'warning'} size="sm">
+                        {charge.kind}
+                      </Badge>
+                      <PriceHikeBadge charge={charge} />
+                    </Flex>
+                  }
                   appendContent={
                     <Text weight="bold" variant="small">
                       {formatCurrency(charge.amount)}{FREQ_LABELS[charge.frequency]}
@@ -91,6 +111,10 @@ export function RecurringCharges({ charges }: RecurringChargesProps) {
                     <Badge variant={charge.confidence === 'high' ? 'success' : 'warning'} size="sm">
                       {charge.confidence}
                     </Badge>
+                    <Badge variant={charge.kind === 'subscription' ? 'success' : 'warning'} size="sm">
+                      {charge.kind}
+                    </Badge>
+                    <PriceHikeBadge charge={charge} />
                   </Flex>
                 }
                 appendContent={

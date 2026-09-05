@@ -1,4 +1,4 @@
-import { splitTags } from './tags';
+import { splitTags, normalizeTag } from './tags';
 
 export interface DateRange {
   start: Date;
@@ -14,6 +14,27 @@ export interface Transaction {
   tags: string | null;
   accountId: number | null;
   accountName?: string;
+}
+
+export interface SpendingFilters {
+  accountIds?: number[];
+  tags?: string[];
+}
+
+export function filterTransactions(transactions: Transaction[], filters?: SpendingFilters): Transaction[] {
+  if (!filters) return transactions;
+  const accountIds = filters.accountIds && filters.accountIds.length > 0 ? new Set(filters.accountIds) : null;
+  const tags = filters.tags && filters.tags.length > 0 ? filters.tags.map(normalizeTag) : null;
+  if (!accountIds && !tags) return transactions;
+
+  return transactions.filter((tx) => {
+    if (accountIds && (tx.accountId == null || !accountIds.has(tx.accountId))) return false;
+    if (tags) {
+      const txTags = splitTags(tx.tags);
+      if (!tags.some((t) => txTags.includes(t))) return false;
+    }
+    return true;
+  });
 }
 
 export interface MerchantSpending {
@@ -71,6 +92,18 @@ export function spendingByCategory(transactions: Transaction[]): CategorySpendin
         .sort((a, b) => b.amount - a.amount),
     }))
     .sort((a, b) => b.amount - a.amount);
+}
+
+export function monthKey(dateStr: string): string {
+  return periodKey(dateStr, 'month');
+}
+
+// Year-qualified ("Apr '26") so the same calendar month in different years never
+// collapses to one bucket/label. Accepts "YYYY-MM" or "YYYY-MM-DD".
+export function monthLabel(dateStr: string): string {
+  const [year, month] = dateStr.slice(0, 10).split('-').map(Number);
+  const name = new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short' });
+  return `${name} '${String(year).slice(2)}`;
 }
 
 function periodKey(dateStr: string, granularity: 'month' | 'week'): string {
