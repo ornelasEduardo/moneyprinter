@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { spendingByCategory, cashFlow, spendingTrend, type Transaction } from './analytics';
+import { spendingByCategory, cashFlow, spendingTrend, filterTransactions, monthKey, monthLabel, type Transaction } from './analytics';
 
 const mockTransactions: Transaction[] = [
   { id: 1, name: 'Whole Foods', amount: 85.50, date: '2026-03-01', type: 'expense', tags: 'Groceries', accountId: 1 },
@@ -129,5 +129,59 @@ describe('spendingTrend', () => {
     for (let i = 1; i < result.length; i++) {
       expect(result[i].period > result[i - 1].period).toBe(true);
     }
+  });
+});
+
+describe('filterTransactions', () => {
+  const txs = [
+    { id: 1, name: 'A', amount: 10, date: '2026-01-01', type: 'expense', tags: 'food', accountId: 1 },
+    { id: 2, name: 'B', amount: 20, date: '2026-01-02', type: 'expense', tags: 'travel, food', accountId: 2 },
+    { id: 3, name: 'C', amount: 30, date: '2026-01-03', type: 'expense', tags: null, accountId: null },
+  ];
+
+  it('returns all when no filters provided', () => {
+    expect(filterTransactions(txs)).toHaveLength(3);
+  });
+
+  it('returns all when filters are empty arrays', () => {
+    expect(filterTransactions(txs, { accountIds: [], tags: [] })).toHaveLength(3);
+  });
+
+  it('filters by account id', () => {
+    expect(filterTransactions(txs, { accountIds: [1] }).map((t) => t.id)).toEqual([1]);
+  });
+
+  it('excludes null-account transactions when accounts are filtered', () => {
+    expect(filterTransactions(txs, { accountIds: [2] }).map((t) => t.id)).toEqual([2]);
+  });
+
+  it('filters by tag with intersection (any match)', () => {
+    expect(filterTransactions(txs, { tags: ['food'] }).map((t) => t.id)).toEqual([1, 2]);
+  });
+
+  it('matches a tag among multiple on one transaction', () => {
+    expect(filterTransactions(txs, { tags: ['travel'] }).map((t) => t.id)).toEqual([2]);
+  });
+
+  it('returns empty for a tag that is not present', () => {
+    expect(filterTransactions(txs, { tags: ['rent'] })).toHaveLength(0);
+  });
+
+  it('applies account and tag filters together (AND)', () => {
+    expect(filterTransactions(txs, { accountIds: [2], tags: ['food'] }).map((t) => t.id)).toEqual([2]);
+  });
+});
+
+describe('monthKey / monthLabel', () => {
+  it('keeps the same calendar month in different years distinct', () => {
+    expect(monthKey('2025-01-15')).not.toBe(monthKey('2026-01-15'));
+    expect(monthLabel('2025-01-15')).not.toBe(monthLabel('2026-01-15'));
+    expect(monthLabel('2026-01-15')).toBe("Jan '26");
+  });
+
+  it('accepts YYYY-MM and YYYY-MM-DD alike', () => {
+    expect(monthKey('2026-04')).toBe('2026-04');
+    expect(monthLabel('2026-04')).toBe("Apr '26");
+    expect(monthKey('2026-04-13')).toBe('2026-04');
   });
 });

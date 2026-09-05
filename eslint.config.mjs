@@ -29,6 +29,11 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-vars": "warn",
     },
   },
+  {
+    // CommonJS config files (this repo isn't type:module) legitimately use require.
+    files: ["*.config.js"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
 ];
 
 export default eslintConfig;

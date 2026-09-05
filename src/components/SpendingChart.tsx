@@ -45,7 +45,7 @@ export function SpendingChart({ data, total }: SpendingChartProps) {
       <Stack gap={4}>
         <Flex align="baseline" justify="space-between">
           <Text variant="h5" weight="bold">Spending by Category</Text>
-          <Text variant="small" color="muted">{formatCurrency(total)} total</Text>
+          <Text variant="small" color="muted" data-testid="spending-total">{formatCurrency(total)} total</Text>
         </Flex>
 
         <Stack gap={0}>

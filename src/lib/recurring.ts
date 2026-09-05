@@ -20,6 +20,22 @@ export function normalizeMerchant(name: string): string {
 export type Frequency = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'annual';
 export type Confidence = 'high' | 'medium' | 'low';
 
+export type RecurringKind = 'subscription' | 'variable';
+
+export interface PriceChange {
+  previousAmount: number;
+  currentAmount: number;
+  changedAt: Date;
+  percentIncrease: number;
+}
+
+export interface Plateau {
+  amount: number;
+  startIndex: number;
+  endIndex: number;
+  count: number;
+}
+
 interface IntervalResult {
   frequency: Frequency | null;
   confidence: Confidence;
@@ -77,6 +93,8 @@ export interface RecurringCharge {
   lastCharged: Date;
   nextExpected: Date;
   transactions: number;
+  kind: RecurringKind;
+  priceChange?: PriceChange;
 }
 
 const FREQUENCY_DAYS: Record<Frequency, number> = {
@@ -90,6 +108,48 @@ const FREQUENCY_DAYS: Record<Frequency, number> = {
 function amountsMatch(a: number, b: number): boolean {
   const tolerance = Math.max(a * 0.05, 1);
   return Math.abs(a - b) <= tolerance;
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+export function buildPlateaus(amounts: number[]): Plateau[] {
+  const plateaus: Plateau[] = [];
+  for (let i = 0; i < amounts.length; i++) {
+    const current = plateaus[plateaus.length - 1];
+    if (current && amountsMatch(amounts[i], current.amount)) {
+      const total = current.amount * current.count + amounts[i];
+      current.count += 1;
+      current.endIndex = i;
+      current.amount = total / current.count;
+    } else {
+      plateaus.push({ amount: amounts[i], startIndex: i, endIndex: i, count: 1 });
+    }
+  }
+  return plateaus;
+}
+
+export function classifyKind(plateaus: Plateau[]): RecurringKind {
+  return plateaus.length <= 3 ? 'subscription' : 'variable';
+}
+
+export function detectPriceIncrease(plateaus: Plateau[], datesInOrder: Date[]): PriceChange | null {
+  if (plateaus.length < 2) return null;
+  const last = plateaus[plateaus.length - 1];
+  const prev = plateaus[plateaus.length - 2];
+  // tolerance scales with `last` (the newer amount); on an increase this is the larger value
+  if (amountsMatch(last.amount, prev.amount)) return null;
+  if (last.amount <= prev.amount) return null; // increases only
+  const currentAmount = round2(last.amount);
+  const previousAmount = round2(prev.amount);
+  const percentIncrease = previousAmount > 0
+    ? Math.round(((currentAmount - previousAmount) / previousAmount) * 1000) / 10
+    : 0;
+  return {
+    previousAmount,
+    currentAmount,
+    changedAt: datesInOrder[last.startIndex],
+    percentIncrease,
+  };
 }
 
 export function detectRecurring(transactions: Transaction[]): RecurringCharge[] {
@@ -108,30 +168,33 @@ export function detectRecurring(transactions: Transaction[]): RecurringCharge[] 
   for (const [name, txs] of groups) {
     if (txs.length < 3) continue;
 
-    const amounts = txs.map((t) => t.amount).sort((a, b) => a - b);
-    const medianAmount = amounts[Math.floor(amounts.length / 2)];
-    const consistent = txs.filter((t) => amountsMatch(t.amount, medianAmount));
-    if (consistent.length < 3) continue;
-
-    const dates = consistent.map((t) => new Date(t.date));
+    const sorted = [...txs].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+    const dates = sorted.map((t) => new Date(t.date));
     const interval = detectInterval(dates);
     if (!interval.frequency || interval.confidence === 'low') continue;
 
-    const sortedDates = dates.sort((a, b) => a.getTime() - b.getTime());
-    const lastDate = sortedDates[sortedDates.length - 1];
+    const amounts = sorted.map((t) => t.amount);
+    const plateaus = buildPlateaus(amounts);
+    const kind = classifyKind(plateaus);
+    const priceChange = detectPriceIncrease(plateaus, dates) ?? undefined;
+    const currentAmount = plateaus[plateaus.length - 1].amount;
+
+    const lastDate = dates[dates.length - 1];
     const nextExpected = new Date(lastDate);
     nextExpected.setDate(nextExpected.getDate() + FREQUENCY_DAYS[interval.frequency]);
 
-    const avgAmount = consistent.reduce((s, t) => s + t.amount, 0) / consistent.length;
-
     results.push({
       name,
-      amount: Math.round(avgAmount * 100) / 100,
+      amount: round2(currentAmount),
       frequency: interval.frequency,
       confidence: interval.confidence,
       lastCharged: lastDate,
       nextExpected,
-      transactions: consistent.length,
+      transactions: sorted.length,
+      kind,
+      priceChange,
     });
   }
 

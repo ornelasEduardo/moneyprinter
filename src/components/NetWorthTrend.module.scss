@@ -1,0 +1,9 @@
+// Dash the projection line series to distinguish it from actual history.
+// doom's LineSeries wrapper applies this className to the series <g>; the
+// descendant selector targets the rendered path.
+.projection {
+  path {
+    stroke-dasharray: 6 4;
+    opacity: 0.7;
+  }
+}

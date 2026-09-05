@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
@@ -16,6 +16,8 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     setupFiles: ["./vitest.setup.ts"],
+    // Playwright specs under e2e/ run via `npm run test:e2e`, not vitest.
+    exclude: [...configDefaults.exclude, "e2e/**"],
     server: {
       deps: {
         inline: ["doom-design-system"],

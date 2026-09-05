@@ -1,138 +1,146 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
-import * as d3 from 'd3';
-import { Card, Stack, Text, Flex } from 'doom-design-system';
+import { memo, useMemo, useState } from 'react';
+import { curveMonotoneX } from 'd3-shape';
+import { Chart, Text, Flex, ToggleGroup, ToggleGroupItem } from 'doom-design-system';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-
-interface NetWorthEntry {
-  date: string;
-  netWorth: number;
-}
+import type { ProjectedPoint, ProjectionMode, NetWorthPoint } from '@/lib/projection';
+import { monthKey, monthLabel } from '@/lib/analytics';
+import { ChartCard } from './ChartCard';
+import styles from './NetWorthTrend.module.scss';
 
 interface NetWorthTrendProps {
-  data: NetWorthEntry[];
+  data: NetWorthPoint[];
+  projections: { regression: ProjectedPoint[]; savingsRate: ProjectedPoint[] };
+}
+
+interface SeriesDatum {
+  label: string;
+  netWorth: number;
 }
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 
-export function NetWorthTrend({ data }: NetWorthTrendProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+// Collapse a dated series to one representative point per month (last value in
+// each month), preserving chronological order. Monthly granularity keeps the
+// x-axis readable: doom builds a scalePoint for string x-values and renders a
+// tick for EVERY point (it ignores .ticks() on point scales), so daily/weekly
+// data would produce ~40 overlapping labels.
+function toMonthly(points: { date: string; netWorth: number }[]): SeriesDatum[] {
+  const byMonth = new Map<string, { date: string; netWorth: number }>();
+  for (const p of points) byMonth.set(monthKey(p.date), p); // later dates overwrite -> last wins
+  return Array.from(byMonth.values())
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((p) => ({ label: monthLabel(p.date), netWorth: p.netWorth }));
+}
 
-  useEffect(() => {
-    if (!svgRef.current || !containerRef.current || data.length < 2) return;
+// Hoisted to stable identities: doom's Chart keys its hover wiring on the
+// x/y/data/config props, so new inline values on a parent re-render tear that
+// wiring down. See ornelasEduardo/doom#78.
+const xAcc = (d: SeriesDatum) => d.label;
+const yAcc = (d: SeriesDatum) => d.netWorth;
+const CHART_CONFIG = { grid: true, showDots: true, curve: curveMonotoneX };
 
-    const width = containerRef.current.clientWidth;
-    const height = 160;
-    const margin = { top: 8, right: 16, bottom: 24, left: 56 };
-    const innerW = width - margin.left - margin.right;
-    const innerH = height - margin.top - margin.bottom;
+// Memoized on its inputs so it only re-renders when the series data actually
+// changes — never on unrelated AnalyticsOverview re-renders (loading flips,
+// filter changes, sibling-chart hovers), which would tear down doom's hover.
+const NetWorthChartBody = memo(function NetWorthChartBody({
+  allPoints,
+  history,
+  projection,
+}: {
+  allPoints: SeriesDatum[];
+  history: SeriesDatum[];
+  projection: SeriesDatum[];
+}) {
+  return (
+    <Chart.Root
+      data={allPoints}
+      x={xAcc}
+      y={yAcc}
+      type="line"
+      d3Config={CHART_CONFIG}
+      withLegend
+      style={{ width: '100%', height: 240 }}
+    >
+      <Chart.Series type="line" data={history} label="History" color="var(--primary)" x={xAcc} y={yAcc} />
+      <Chart.Series
+        type="line"
+        data={projection}
+        label="Projection"
+        color="var(--secondary)"
+        className={styles.projection}
+        x={xAcc}
+        y={yAcc}
+      />
+    </Chart.Root>
+  );
+});
 
-    const svg = d3.select(svgRef.current);
-    svg.selectAll('*').remove();
-    svg.attr('width', width).attr('height', height);
+export function NetWorthTrend({ data, projections }: NetWorthTrendProps) {
+  const [mode, setMode] = useState<ProjectionMode>('regression');
 
-    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const hasHistory = data.length >= 2;
 
-    const dates = data.map((d) => new Date(d.date));
-    const values = data.map((d) => d.netWorth);
+  // Memoize the derived series so their array identities stay stable across
+  // re-renders that don't change the underlying data/mode.
+  const { history, projection, allPoints } = useMemo(() => {
+    const hist = toMonthly(data);
+    const projected = mode === 'regression' ? projections.regression : projections.savingsRate;
+    const projMonthly = toMonthly(projected);
+    const lastPt = hist[hist.length - 1];
+    // Anchor the projection to the last actual point so the two series connect.
+    const proj: SeriesDatum[] = lastPt ? [lastPt, ...projMonthly] : projMonthly;
+    // Combined set drives the chart's shared x/y scale domains so both series fit.
+    const all: SeriesDatum[] = [...hist, ...proj.slice(1)];
+    return { history: hist, projection: proj, allPoints: all };
+  }, [data, projections, mode]);
 
-    const x = d3.scaleTime()
-      .domain(d3.extent(dates) as [Date, Date])
-      .range([0, innerW]);
-
-    const y = d3.scaleLinear()
-      .domain([d3.min(values)! * 0.95, d3.max(values)! * 1.05])
-      .range([innerH, 0]);
-
-    // Grid
-    g.append('g')
-      .call(d3.axisLeft(y).ticks(3).tickSize(-innerW).tickFormat(() => ''))
-      .call((g) => g.select('.domain').remove())
-      .call((g) => g.selectAll('.tick line')
-        .attr('stroke', 'var(--card-border)')
-        .attr('stroke-opacity', 0.2));
-
-    // Area
-    const area = d3.area<NetWorthEntry>()
-      .x((d) => x(new Date(d.date)))
-      .y0(innerH)
-      .y1((d) => y(d.netWorth))
-      .curve(d3.curveMonotoneX);
-
-    g.append('path')
-      .datum(data)
-      .attr('d', area)
-      .attr('fill', 'var(--primary)')
-      .attr('fill-opacity', 0.1);
-
-    // Line
-    const line = d3.line<NetWorthEntry>()
-      .x((d) => x(new Date(d.date)))
-      .y((d) => y(d.netWorth))
-      .curve(d3.curveMonotoneX);
-
-    g.append('path')
-      .datum(data)
-      .attr('d', line)
-      .attr('fill', 'none')
-      .attr('stroke', 'var(--primary)')
-      .attr('stroke-width', 2);
-
-    // X axis
-    g.append('g')
-      .attr('transform', `translate(0,${innerH})`)
-      .call(d3.axisBottom(x).ticks(4).tickFormat((d) =>
-        (d as Date).toLocaleDateString('en-US', { month: 'short' })
-      ))
-      .call((g) => g.select('.domain').attr('stroke', 'var(--card-border)'))
-      .call((g) => g.selectAll('text')
-        .attr('fill', 'var(--muted-foreground)')
-        .attr('font-size', 'var(--text-xs)'));
-
-    // Y axis
-    g.append('g')
-      .call(d3.axisLeft(y).ticks(3).tickFormat((d) =>
-        `$${Number(d) >= 1000 ? `${(Number(d) / 1000).toFixed(0)}k` : d}`
-      ))
-      .call((g) => g.select('.domain').remove())
-      .call((g) => g.selectAll('text')
-        .attr('fill', 'var(--muted-foreground)')
-        .attr('font-size', 'var(--text-xs)'));
-
-  }, [data]);
-
-  if (data.length < 2) {
-    return null;
-  }
-
-  const latest = data[data.length - 1].netWorth;
-  const earliest = data[0].netWorth;
+  const latest = hasHistory ? data[data.length - 1].netWorth : 0;
+  const earliest = hasHistory ? data[0].netWorth : 0;
   const change = latest - earliest;
   const isUp = change >= 0;
 
+  const header = hasHistory ? (
+    <Flex align="center" gap={3}>
+      <Flex align="center" gap={2}>
+        {isUp
+          ? <TrendingUp size={14} strokeWidth={2.5} style={{ color: 'var(--success)' }} />
+          : <TrendingDown size={14} strokeWidth={2.5} style={{ color: 'var(--error)' }} />}
+        <Text
+          variant="small"
+          weight="bold"
+          style={{ color: isUp ? 'var(--success)' : 'var(--error)' }}
+          data-testid="delta-readout"
+        >
+          {isUp ? '+' : ''}{formatCurrency(change)} · {formatCurrency(latest)}
+        </Text>
+      </Flex>
+      <ToggleGroup
+        type="single"
+        value={mode}
+        onValueChange={(v) => { if (v) setMode(v as ProjectionMode); }}
+        size="sm"
+        aria-label="Projection mode"
+      >
+        <ToggleGroupItem value="regression">Trend</ToggleGroupItem>
+        <ToggleGroupItem value="savings-rate">Savings rate</ToggleGroupItem>
+      </ToggleGroup>
+    </Flex>
+  ) : undefined;
+
   return (
-    <Card>
-      <Stack gap={3}>
-        <Flex align="center" justify="space-between">
-          <Text variant="h5" weight="bold">Net Worth</Text>
-          <Flex align="center" gap={2}>
-            {isUp
-              ? <TrendingUp size={14} strokeWidth={2.5} style={{ color: 'var(--success)' }} />
-              : <TrendingDown size={14} strokeWidth={2.5} style={{ color: 'var(--error)' }} />
-            }
-            <Text variant="small" weight="bold" style={{ color: isUp ? 'var(--success)' : 'var(--error)' }}>
-              {isUp ? '+' : ''}{formatCurrency(change)}
-            </Text>
-            <Text variant="small" color="muted">to {formatCurrency(latest)}</Text>
-          </Flex>
-        </Flex>
-        <div ref={containerRef} style={{ width: '100%' }}>
-          <svg ref={svgRef} style={{ display: 'block' }} />
-        </div>
-      </Stack>
-    </Card>
+    <ChartCard
+      title="Net Worth"
+      header={header}
+      footer={!hasHistory && (
+        <Text color="muted" style={{ marginTop: -8 }}>
+          Not enough net worth history to chart a trend yet.
+        </Text>
+      )}
+    >
+      <NetWorthChartBody allPoints={allPoints} history={history} projection={projection} />
+    </ChartCard>
   );
 }
