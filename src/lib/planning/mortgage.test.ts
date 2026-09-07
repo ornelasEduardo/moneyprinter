@@ -79,6 +79,14 @@ describe('assessMortgage', () => {
     expect(a.frontEndDTI).toBe(0);
   });
 
+  it('zero income is over, not comfortable', async () => {
+    const m = mortgageMath(base);
+    const a = await assessMortgage(m, base, ctx({ monthlyIncome: 0 }));
+    expect(a.frontEndDTI).toBe(0);
+    expect(a.backEndDTI).toBe(0);
+    expect(a.verdict).toBe('over'); // no recorded income => cannot be "comfortable"
+  });
+
   it('monthsToDownPayment is 0 when liquid already covers it', async () => {
     const m = mortgageMath(base);
     const a = await assessMortgage(m, base, ctx({ liquidBalance: 100000 }));

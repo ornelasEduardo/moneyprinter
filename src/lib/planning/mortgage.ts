@@ -83,11 +83,13 @@ export async function assessMortgage(
   // requires both ratios within cap; stretch tolerates an over-cap front as long
   // as total debt load stays within the back cap; otherwise over.
   const verdict =
-    frontEndDTI <= caps.front && backEndDTI <= caps.back
-      ? 'comfortable'
-      : backEndDTI <= caps.back
-        ? 'stretch'
-        : 'over';
+    income <= 0
+      ? 'over' // no income to service the payment — never "comfortable"
+      : frontEndDTI <= caps.front && backEndDTI <= caps.back
+        ? 'comfortable'
+        : backEndDTI <= caps.back
+          ? 'stretch'
+          : 'over';
 
   return { frontEndDTI, backEndDTI, surplusAfterPayment, monthsToDownPayment, verdict };
 }
