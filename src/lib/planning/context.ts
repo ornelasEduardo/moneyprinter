@@ -4,38 +4,10 @@ export interface FinancialContext {
   get<T>(signal: Signal<T>): Promise<T>;
 }
 
-interface RecordingContext extends FinancialContext {
-  __resolved: Map<string, unknown>;
-}
-
-// Server store: lazy + memoized, records resolved values for snapshotting.
-export function createServerContext(userId: number): FinancialContext {
-  const resolved = new Map<string, unknown>();
-  const inflight = new Map<string, Promise<unknown>>();
-  const ctx: RecordingContext = {
-    __resolved: resolved,
-    async get<T>(signal: Signal<T>): Promise<T> {
-      if (resolved.has(signal.id)) return resolved.get(signal.id) as T;
-      let p = inflight.get(signal.id) as Promise<T> | undefined;
-      if (!p) {
-        p = signal.load(userId).then((v) => {
-          resolved.set(signal.id, v);
-          inflight.delete(signal.id);
-          return v;
-        });
-        inflight.set(signal.id, p);
-      }
-      return p;
-    },
-  };
-  return ctx;
-}
-
-export function snapshotOf(ctx: FinancialContext): Record<string, unknown> {
-  return Object.fromEntries((ctx as RecordingContext).__resolved);
-}
-
-// Client store: synchronous serving of a serialized snapshot.
+// Client store: synchronous serving of a serialized snapshot. Used directly
+// by MortgageCalculator.tsx (a client component) — this file must stay free
+// of Prisma. The server-side context (createServerContext) lives in
+// server-context.ts, a server-only module, precisely so this one doesn't.
 export function createSnapshotContext(snapshot: Record<string, unknown>): FinancialContext {
   return {
     async get<T>(signal: Signal<T>): Promise<T> {

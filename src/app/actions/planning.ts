@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/action-middleware';
 import { revalidatePath } from 'next/cache';
 import { planRegistry, type PlanKind } from '@/lib/planning/registry';
-import { createServerContext, snapshotOf } from '@/lib/planning/context';
+import { createServerContext, snapshotOf } from '@/lib/planning/server-context';
 
 export async function resolvePlanContext(kind: PlanKind) {
   const userId = await requireAuth();
