@@ -113,8 +113,10 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
     setInputs((prev) => (prev ? { ...prev, [key]: Number(raw) || 0 } : prev));
   };
 
-  const caps = (snapshot?.colThresholds as { front: number; back: number } | undefined) ?? NATIONAL_CAPS;
+  const caps: { front: number; back: number; source?: string; detail?: string } =
+    (snapshot?.colThresholds as { front: number; back: number; source?: string; detail?: string } | undefined) ?? NATIONAL_CAPS;
   const colAdjusted = caps.front !== NATIONAL_CAPS.front || caps.back !== NATIONAL_CAPS.back;
+  const capsSource = caps.source ?? (colAdjusted ? 'Cost-of-living adjusted limits' : 'National guideline limits');
   const verdict = assessment ? VERDICT[assessment.verdict] : null;
 
   const piti = [
@@ -188,9 +190,10 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
                     value={assessment.monthsToDownPayment == null ? 'Not on this budget' : String(assessment.monthsToDownPayment)}
                   />
                   <StatLine label="Total interest" value={money(math.totalInterest)} />
-                  <Text variant="caption" color="muted" data-testid="mc-col-note">
-                    {colAdjusted ? 'Cost-of-living adjusted limits' : 'National guideline limits'} — {pct(caps.front)} / {pct(caps.back)}
-                  </Text>
+                  <Stack gap={0} data-testid="mc-col-note">
+                    <Text variant="caption" color="muted">{capsSource} — {pct(caps.front)} / {pct(caps.back)} DTI limits</Text>
+                    {caps.detail && <Text variant="caption" color="muted">{caps.detail}</Text>}
+                  </Stack>
                 </Stack>
               ) : (
                 <Text color="muted">Checking this against your finances…</Text>

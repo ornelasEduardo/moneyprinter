@@ -46,27 +46,32 @@ describe('parseBeaRentsRpp', () => {
 describe('colThresholds signal', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
-  it('manual mode with a tier preset returns that preset', async () => {
+  it('manual mode with a tier preset returns that preset + a source label', async () => {
     settings({ col_mode: 'manual', col_tier: 'veryHigh' });
-    expect(await loadColThresholds(2)).toEqual(TIER_PRESETS.veryHigh);
+    const t = await loadColThresholds(2);
+    expect(t).toMatchObject(TIER_PRESETS.veryHigh);
+    expect(t.source).toMatch(/very high/i);
   });
 
   it('manual mode with custom caps returns them (custom wins over tier)', async () => {
     settings({ col_mode: 'manual', col_tier: 'standard', col_front: '0.40', col_back: '0.48' });
-    expect(await loadColThresholds(2)).toEqual({ front: 0.40, back: 0.48 });
+    const t = await loadColThresholds(2);
+    expect(t).toMatchObject({ front: 0.40, back: 0.48 });
+    expect(t.source).toMatch(/custom/i);
   });
 
   it('unset mode falls back to NATIONAL', async () => {
     settings({});
-    expect(await loadColThresholds(2)).toEqual(NATIONAL);
+    expect(await loadColThresholds(2)).toMatchObject(NATIONAL);
   });
 
-  it('bea mode fetches, scales, and caches', async () => {
+  it('bea mode fetches, scales, names the region, and caches', async () => {
     settings({ col_mode: 'bea', home_region: '41860', 'integration.bea-col.key': 'test-key-123' });
     (governedFetch as any).mockResolvedValue(
-      new Response(JSON.stringify({ BEAAPI: { Results: { Data: [{ DataValue: '154.3' }] } } })));
+      new Response(JSON.stringify({ BEAAPI: { Results: { Data: [{ GeoName: 'San Francisco, CA', DataValue: '154.3' }] } } })));
     const t = await loadColThresholds(2);
-    expect(t).toEqual({ front: 0.43, back: 0.52 });
+    expect(t).toMatchObject({ front: 0.43, back: 0.52, source: 'San Francisco, CA' });
+    expect(t.detail).toMatch(/54% above/); // 154.3 rents RPP → 54% above national
     expect(governedFetch).toHaveBeenCalledTimes(1);
     expect((prisma.user_settings.upsert as any)).toHaveBeenCalled(); // cache write
   });
@@ -74,7 +79,7 @@ describe('colThresholds signal', () => {
   it('bea mode falls back to manual/national when the fetch throws', async () => {
     settings({ col_mode: 'bea', home_region: '41860', 'integration.bea-col.key': 'test-key-123', col_tier: 'high' });
     (governedFetch as any).mockRejectedValue(new Error('offline'));
-    expect(await loadColThresholds(2)).toEqual(TIER_PRESETS.high); // falls back to manual tier
+    expect(await loadColThresholds(2)).toMatchObject(TIER_PRESETS.high); // falls back to manual tier
     expect(governedFetch).toHaveBeenCalledTimes(1); // reached the fetch, then fell back
   });
 });

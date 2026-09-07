@@ -67,11 +67,12 @@ test.describe('Mortgage planning', () => {
     await settings.setCustomCaps('0.43', '0.52');
     await settings.saveConfig();
 
-    // 2) Open the mortgage calculator; the note must reflect the COL-adjusted limits.
+    // 2) Open the mortgage calculator; the note must reflect the loosened limits
+    // and name their source (custom caps set in Settings).
     const mc = new MortgageCalculatorPage(page);
     await mc.open();
     await expect(mc.colNote).toBeVisible({ timeout: 15_000 });
-    await expect(mc.colNote).toContainText('Cost-of-living adjusted');
+    await expect(mc.colNote).toContainText('custom');
     await expect(mc.colNote).toContainText('43%');
     await expect(mc.colNote).toContainText('52%');
   });
