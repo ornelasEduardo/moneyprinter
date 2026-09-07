@@ -165,3 +165,12 @@ describe('userSettingSchema', () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe('goalSchema plan pairing', () => {
+  it('rejects plan_kind without plan_inputs', () => {
+    expect(goalSchema.safeParse({ name: 'x', target_amount: 1, plan_kind: 'mortgage' }).success).toBe(false);
+  });
+  it('accepts a plain goal', () => {
+    expect(goalSchema.safeParse({ name: 'x', target_amount: 1 }).success).toBe(true);
+  });
+});

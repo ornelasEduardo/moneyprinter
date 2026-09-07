@@ -60,7 +60,12 @@ export const goalSchema = z.object({
   current_amount: coerceNumber.default(0),
   is_primary: coerceBoolean.default(false),
   target_date: coerceDate.nullable().optional(),
-});
+  plan_kind: z.enum(['mortgage']).nullable().optional(),
+  plan_inputs: z.record(z.string(), z.unknown()).nullable().optional(),
+}).refine(
+  (g) => (g.plan_kind == null) === (g.plan_inputs == null),
+  { message: 'plan_kind and plan_inputs must both be set or both be null', path: ['plan_inputs'] },
+);
 
 export const transferSchema = z.object({
   from_account_id: coerceNumber,
