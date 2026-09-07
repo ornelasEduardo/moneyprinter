@@ -6,7 +6,11 @@ import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/action-middleware';
 import { BEA_COL } from '@/lib/integrations/registry';
 
-export const colConfigSchema = z
+// Not exported: files with 'use server' may only export async functions —
+// Next's Server Actions compiler rejects any other export (including a
+// plain Zod schema) with "Server Actions must be async functions". Nothing
+// outside this file imports colConfigSchema.
+const colConfigSchema = z
   .object({
     mode: z.enum(['manual', 'bea']),
     tier: z.enum(['standard', 'high', 'veryHigh', 'extreme']).optional(),
