@@ -7,6 +7,9 @@ export const UNAUDITED_MODELS = [
   'user_passwords',
   'user_settings',
   'audit_log',
+  // Append-only egress log; auditing it would mirror into audit_log with an
+  // entity_type that has no undo delegate (audit.ts), crashing undo.
+  'integration_audit',
 ];
 
 const MUTATING_OPS = ['create', 'update', 'delete', 'updateMany', 'deleteMany'];

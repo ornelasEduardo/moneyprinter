@@ -30,6 +30,7 @@ describe('shouldAudit', () => {
     expect(shouldAudit('user_passwords', 'update')).toBe(false);
     expect(shouldAudit('user_settings', 'create')).toBe(false);
     expect(shouldAudit('audit_log', 'create')).toBe(false);
+    expect(shouldAudit('integration_audit', 'create')).toBe(false);
   });
 
   it('should return false for read operations', () => {
@@ -51,6 +52,7 @@ describe('UNAUDITED_MODELS', () => {
     expect(UNAUDITED_MODELS).toContain('user_passwords');
     expect(UNAUDITED_MODELS).toContain('user_settings');
     expect(UNAUDITED_MODELS).toContain('audit_log');
+    expect(UNAUDITED_MODELS).toContain('integration_audit');
   });
 
   it('should NOT contain financial data tables', () => {
