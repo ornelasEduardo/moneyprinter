@@ -43,8 +43,6 @@ export async function saveGoalFromPlan(
   return { id: goal.id };
 }
 
-// Every goal that carries a saved plan (mortgage, etc.), newest first — the
-// list the reopen loop (T13) surfaces so "View plan" has something to click.
 export async function getPlanGoals() {
   const userId = await requireAuth();
   const goals = await prisma.goals.findMany({
@@ -57,8 +55,7 @@ export async function getPlanGoals() {
     name: g.name,
     targetAmount: Number(g.target_amount),
     kind: g.plan_kind as PlanKind,
-    // Epoch ms — a plain serializable number the client buckets/sorts by date.
-    // created_at is typed nullable by Prisma though the column has a DB default.
+    // created_at is nullable in Prisma's type despite the column's DB default.
     createdAt: g.created_at ? g.created_at.getTime() : 0,
   }));
 }

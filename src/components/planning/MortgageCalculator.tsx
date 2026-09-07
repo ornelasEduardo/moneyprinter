@@ -13,13 +13,9 @@ const money = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 
-// National DTI guideline, used as the fallback + comparison baseline when the
-// snapshot's colThresholds signal isn't present or hasn't loosened the caps.
 const NATIONAL_CAPS = { front: 0.28, back: 0.36 };
 
 type Field = { key: keyof MortgageInputs; label: string; testid: string; start?: string; end?: string };
-// Single-column within each common-region card (Baymard: multi-column forms
-// make the eye zig-zag and cause skipped fields). Cards do the grouping.
 const GROUPS: { title: string; fields: Field[] }[] = [
   { title: 'The home', fields: [
     { key: 'homePrice', label: 'Home price', testid: 'mc-home-price', start: '$' },
@@ -47,8 +43,6 @@ const VERDICT: Record<MortgageAssessment['verdict'], { variant: 'success' | 'war
 };
 
 export default function MortgageCalculator({ initialInputs }: { initialInputs?: MortgageInputs } = {}) {
-  // Seed from a reopened goal's saved plan_inputs when provided, so the form
-  // renders with those numbers immediately instead of waiting on resolved defaults.
   const [inputs, setInputs] = useState<MortgageInputs | null>(initialInputs ?? null);
   const [snapshot, setSnapshot] = useState<Record<string, unknown> | null>(null);
   const [assessment, setAssessment] = useState<MortgageAssessment | null>(null);
@@ -56,8 +50,8 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
   const [plansOpen, setPlansOpen] = useState(false);
 
   useEffect(() => {
-    // Always resolve a fresh snapshot — the COL verdict must reflect the
-    // user's CURRENT region/settings, even when inputs came from a saved plan.
+    // Resolve a fresh snapshot even for a reopened plan, so the verdict reflects
+    // the user's current COL region, not whatever it was when the plan was saved.
     resolvePlanContext('mortgage').then((r) => {
       setSnapshot(r.snapshot);
       setInputs((prev) => prev ?? (r.defaults as MortgageInputs));
@@ -78,8 +72,6 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
     setSaved(true);
   };
 
-  // Reset every field to zero so you can enter a scenario from scratch without
-  // clearing each input by hand. (No confirm — nothing is saved until "Save as goal".)
   const clear = () => {
     setSaved(false);
     setInputs((prev) =>
@@ -121,8 +113,6 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
     setInputs((prev) => (prev ? { ...prev, [key]: Number(raw) || 0 } : prev));
   };
 
-  // Read the caps from the same snapshot signal the verdict was computed against,
-  // so the limits we display can never drift from the assessment's basis.
   const caps = (snapshot?.colThresholds as { front: number; back: number } | undefined) ?? NATIONAL_CAPS;
   const colAdjusted = caps.front !== NATIONAL_CAPS.front || caps.back !== NATIONAL_CAPS.back;
   const verdict = assessment ? VERDICT[assessment.verdict] : null;
@@ -138,7 +128,6 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
   return (
     <PlanningWorkspace title="Mortgage" header={header}>
       <div className={styles.main}>
-        {/* Inputs — single column within each grouped card */}
         <Stack gap={4}>
           {GROUPS.map((g) => (
             <Card key={g.title}>
@@ -161,7 +150,6 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
           ))}
         </Stack>
 
-        {/* Results rail — sticky, so the answer stays with you while you edit */}
         <div className={styles.results}>
           <Card data-testid="mc-assessment">
             <Stack gap={3}>

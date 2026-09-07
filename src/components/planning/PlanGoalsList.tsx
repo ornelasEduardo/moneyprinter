@@ -11,8 +11,6 @@ const money = (n: number) =>
 const fmtDate = (ms: number) =>
   new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(ms));
 
-// Coarse date buckets for the "Group" column + its filter, so plans cluster by
-// when they were saved (Today / This week / This month / Earlier).
 const BUCKETS = ['Today', 'This week', 'This month', 'Earlier'] as const;
 function bucketOf(ms: number, now: number): (typeof BUCKETS)[number] {
   const days = Math.floor((now - ms) / 86_400_000);
@@ -25,9 +23,6 @@ function bucketOf(ms: number, now: number): (typeof BUCKETS)[number] {
 type PlanGoal = Awaited<ReturnType<typeof getPlanGoals>>[number];
 type Row = { id: number; name: string; downPayment: number; createdAt: number; period: string };
 
-// Drawer contents: saved plans as a searchable, date-grouped table. "View plan"
-// reuses GoalTracker's /?tab=mortgage&goal=<id> reopen idiom, cloning current
-// params so other query state survives the jump.
 export default function PlanGoalsList() {
   const router = useRouter();
   const searchParams = useSearchParams();

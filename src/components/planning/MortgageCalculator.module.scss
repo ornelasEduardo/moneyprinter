@@ -1,6 +1,3 @@
-// Two panes: single-column grouped inputs (left) beside a results rail (right).
-// The rail is sticky so the affordability answer stays in view the whole time
-// you scroll through the fields — you never lose the number you're editing for.
 .main {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
@@ -13,26 +10,23 @@
   top: 1rem;
 }
 
-// On narrow screens the panes stack; show the answer FIRST so it's seen before
-// the form, then let the inputs flow beneath it (single-column throughout).
 @media (max-width: 900px) {
   .main {
     grid-template-columns: 1fr;
   }
+  // Show the answer before the form on narrow screens.
   .results {
     position: static;
     order: -1;
   }
 }
 
-// PITI breakdown under the hero payment — a wrap-friendly row of small figures.
 .piti {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.5rem;
 }
 
-// A hairline between the payment summary and the affordability detail in the rail.
 .railDivider {
   height: 3px;
   background: var(--foreground, #000);
