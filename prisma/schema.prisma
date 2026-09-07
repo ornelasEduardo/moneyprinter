@@ -40,6 +40,8 @@ model goals {
   current_amount Decimal?  @default(0) @db.Decimal(12, 2)
   is_primary     Boolean?  @default(false)
   target_date    DateTime? @db.Date
+  plan_kind      String?   @db.VarChar(50)
+  plan_inputs    Json?
   created_at     DateTime? @default(now()) @db.Timestamptz(6)
   user_id        Int?
   users          users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)

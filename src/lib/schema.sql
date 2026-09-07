@@ -91,6 +91,10 @@ CREATE TABLE IF NOT EXISTS goals (
   current_amount DECIMAL(12, 2) DEFAULT 0,
   is_primary BOOLEAN DEFAULT FALSE,
   target_date DATE,
+  plan_kind VARCHAR(50) CHECK (plan_kind IN ('mortgage')),
+  plan_inputs JSONB,
+  CONSTRAINT goals_plan_paired CHECK ((plan_kind IS NULL) = (plan_inputs IS NULL)),
+  CONSTRAINT goals_plan_is_object CHECK (plan_inputs IS NULL OR jsonb_typeof(plan_inputs) = 'object'),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
