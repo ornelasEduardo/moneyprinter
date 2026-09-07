@@ -3,13 +3,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/action-middleware', () => ({ requireAuth: vi.fn(async () => 2) }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({
-  default: { goals: { create: vi.fn(async () => ({ id: 7 })), findFirst: vi.fn() },
+  default: { goals: { create: vi.fn(async () => ({ id: 7 })), findFirst: vi.fn(), findMany: vi.fn() },
              accounts: { aggregate: vi.fn(async () => ({ _sum: { balance: 50000 } })) },
              transactions: { findMany: vi.fn(async () => []) } },
 }));
 
 import prisma from '@/lib/prisma';
-import { saveGoalFromPlan, getGoalPlan } from './planning';
+import { saveGoalFromPlan, getGoalPlan, getPlanGoals } from './planning';
 
 const validInputs = {
   homePrice: 400000, downPayment: 80000, annualRatePct: 6, termYears: 30,
@@ -44,5 +44,17 @@ describe('getGoalPlan', () => {
   it('returns null for a plain goal', async () => {
     (prisma.goals.findFirst as any).mockResolvedValue({ id: 8, plan_kind: null, plan_inputs: null });
     expect(await getGoalPlan(8)).toBeNull();
+  });
+});
+
+describe('getPlanGoals', () => {
+  it('getPlanGoals returns only plan-carrying goals, mapped', async () => {
+    (prisma.goals.findMany as any).mockResolvedValue([
+      { id: 7, name: 'House down payment', target_amount: 80000, plan_kind: 'mortgage' },
+    ]);
+    const goals = await getPlanGoals();
+    expect(goals).toEqual([{ id: 7, name: 'House down payment', targetAmount: 80000, kind: 'mortgage' }]);
+    const where = (prisma.goals.findMany as any).mock.calls[0][0].where;
+    expect(where).toEqual({ user_id: expect.any(Number), plan_kind: { not: null } });
   });
 });

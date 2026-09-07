@@ -7,6 +7,8 @@ export class MortgageCalculatorPage {
   readonly colNote: Locator;
   readonly saveGoal: Locator;
   readonly saved: Locator;
+  readonly planGoalsList: Locator;
+  readonly viewPlanButtons: Locator;
 
   constructor(private readonly page: Page) {
     this.homePrice = page.getByTestId('mc-home-price');
@@ -15,6 +17,9 @@ export class MortgageCalculatorPage {
     this.colNote = page.getByTestId('mc-col-note');
     this.saveGoal = page.getByTestId('mc-save-goal');
     this.saved = page.getByTestId('mc-saved');
+    // The saved-plans list (T13) only renders in the default (no ?goal=) view.
+    this.planGoalsList = page.getByTestId('plan-goals-list');
+    this.viewPlanButtons = page.getByTestId('pg-view-plan');
   }
 
   async open() {

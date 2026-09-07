@@ -43,6 +43,23 @@ export async function saveGoalFromPlan(
   return { id: goal.id };
 }
 
+// Every goal that carries a saved plan (mortgage, etc.), newest first — the
+// list the reopen loop (T13) surfaces so "View plan" has something to click.
+export async function getPlanGoals() {
+  const userId = await requireAuth();
+  const goals = await prisma.goals.findMany({
+    where: { user_id: userId, plan_kind: { not: null } },
+    select: { id: true, name: true, target_amount: true, plan_kind: true },
+    orderBy: { created_at: 'desc' },
+  });
+  return goals.map((g) => ({
+    id: g.id,
+    name: g.name,
+    targetAmount: Number(g.target_amount),
+    kind: g.plan_kind as PlanKind,
+  }));
+}
+
 export async function getGoalPlan(goalId: number) {
   const userId = await requireAuth();
   const goal = await prisma.goals.findFirst({
