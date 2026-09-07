@@ -36,8 +36,16 @@ export function scaleFromRentsRpp(rentsRpp: number): ColThresholds {
 export function parseBeaRentsRpp(json: unknown): number {
   const data = (json as any)?.BEAAPI?.Results?.Data;
   const raw = Array.isArray(data) ? data[0]?.DataValue : undefined;
-  const n = Number(String(raw ?? '').replace(/,/g, ''));
-  if (!Number.isFinite(n)) throw new Error('BEA response missing a numeric DataValue');
+  // Number('') is 0, not NaN — so an absent/blank/placeholder value (a failed
+  // or empty BEA response, e.g. an invalid region) must be rejected explicitly,
+  // or it silently becomes a "0 rents" reading.
+  if (raw == null || String(raw).trim() === '') {
+    throw new Error('BEA returned no rents value for this region');
+  }
+  const n = Number(String(raw).replace(/,/g, ''));
+  if (!Number.isFinite(n) || n <= 0) {
+    throw new Error(`BEA returned a non-numeric rents value: ${raw}`);
+  }
   return n;
 }
 

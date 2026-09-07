@@ -41,6 +41,12 @@ describe('parseBeaRentsRpp', () => {
     const json = { BEAAPI: { Results: { Data: [{ DataValue: '1,203' }] } } };
     expect(parseBeaRentsRpp(json)).toBe(1203);
   });
+  it('throws (never returns 0) when the region has no rents value', () => {
+    // An invalid region / failed BEA call — must reject, not read as "0 rents".
+    expect(() => parseBeaRentsRpp({ BEAAPI: { Results: { Data: [{ GeoName: 'San Diego' }] } } })).toThrow();
+    expect(() => parseBeaRentsRpp({ BEAAPI: { Results: {} } })).toThrow();
+    expect(() => parseBeaRentsRpp({ BEAAPI: { Results: { Data: [{ DataValue: '(NA)' }] } } })).toThrow();
+  });
 });
 
 describe('colThresholds signal', () => {
