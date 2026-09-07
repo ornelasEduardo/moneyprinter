@@ -31,7 +31,8 @@ describe('savePlanningColConfig validation', () => {
   });
 
   it('rejects front > back', async () => {
-    await expect(savePlanningColConfig({ mode: 'manual', front: 0.50, back: 0.40 })).rejects.toThrow();
+    await expect(savePlanningColConfig({ mode: 'manual', front: 0.50, back: 0.40 }))
+      .rejects.toThrow('front cap must be <= back cap');
   });
 
   it('rejects a single custom cap (both required together)', async () => {

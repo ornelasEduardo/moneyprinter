@@ -80,7 +80,11 @@ export async function getPlanningColConfig(): Promise<ColConfigView> {
 
 export async function savePlanningColConfig(input: unknown): Promise<void> {
   const userId = await requireAuth();
-  const cfg = colConfigSchema.parse(input);
+  const result = colConfigSchema.safeParse(input);
+  if (!result.success) {
+    throw new Error(result.error.issues[0]?.message ?? 'Invalid cost-of-living settings');
+  }
+  const cfg = result.data;
 
   // Enabling BEA requires a key — provided now or already stored.
   if (cfg.beaEnabled) {
