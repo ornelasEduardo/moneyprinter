@@ -1,6 +1,3 @@
-// Provision + tear down ephemeral users for e2e isolation. Each test gets its
-// own user with a valid session (so the browser authenticates via cookie, no
-// login UI) and a small financial seed. Test-only — never imported by the app.
 import crypto from 'crypto';
 import { withDb } from './db';
 
@@ -13,7 +10,7 @@ export interface EphemeralUser {
 export async function createEphemeralUser(opts: { seed?: boolean } = {}): Promise<EphemeralUser> {
   const username = `e2e_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
   const sessionToken = crypto.randomBytes(32).toString('hex');
-  const expires = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2h — comfortably past a test run
+  const expires = new Date(Date.now() + 2 * 60 * 60 * 1000);
 
   return withDb(async (client) => {
     const { rows } = await client.query(
@@ -24,8 +21,6 @@ export async function createEphemeralUser(opts: { seed?: boolean } = {}): Promis
     const id: number = rows[0].id;
 
     if (opts.seed !== false) {
-      // A checking account + a recent income & expense, so the calculator's
-      // income / liquid-balance / surplus signals resolve to non-zero values.
       const { rows: acct } = await client.query(
         `insert into accounts (user_id, name, type, balance) values ($1, 'E2E Checking', 'checking', 50000) returning id`,
         [id],
@@ -48,8 +43,7 @@ export async function createEphemeralUser(opts: { seed?: boolean } = {}): Promis
 export async function deleteEphemeralUser(id: number): Promise<void> {
   await withDb(async (client) => {
     await client.query('begin');
-    // Skip FK checks so we can delete the user's rows in any order (test DB,
-    // superuser). Every table with a user_id column is cleared, then the user.
+    // session_replication_role=replica skips FK checks, so rows delete in any order.
     await client.query('set local session_replication_role = replica');
     const { rows } = await client.query(
       `select table_name from information_schema.columns
