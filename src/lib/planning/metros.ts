@@ -40,4 +40,4 @@ export const METROS: Metro[] = [
   { fips: '26900', name: 'Indianapolis–Carmel–Anderson, IN' },
   { fips: '17460', name: 'Cleveland–Elyria, OH' },
   { fips: '34980', name: 'Nashville–Davidson–Murfreesboro–Franklin, TN' },
-];
+].sort((a, b) => a.name.localeCompare(b.name));
