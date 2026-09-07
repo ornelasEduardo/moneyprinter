@@ -6,7 +6,14 @@
 import prisma from '@/lib/prisma';
 import { BEA_COL } from '@/lib/integrations/registry';
 import { beaMetroRpp } from '@/lib/integrations/bea';
+import { withCache } from '@/lib/integrations/cache';
 import { NATIONAL, TIER_PRESETS, TIER_LABELS, scaleFromRentsRpp, type ColResolution } from './col';
+
+// BEA Regional Price Parities publish annually, so a cached region reading is
+// good for a month — long enough to avoid re-fetching on every calculator load,
+// short enough to pick up a new release. The signature keys it to the region.
+const BEA_CACHE_KEY = 'integration.bea-col.cache';
+const BEA_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 async function getSetting(userId: number, key: string): Promise<string | undefined> {
   const row = await prisma.user_settings.findUnique({
@@ -31,20 +38,15 @@ async function beaThresholds(userId: number): Promise<ColResolution> {
   const key = await getSetting(userId, BEA_COL.credentialKey!);
   if (!geoFips || !key) throw new Error('BEA mode needs a region and an API key');
 
-  const { value: rentsRpp, geoName, year } = await beaMetroRpp(userId, key, geoFips, 'rents');
-  const gap = Math.round(rentsRpp - 100);
-  const resolution: ColResolution = {
-    ...scaleFromRentsRpp(rentsRpp),
-    source: geoName || `Region ${geoFips}`,
-    detail: `BEA cost-of-living (${year}) · rents ${Math.abs(gap)}% ${gap >= 0 ? 'above' : 'below'} the national average`,
-  };
-
-  await prisma.user_settings.upsert({
-    where: { user_id_key: { user_id: userId, key: 'integration.bea-col.cache' } },
-    create: { user_id: userId, key: 'integration.bea-col.cache', value: JSON.stringify(resolution) },
-    update: { value: JSON.stringify(resolution) },
+  return withCache<ColResolution>(userId, BEA_CACHE_KEY, `rents:${geoFips}`, BEA_CACHE_TTL_MS, async () => {
+    const { value: rentsRpp, geoName, year } = await beaMetroRpp(userId, key, geoFips, 'rents');
+    const gap = Math.round(rentsRpp - 100);
+    return {
+      ...scaleFromRentsRpp(rentsRpp),
+      source: geoName || `Region ${geoFips}`,
+      detail: `BEA cost-of-living (${year}) · rents ${Math.abs(gap)}% ${gap >= 0 ? 'above' : 'below'} the national average`,
+    };
   });
-  return resolution;
 }
 
 export async function loadColThresholds(userId: number): Promise<ColResolution> {
