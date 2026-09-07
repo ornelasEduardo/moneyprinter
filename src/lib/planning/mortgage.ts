@@ -1,3 +1,8 @@
+import { z } from 'zod';
+import type { FinancialContext } from './context';
+import { monthlyIncome, monthlySurplus, liquidBalance } from './signals';
+import type { PlanDefinition, PlanResult } from './registry';
+
 export interface MortgageInputs {
   homePrice: number;
   downPayment: number;
@@ -44,3 +49,82 @@ export function mortgageMath(inputs: MortgageInputs): MortgageMath {
     totalInterest: round2(totalInterest),
   };
 }
+
+export interface MortgageAssessment {
+  frontEndDTI: number;
+  backEndDTI: number;
+  surplusAfterPayment: number;
+  monthsToDownPayment: number | null;
+  verdict: 'comfortable' | 'stretch' | 'over';
+}
+
+export async function assessMortgage(
+  math: MortgageMath,
+  inputs: MortgageInputs,
+  ctx: FinancialContext,
+): Promise<MortgageAssessment> {
+  const income = await ctx.get(monthlyIncome);
+  const surplus = await ctx.get(monthlySurplus);
+  const liquid = await ctx.get(liquidBalance);
+
+  const frontEndDTI = income > 0 ? math.monthlyPayment / income : 0;
+  const backEndDTI = income > 0 ? (math.monthlyPayment + inputs.existingMonthlyDebt) / income : 0;
+  const surplusAfterPayment = Math.round((surplus - math.monthlyPayment) * 100) / 100;
+
+  const shortfall = inputs.downPayment - liquid;
+  let monthsToDownPayment: number | null;
+  if (shortfall <= 0) monthsToDownPayment = 0;
+  else if (surplus <= 0) monthsToDownPayment = null;
+  else monthsToDownPayment = Math.ceil(shortfall / surplus);
+
+  const verdict = frontEndDTI <= 0.28 ? 'comfortable' : frontEndDTI <= 0.36 ? 'stretch' : 'over';
+
+  return { frontEndDTI, backEndDTI, surplusAfterPayment, monthsToDownPayment, verdict };
+}
+
+export const mortgagePlanSchema = z
+  .object({
+    homePrice: z.number().positive(),
+    downPayment: z.number().min(0),
+    annualRatePct: z.number().min(0).max(100),
+    termYears: z.number().int().positive().max(50),
+    propertyTaxAnnual: z.number().min(0),
+    homeInsuranceAnnual: z.number().min(0),
+    hoaMonthly: z.number().min(0),
+    pmiMonthly: z.number().min(0),
+    existingMonthlyDebt: z.number().min(0),
+  })
+  .strict()
+  .refine((v) => v.downPayment <= v.homePrice, {
+    message: 'Down payment cannot exceed home price',
+    path: ['downPayment'],
+  });
+
+export const mortgageDefinition: PlanDefinition<MortgageInputs> = {
+  kind: 'mortgage',
+  label: 'Mortgage',
+  schema: mortgagePlanSchema,
+  async defaults(ctx) {
+    const liquid = await ctx.get(liquidBalance);
+    const homePrice = 400000;
+    return {
+      homePrice,
+      downPayment: Math.min(Math.round(homePrice * 0.2), Math.max(0, Math.round(liquid))),
+      annualRatePct: 6.5,
+      termYears: 30,
+      propertyTaxAnnual: Math.round(homePrice * 0.012),
+      homeInsuranceAnnual: 1200,
+      hoaMonthly: 0,
+      pmiMonthly: 0,
+      existingMonthlyDebt: 0,
+    };
+  },
+  async compute(inputs, ctx): Promise<PlanResult> {
+    const math = mortgageMath(inputs);
+    const assessment = await assessMortgage(math, inputs, ctx);
+    return { math, assessment };
+  },
+  toGoal(inputs) {
+    return { targetAmount: inputs.downPayment, suggestedName: 'House down payment' };
+  },
+};
