@@ -7,7 +7,7 @@ vi.mock('@/lib/integrations/client', () => ({ governedFetch: vi.fn() }));
 
 import prisma from '@/lib/prisma';
 import { governedFetch } from '@/lib/integrations/client';
-import { NATIONAL, TIER_PRESETS, scaleFromRentsRpp, parseBeaRentsRpp, parseBeaGeoName } from './col';
+import { NATIONAL, TIER_PRESETS, scaleFromRentsRpp } from './col';
 import { loadColThresholds } from './col-loader';
 
 // helper: make user_settings.findUnique resolve a map of key->value
@@ -29,39 +29,6 @@ describe('scaleFromRentsRpp', () => {
     const t = scaleFromRentsRpp(120);
     expect(t.front).toBeCloseTo(0.34, 2);
     expect(t.back).toBeCloseTo(0.43, 2);
-  });
-});
-
-describe('parseBeaRentsRpp', () => {
-  it('reads DataValue from the BEA API envelope', () => {
-    const json = { BEAAPI: { Results: { Data: [{ GeoFips: '41860', GeoName: 'San Francisco', DataValue: '154.3' }] } } };
-    expect(parseBeaRentsRpp(json)).toBeCloseTo(154.3, 1);
-  });
-  it('handles thousands separators', () => {
-    const json = { BEAAPI: { Results: { Data: [{ DataValue: '1,203' }] } } };
-    expect(parseBeaRentsRpp(json)).toBe(1203);
-  });
-  it('throws (never returns 0) when the region has no rents value', () => {
-    // An invalid region / failed BEA call — must reject, not read as "0 rents".
-    expect(() => parseBeaRentsRpp({ BEAAPI: { Results: { Data: [{ GeoName: 'San Diego' }] } } })).toThrow();
-    expect(() => parseBeaRentsRpp({ BEAAPI: { Results: {} } })).toThrow();
-    expect(() => parseBeaRentsRpp({ BEAAPI: { Results: { Data: [{ DataValue: '(NA)' }] } } })).toThrow();
-  });
-  it('picks the most recent year from a Year=ALL response', () => {
-    // Real shape: San Diego rents across years — 2024 is 179.267.
-    const json = { BEAAPI: { Results: { Data: [
-      { TimePeriod: '2022', DataValue: '170.0' },
-      { TimePeriod: '2024', DataValue: '179.267' },
-      { TimePeriod: '2023', DataValue: '175.0' },
-    ] } } };
-    expect(parseBeaRentsRpp(json)).toBeCloseTo(179.267, 2);
-  });
-});
-
-describe('parseBeaGeoName', () => {
-  it('trims the "(Metropolitan Statistical Area)" suffix', () => {
-    const json = { BEAAPI: { Results: { Data: [{ GeoName: 'San Diego-Chula Vista-Carlsbad, CA (Metropolitan Statistical Area)' }] } } };
-    expect(parseBeaGeoName(json)).toBe('San Diego-Chula Vista-Carlsbad, CA');
   });
 });
 
@@ -90,7 +57,7 @@ describe('colThresholds signal', () => {
   it('bea mode fetches, scales, names the region, and caches', async () => {
     settings({ col_mode: 'bea', home_region: '41860', 'integration.bea-col.key': 'test-key-123' });
     (governedFetch as any).mockResolvedValue(
-      new Response(JSON.stringify({ BEAAPI: { Results: { Data: [{ GeoName: 'San Francisco, CA', DataValue: '154.3' }] } } })));
+      new Response(JSON.stringify({ BEAAPI: { Results: { Data: [{ GeoName: 'San Francisco, CA', TimePeriod: '2024', DataValue: '154.3' }] } } })));
     const t = await loadColThresholds(2);
     expect(t).toMatchObject({ front: 0.43, back: 0.52, source: 'San Francisco, CA' });
     expect(t.detail).toMatch(/54% above/); // 154.3 rents RPP → 54% above national

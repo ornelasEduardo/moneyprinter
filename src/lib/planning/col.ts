@@ -33,33 +33,6 @@ export function scaleFromRentsRpp(rentsRpp: number): ColThresholds {
   };
 }
 
-export function parseBeaRentsRpp(json: unknown): number {
-  const data = (json as any)?.BEAAPI?.Results?.Data;
-  if (!Array.isArray(data) || data.length === 0) {
-    throw new Error('BEA returned no rents value for this region');
-  }
-  // Year=ALL returns one row per year; use the most recent.
-  const latest = data.reduce((a: any, b: any) => (Number(b?.TimePeriod) >= Number(a?.TimePeriod) ? b : a));
-  const raw = latest?.DataValue;
-  // Number('') is 0, not NaN — reject an absent/blank/placeholder value (a
-  // failed or empty response) rather than reading it as "0 rents".
-  if (raw == null || String(raw).trim() === '') {
-    throw new Error('BEA returned no rents value for this region');
-  }
-  const n = Number(String(raw).replace(/,/g, ''));
-  if (!Number.isFinite(n) || n <= 0) {
-    throw new Error(`BEA returned a non-numeric rents value: ${raw}`);
-  }
-  return n;
-}
-
-export function parseBeaGeoName(json: unknown): string | undefined {
-  const data = (json as any)?.BEAAPI?.Results?.Data;
-  const name = Array.isArray(data) ? data[0]?.GeoName : undefined;
-  if (typeof name !== 'string' || name.length === 0) return undefined;
-  return name.replace(/\s*\(metropolitan statistical area\)\s*$/i, '').trim();
-}
-
 // Identity only (no `load`) — the loader (Prisma + the governed BEA fetch)
 // lives in col-loader.ts, a server-only module, so this file stays safe to
 // import from mortgage.ts, which MortgageCalculator.tsx (a client

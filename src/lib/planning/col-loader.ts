@@ -4,9 +4,9 @@
 // client component) also imports. See signal-loaders.ts for the full
 // rationale.
 import prisma from '@/lib/prisma';
-import { governedFetch } from '@/lib/integrations/client';
 import { BEA_COL } from '@/lib/integrations/registry';
-import { NATIONAL, TIER_PRESETS, TIER_LABELS, scaleFromRentsRpp, parseBeaRentsRpp, parseBeaGeoName, type ColResolution } from './col';
+import { beaMetroRpp } from '@/lib/integrations/bea';
+import { NATIONAL, TIER_PRESETS, TIER_LABELS, scaleFromRentsRpp, type ColResolution } from './col';
 
 async function getSetting(userId: number, key: string): Promise<string | undefined> {
   const row = await prisma.user_settings.findUnique({
@@ -26,31 +26,17 @@ async function manualOrNational(userId: number): Promise<ColResolution> {
   return { ...NATIONAL, source: 'National guideline' };
 }
 
-// GeoFips of the user's metro is the only thing that leaves the machine.
-function beaUrl(geoFips: string, key: string): string {
-  const params = new URLSearchParams({
-    // LineCode 3 = "RPPs: Services: Rents"; Year=ALL (MARPP has no 'LAST', and
-    // the parser takes the most recent year). GeoFips is the metro's CBSA code.
-    UserID: key, method: 'GetData', datasetname: 'Regional',
-    TableName: 'MARPP', LineCode: '3', GeoFips: geoFips, Year: 'ALL', ResultFormat: 'json',
-  });
-  return `https://apps.bea.gov/api/data?${params.toString()}`;
-}
-
 async function beaThresholds(userId: number): Promise<ColResolution> {
   const geoFips = await getSetting(userId, 'home_region');
   const key = await getSetting(userId, BEA_COL.credentialKey!);
   if (!geoFips || !key) throw new Error('BEA mode needs a region and an API key');
 
-  const res = await governedFetch(userId, BEA_COL.id, beaUrl(geoFips, key),
-    `Fetch rents RPP for region ${geoFips}`);
-  const json = await res.json();
-  const rentsRpp = parseBeaRentsRpp(json);
+  const { value: rentsRpp, geoName, year } = await beaMetroRpp(userId, key, geoFips, 'rents');
   const gap = Math.round(rentsRpp - 100);
   const resolution: ColResolution = {
     ...scaleFromRentsRpp(rentsRpp),
-    source: parseBeaGeoName(json) ?? `Region ${geoFips}`,
-    detail: `BEA cost-of-living · rents ${Math.abs(gap)}% ${gap >= 0 ? 'above' : 'below'} the national average`,
+    source: geoName || `Region ${geoFips}`,
+    detail: `BEA cost-of-living (${year}) · rents ${Math.abs(gap)}% ${gap >= 0 ? 'above' : 'below'} the national average`,
   };
 
   await prisma.user_settings.upsert({
