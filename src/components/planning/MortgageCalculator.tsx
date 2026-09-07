@@ -78,8 +78,20 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
     setSaved(true);
   };
 
+  // Reset every field to zero so you can enter a scenario from scratch without
+  // clearing each input by hand. (No confirm — nothing is saved until "Save as goal".)
+  const clear = () => {
+    setSaved(false);
+    setInputs((prev) =>
+      prev && { homePrice: 0, downPayment: 0, annualRatePct: 0, termYears: 0, propertyTaxAnnual: 0, homeInsuranceAnnual: 0, hoaMonthly: 0, pmiMonthly: 0, existingMonthlyDebt: 0 },
+    );
+  };
+
   const header = (
     <Flex gap={2} wrap>
+      <Button size="sm" variant="ghost" data-testid="mc-clear" onClick={clear} disabled={!inputs}>
+        Clear
+      </Button>
       <Button size="sm" variant="secondary" data-testid="mc-open-plans" onClick={() => setPlansOpen(true)}>
         Saved plans
       </Button>

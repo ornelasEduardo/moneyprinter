@@ -41,6 +41,16 @@ describe('MortgageCalculator', () => {
     await waitFor(() => expect(screen.getByTestId('mc-monthly-payment').textContent).not.toBe(before));
   });
 
+  it('clears all fields to zero', async () => {
+    render(<MortgageCalculator />);
+    const price = await screen.findByTestId('mc-home-price');
+    expect((price as HTMLInputElement).value).toBe('400000');
+    fireEvent.click(screen.getByTestId('mc-clear'));
+    await waitFor(() => expect((screen.getByTestId('mc-home-price') as HTMLInputElement).value).toBe('0'));
+    expect((screen.getByTestId('mc-term') as HTMLInputElement).value).toBe('0');
+    expect((screen.getByTestId('mc-debt') as HTMLInputElement).value).toBe('0');
+  });
+
   it('saves as goal', async () => {
     const planning = await import('@/app/actions/planning');
     render(<MortgageCalculator />);
