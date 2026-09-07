@@ -31,16 +31,20 @@ const VERDICT_COPY: Record<MortgageAssessment['verdict'], string> = {
   comfortable: 'Comfortable', stretch: 'A stretch', over: 'Over budget',
 };
 
-export default function MortgageCalculator() {
-  const [inputs, setInputs] = useState<MortgageInputs | null>(null);
+export default function MortgageCalculator({ initialInputs }: { initialInputs?: MortgageInputs } = {}) {
+  // Seed from a reopened goal's saved plan_inputs when provided, so the form
+  // renders with those numbers immediately instead of waiting on resolved defaults.
+  const [inputs, setInputs] = useState<MortgageInputs | null>(initialInputs ?? null);
   const [snapshot, setSnapshot] = useState<Record<string, unknown> | null>(null);
   const [assessment, setAssessment] = useState<MortgageAssessment | null>(null);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
+    // Always resolve a fresh snapshot — the COL verdict must reflect the
+    // user's CURRENT region/settings, even when inputs came from a saved plan.
     resolvePlanContext('mortgage').then((r) => {
-      setInputs(r.defaults as MortgageInputs);
       setSnapshot(r.snapshot);
+      setInputs((prev) => prev ?? (r.defaults as MortgageInputs));
     }).catch(() => {});
   }, []);
 

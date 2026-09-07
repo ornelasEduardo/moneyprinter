@@ -47,4 +47,16 @@ describe('MortgageCalculator', () => {
     await waitFor(() => expect(screen.getByTestId('mc-col-note')).toHaveTextContent('28%'));
     expect(screen.getByTestId('mc-col-note')).toHaveTextContent('National guideline limits');
   });
+
+  // Reopening a goal's saved mortgage plan should show the saved numbers
+  // immediately, without waiting on the resolved defaults to land first.
+  it('uses initialInputs when provided (reopened from a goal) without waiting on defaults', async () => {
+    const initial = {
+      homePrice: 550000, downPayment: 110000, annualRatePct: 5.5, termYears: 15,
+      propertyTaxAnnual: 6600, homeInsuranceAnnual: 1500, hoaMonthly: 0, pmiMonthly: 0, existingMonthlyDebt: 0,
+    };
+    render(<MortgageCalculator initialInputs={initial} />);
+    const price = await screen.findByTestId('mc-home-price');
+    expect((price as HTMLInputElement).value).toBe('550000');
+  });
 });

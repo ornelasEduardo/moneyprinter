@@ -11,13 +11,19 @@ vi.mock("@/app/actions/goals", () => ({
   updateEmergencyFundAmount: vi.fn(),
 }));
 
+const push = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 // Mock Design System components
 
 describe("GoalTracker", () => {
   const defaultProps = {
     netWorth: 50000,
     monthlySavings: 2000,
-    goal: { name: "Retirement", target_amount: 1000000 },
+    goal: { id: 1, name: "Retirement", target_amount: 1000000 },
     emergencyFund: 10000,
   };
 
@@ -72,5 +78,22 @@ describe("GoalTracker", () => {
       );
       expect(goalActions.updateEmergencyFundAmount).toHaveBeenCalledWith(10000); // Unchanged
     });
+  });
+
+  it("does not show a View plan button when the goal carries no plan", () => {
+    render(<GoalTracker {...defaultProps} />);
+    expect(screen.queryByTestId("gt-view-plan")).not.toBeInTheDocument();
+  });
+
+  it("shows a View plan button that reopens a goal's mortgage plan", () => {
+    render(
+      <GoalTracker
+        {...defaultProps}
+        goal={{ ...defaultProps.goal, id: 42, plan_kind: "mortgage" }}
+      />
+    );
+    const viewPlan = screen.getByTestId("gt-view-plan");
+    fireEvent.click(viewPlan);
+    expect(push).toHaveBeenCalledWith("/?tab=mortgage&goal=42");
   });
 });

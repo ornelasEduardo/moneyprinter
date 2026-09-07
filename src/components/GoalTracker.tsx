@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   updatePrimaryGoal,
   updateEmergencyFundAmount,
@@ -22,8 +23,10 @@ interface GoalTrackerProps {
   netWorth: number;
   monthlySavings: number;
   goal: {
+    id: number;
     name: string;
     target_amount: number;
+    plan_kind?: string | null;
   } | null;
   emergencyFund: number;
 }
@@ -34,6 +37,8 @@ export function GoalTracker({
   goal,
   emergencyFund,
 }: GoalTrackerProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -58,6 +63,16 @@ export function GoalTracker({
     monthlySavings > 0 ? Math.ceil(remainingAmount / monthlySavings) : 999;
   const yearsToGoal = Math.floor(monthsToGoal / 12);
   const remainingMonths = monthsToGoal % 12;
+
+  const handleViewPlan = () => {
+    if (!goal) return;
+    // Clone current params so year/etc. survive the jump, matching
+    // DashboardClient's own `/?tab=...` navigation idiom.
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", "mortgage");
+    params.set("goal", String(goal.id));
+    router.push(`/?${params.toString()}`);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -153,14 +168,26 @@ export function GoalTracker({
       </Tooltip>
 
       <Flex direction="column" gap={4} className="pr-10 mr-2">
-        <Text
-          variant="small"
-          weight="bold"
-          color="muted"
-          className="uppercase tracking-widest"
-        >
-          Goal Tracker: {goalName}
-        </Text>
+        <Flex justify="space-between" align="center" wrap>
+          <Text
+            variant="small"
+            weight="bold"
+            color="muted"
+            className="uppercase tracking-widest"
+          >
+            Goal Tracker: {goalName}
+          </Text>
+          {goal?.plan_kind === "mortgage" && (
+            <Button
+              size="sm"
+              variant="ghost"
+              data-testid="gt-view-plan"
+              onClick={handleViewPlan}
+            >
+              View plan
+            </Button>
+          )}
+        </Flex>
 
         <div className="leading-none">
           <Flex align="baseline" gap={2} wrap>

@@ -20,7 +20,7 @@ import DataTab from "@/components/DataTab";
 import type { BackupHistoryEntry } from "@/lib/constants";
 import AnalyticsOverview from "@/components/AnalyticsOverview";
 import AnalyticsReports from "@/components/AnalyticsReports";
-import MortgageCalculator from "@/components/planning/MortgageCalculator";
+import MortgageTab from "@/components/planning/MortgageTab";
 import {
   ActionRow,
   Card,
@@ -59,7 +59,7 @@ interface DashboardClientProps {
   monthlyNetWorthIncrease: number;
   windfalls: { name: string; amount: number; date: string; type: string }[];
   transactions: MovementRow[];
-  primaryGoal: { name: string; target_amount: number } | null;
+  primaryGoal: { id: number; name: string; target_amount: number; plan_kind?: string | null } | null;
   emergencyFund: number;
   accounts: SafeAccount[];
   availableYears: number[];
@@ -326,8 +326,13 @@ export default function DashboardClient(props: DashboardClientProps) {
       case "reports":
         return <AnalyticsReports />;
 
-      case "mortgage":
-        return <MortgageCalculator />;
+      case "mortgage": {
+        const goalParam = searchParams.get("goal");
+        const goalId = goalParam ? Number(goalParam) || null : null;
+        // Key on goalId so switching between "no goal" and a specific goal
+        // (or between two goals) remounts the tab instead of reusing stale state.
+        return <MortgageTab key={goalId ?? "none"} goalId={goalId} />;
+      }
 
       default:
         return null;
