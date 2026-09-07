@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button, Card, Flex, Stack, Text } from 'doom-design-system';
+import { Button, Card, Container, Flex, Stack, Text } from 'doom-design-system';
 import { getPlanGoals } from '@/app/actions/planning';
 
 const money = (n: number) =>
@@ -36,34 +36,36 @@ export default function PlanGoalsList() {
   };
 
   return (
-    <Card data-testid="plan-goals-list">
-      <Stack gap={4}>
-        <Text variant="h4" weight="bold">Saved plans</Text>
-        {goals == null ? (
-          <Text color="muted">Loading…</Text>
-        ) : goals.length === 0 ? (
-          <Text color="muted">No saved plans yet.</Text>
-        ) : (
-          <Stack gap={3}>
-            {goals.map((goal) => (
-              <Flex key={goal.id} justify="space-between" align="center" wrap gap={2}>
-                <Stack gap={0}>
-                  <Text weight="bold">{goal.name}</Text>
-                  <Text variant="caption" color="muted">{money(goal.targetAmount)}</Text>
-                </Stack>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  data-testid="pg-view-plan"
-                  onClick={() => viewPlan(goal.id)}
-                >
-                  View plan
-                </Button>
-              </Flex>
-            ))}
-          </Stack>
-        )}
-      </Stack>
-    </Card>
+    <Container maxWidth="lg">
+      <Card data-testid="plan-goals-list">
+        <Stack gap={4}>
+          <Text variant="h6" weight="bold">Saved plans</Text>
+          {goals == null ? (
+            <Text color="muted">Loading…</Text>
+          ) : goals.length === 0 ? (
+            <Text color="muted">No saved plans yet — save a strategy above to track it here.</Text>
+          ) : (
+            <Stack gap={3}>
+              {goals.map((goal) => (
+                <Flex key={goal.id} justify="space-between" align="center" wrap gap={2}>
+                  <Stack gap={0}>
+                    <Text weight="bold">{goal.name}</Text>
+                    <Text variant="caption" color="muted">{money(goal.targetAmount)} down payment</Text>
+                  </Stack>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    data-testid="pg-view-plan"
+                    onClick={() => viewPlan(goal.id)}
+                  >
+                    View plan
+                  </Button>
+                </Flex>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </Card>
+    </Container>
   );
 }

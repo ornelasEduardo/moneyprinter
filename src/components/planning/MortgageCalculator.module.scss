@@ -1,0 +1,24 @@
+// Inputs (left) beside the affordability panel (right); collapses to a single
+// column on narrow screens. Kept in SCSS because doom's Grid takes a fixed
+// column template and this split needs a media query.
+.main {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+// The affordability panel earns its keep next to the numbers on wide screens;
+// on narrow screens it stacks under the inputs.
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+}
+
+// PITI breakdown under the hero payment — a wrap-friendly row of small chips.
+.piti {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
