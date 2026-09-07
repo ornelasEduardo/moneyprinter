@@ -22,6 +22,7 @@ import {
   type IntegrationAuditRow,
 } from '@/app/actions/integrations';
 import { BEA_COL } from '@/lib/integrations/registry';
+import { METROS } from '@/lib/planning/metros';
 
 const TIER_OPTIONS = [
   { value: 'standard', label: 'Standard' },
@@ -147,8 +148,9 @@ export default function IntegrationsSettings() {
 
       {cfg.mode === 'bea' && (
         <Stack gap={3}>
-          <Input
-            label="Region (metro GeoFips)"
+          <Select
+            label="Metro area"
+            options={[{ value: '', label: 'Select your metro…' }, ...METROS.map((m) => ({ value: m.fips, label: m.name }))]}
             value={cfg.region ?? ''}
             onChange={(e) => setCfg((c) => (c ? { ...c, region: e.target.value } : c))}
             data-testid="col-region"

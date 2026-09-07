@@ -30,10 +30,11 @@ async function manualOrNational(userId: number): Promise<ColResolution> {
 function beaUrl(geoFips: string, key: string): string {
   const params = new URLSearchParams({
     UserID: key, method: 'GetData', datasetname: 'Regional',
-    TableName: 'MARPP', LineCode: '4', GeoFips: geoFips, Year: 'LAST', ResultFormat: 'json',
+    // LineCode 3 = RPP for housing (rents); the metro's GeoFips (a CBSA code),
+    // latest year. Verify the line code against a live BEA response.
+    TableName: 'MARPP', LineCode: '3', GeoFips: geoFips, Year: 'LAST', ResultFormat: 'json',
   });
   return `https://apps.bea.gov/api/data?${params.toString()}`;
-  // NOTE: LineCode '4' = Rents component; verify against live BEA API when a key is available.
 }
 
 async function beaThresholds(userId: number): Promise<ColResolution> {
