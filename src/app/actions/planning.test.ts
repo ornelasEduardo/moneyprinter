@@ -49,11 +49,14 @@ describe('getGoalPlan', () => {
 
 describe('getPlanGoals', () => {
   it('getPlanGoals returns only plan-carrying goals, mapped', async () => {
+    const created = new Date('2026-09-01T00:00:00Z');
     (prisma.goals.findMany as any).mockResolvedValue([
-      { id: 7, name: 'House down payment', target_amount: 80000, plan_kind: 'mortgage' },
+      { id: 7, name: 'House down payment', target_amount: 80000, plan_kind: 'mortgage', created_at: created },
     ]);
     const goals = await getPlanGoals();
-    expect(goals).toEqual([{ id: 7, name: 'House down payment', targetAmount: 80000, kind: 'mortgage' }]);
+    expect(goals).toEqual([
+      { id: 7, name: 'House down payment', targetAmount: 80000, kind: 'mortgage', createdAt: created.getTime() },
+    ]);
     const where = (prisma.goals.findMany as any).mock.calls[0][0].where;
     expect(where).toEqual({ user_id: expect.any(Number), plan_kind: { not: null } });
   });

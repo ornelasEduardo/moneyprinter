@@ -49,7 +49,7 @@ export async function getPlanGoals() {
   const userId = await requireAuth();
   const goals = await prisma.goals.findMany({
     where: { user_id: userId, plan_kind: { not: null } },
-    select: { id: true, name: true, target_amount: true, plan_kind: true },
+    select: { id: true, name: true, target_amount: true, plan_kind: true, created_at: true },
     orderBy: { created_at: 'desc' },
   });
   return goals.map((g) => ({
@@ -57,6 +57,9 @@ export async function getPlanGoals() {
     name: g.name,
     targetAmount: Number(g.target_amount),
     kind: g.plan_kind as PlanKind,
+    // Epoch ms — a plain serializable number the client buckets/sorts by date.
+    // created_at is typed nullable by Prisma though the column has a DB default.
+    createdAt: g.created_at ? g.created_at.getTime() : 0,
   }));
 }
 

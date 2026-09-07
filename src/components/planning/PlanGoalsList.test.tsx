@@ -11,7 +11,9 @@ describe('PlanGoalsList', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('lists saved plans and reopens one via /?tab=mortgage&goal=<id>', async () => {
-    (getPlanGoals as any).mockResolvedValue([{ id: 7, name: 'House down payment', targetAmount: 80000, kind: 'mortgage' }]);
+    (getPlanGoals as any).mockResolvedValue([
+      { id: 7, name: 'House down payment', targetAmount: 80000, kind: 'mortgage', createdAt: Date.parse('2026-09-01') },
+    ]);
     render(<PlanGoalsList />);
     expect(await screen.findByText('House down payment')).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('pg-view-plan'));
