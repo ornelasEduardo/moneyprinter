@@ -29,4 +29,26 @@ describe('mortgageMath', () => {
     const m = mortgageMath(base);
     expect(Math.round(m.totalInterest)).toBe(Math.round(m.principalAndInterest * 360 - 320000));
   });
+
+  it('rounds money outputs to cents', () => {
+    const m = mortgageMath(base);
+    for (const v of [m.loanAmount, m.principalAndInterest, m.monthlyPayment, m.totalInterest]) {
+      expect(v).toBeCloseTo(Math.round(v * 100) / 100, 10);
+    }
+  });
+
+  it('downPayment == homePrice yields zero principal and zero interest', () => {
+    const m = mortgageMath({ ...base, downPayment: base.homePrice, hoaMonthly: 150, pmiMonthly: 100 });
+    expect(m.loanAmount).toBe(0);
+    expect(m.principalAndInterest).toBe(0);
+    expect(m.totalInterest).toBe(0);
+    // escrow only: 4800/12 + 1200/12 + 150 + 100
+    expect(m.monthlyPayment).toBe(750);
+  });
+
+  it('computes P&I correctly for an extreme (40-year) term', () => {
+    const m = mortgageMath({ ...base, termYears: 40 });
+    // loan 320000 @ 6%/40y -> raw 1760.6836499329706
+    expect(m.principalAndInterest).toBe(1760.68);
+  });
 });

@@ -17,6 +17,8 @@ export interface MortgageMath {
   totalInterest: number;
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
 export function mortgageMath(inputs: MortgageInputs): MortgageMath {
   const loanAmount = Math.max(0, inputs.homePrice - inputs.downPayment);
   const n = Math.max(1, Math.round(inputs.termYears * 12));
@@ -35,5 +37,10 @@ export function mortgageMath(inputs: MortgageInputs): MortgageMath {
   const monthlyPayment = principalAndInterest + escrow;
   const totalInterest = principalAndInterest * n - loanAmount;
 
-  return { loanAmount, principalAndInterest, monthlyPayment, totalInterest };
+  return {
+    loanAmount: round2(loanAmount),
+    principalAndInterest: round2(principalAndInterest),
+    monthlyPayment: round2(monthlyPayment),
+    totalInterest: round2(totalInterest),
+  };
 }
