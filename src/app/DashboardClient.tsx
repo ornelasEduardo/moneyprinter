@@ -20,6 +20,7 @@ import DataTab from "@/components/DataTab";
 import type { BackupHistoryEntry } from "@/lib/constants";
 import AnalyticsOverview from "@/components/AnalyticsOverview";
 import AnalyticsReports from "@/components/AnalyticsReports";
+import MortgageCalculator from "@/components/planning/MortgageCalculator";
 import {
   ActionRow,
   Card,
@@ -40,6 +41,7 @@ import {
   Receipt,
   BarChart3,
   FileBarChart,
+  Calculator,
 } from "lucide-react";
 import styles from "./DashboardClient.module.scss";
 
@@ -105,6 +107,7 @@ export default function DashboardClient(props: DashboardClientProps) {
     networth: 'finance',
     analytics: 'analytics',
     reports: 'analytics',
+    mortgage: 'planning',
     history: 'system',
     data: 'system',
     settings: 'system',
@@ -323,6 +326,9 @@ export default function DashboardClient(props: DashboardClientProps) {
       case "reports":
         return <AnalyticsReports />;
 
+      case "mortgage":
+        return <MortgageCalculator />;
+
       default:
         return null;
     }
@@ -355,6 +361,9 @@ export default function DashboardClient(props: DashboardClientProps) {
             <Sidebar.Section id="analytics" label="Analytics" icon={<BarChart3 size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/analytics" icon={<BarChart3 size={18} strokeWidth={2.5} />}>Overview</Sidebar.Item>
               <Sidebar.Item href="/reports" icon={<FileBarChart size={18} strokeWidth={2.5} />}>Reports</Sidebar.Item>
+            </Sidebar.Section>
+            <Sidebar.Section id="planning" label="Planning" icon={<Calculator size={20} strokeWidth={2.5} />}>
+              <Sidebar.Item href="/mortgage" icon={<Calculator size={18} strokeWidth={2.5} />}>Mortgage</Sidebar.Item>
             </Sidebar.Section>
             <Sidebar.Section id="system" label="System" icon={<Settings size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/history" icon={<Clock size={18} strokeWidth={2.5} />}>History</Sidebar.Item>
