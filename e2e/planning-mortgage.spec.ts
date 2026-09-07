@@ -45,15 +45,12 @@ test.describe('Mortgage planning', () => {
     await mc.saveGoal.click();
     await expect(mc.saved).toBeVisible();
 
-    // PlanGoalsList only fetches on mount, so reload to pick up the goal we just saved.
+    // The drawer's list only fetches on mount, so reload to pick up the goal we
+    // just saved. Wait for the calculator to hydrate + prefill before clicking
+    // the header button, or the click lands before React attaches its handler.
     await page.reload();
-    // React Strict Mode (Next's dev-only default) can briefly double-invoke a
-    // remount around a reload, so two <Card data-testid="plan-goals-list">
-    // instances can transiently coexist before settling to one — dev-only,
-    // never happens in production (data-testid is even stripped there; see
-    // next.config.js). Assert on .first() so a transient extra match can't
-    // throw a strict-mode violation out of the retrying assertion.
-    await expect(mc.planGoalsList.first()).toBeVisible({ timeout: 15_000 });
+    await expect(mc.homePrice).not.toHaveValue('', { timeout: 15_000 });
+    await mc.openPlans();
     await expect.poll(async () => mc.viewPlanButtons.count()).toBeGreaterThan(0);
 
     // List is newest-first, so the plan we just saved is first — reopening

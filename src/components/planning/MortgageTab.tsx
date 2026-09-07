@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import MortgageCalculator from './MortgageCalculator';
-import PlanGoalsList from './PlanGoalsList';
 import { getGoalPlan } from '@/app/actions/planning';
 import type { MortgageInputs } from '@/lib/planning/mortgage';
 
@@ -36,13 +35,7 @@ export default function MortgageTab({ goalId }: MortgageTabProps) {
   }, [goalId]);
 
   if (!ready) return null;
-  // Reopening a specific saved plan: just the calculator, pre-filled.
-  if (goalId != null) return <MortgageCalculator initialInputs={initialInputs} />;
-  // Default view: calculator plus the list of saved plans to reopen.
-  return (
-    <>
-      <MortgageCalculator />
-      <PlanGoalsList />
-    </>
-  );
+  // The calculator owns the "Saved plans" drawer (header button), so it handles
+  // both the default view and the reopened-with-a-plan view.
+  return <MortgageCalculator initialInputs={initialInputs} />;
 }

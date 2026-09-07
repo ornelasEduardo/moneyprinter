@@ -7,6 +7,7 @@ export class MortgageCalculatorPage {
   readonly colNote: Locator;
   readonly saveGoal: Locator;
   readonly saved: Locator;
+  readonly openPlansButton: Locator;
   readonly planGoalsList: Locator;
   readonly viewPlanButtons: Locator;
 
@@ -17,7 +18,8 @@ export class MortgageCalculatorPage {
     this.colNote = page.getByTestId('mc-col-note');
     this.saveGoal = page.getByTestId('mc-save-goal');
     this.saved = page.getByTestId('mc-saved');
-    // The saved-plans list (T13) only renders in the default (no ?goal=) view.
+    // Saved plans now live in a drawer, opened from this header button.
+    this.openPlansButton = page.getByTestId('mc-open-plans');
     this.planGoalsList = page.getByTestId('plan-goals-list');
     this.viewPlanButtons = page.getByTestId('pg-view-plan');
   }
@@ -29,5 +31,10 @@ export class MortgageCalculatorPage {
 
   async setHomePrice(v: string) {
     await this.homePrice.fill(v);
+  }
+
+  async openPlans() {
+    await this.openPlansButton.click();
+    await expect(this.planGoalsList).toBeVisible({ timeout: 15_000 });
   }
 }

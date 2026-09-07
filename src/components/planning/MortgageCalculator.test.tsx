@@ -1,6 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@/test-utils';
 
+// The calculator hosts the saved-plans drawer (PlanGoalsList), which uses the
+// Next navigation hooks — provide them in this jsdom test.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock('@/app/actions/planning', () => ({
   resolvePlanContext: vi.fn(async () => ({
     defaults: {
@@ -12,6 +19,8 @@ vi.mock('@/app/actions/planning', () => ({
     snapshot: { monthlyIncome: 8000, monthlySurplus: 2500, liquidBalance: 50000, netWorth: 120000, colThresholds: { front: 0.28, back: 0.36 } },
   })),
   saveGoalFromPlan: vi.fn(async () => ({ id: 7 })),
+  // The calculator hosts the saved-plans drawer (PlanGoalsList), which reads this.
+  getPlanGoals: vi.fn(async () => []),
 }));
 
 import MortgageCalculator from './MortgageCalculator';
