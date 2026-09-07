@@ -56,8 +56,8 @@ export default function MortgageCalculator() {
     return <PlanningWorkspace title="Mortgage"><Text color="muted">Loading your finances…</Text></PlanningWorkspace>;
   }
 
-  // DELTA 2: surface the active COL DTI limits (and whether they're COL-adjusted
-  // or the national guideline) alongside the assessment they produced.
+  // Read the caps from the same snapshot signal the verdict was computed against,
+  // so the limits we display can never drift from the assessment's basis.
   const caps = (snapshot?.colThresholds as { front: number; back: number } | undefined) ?? NATIONAL_CAPS;
   const colAdjusted = caps.front !== NATIONAL_CAPS.front || caps.back !== NATIONAL_CAPS.back;
 
@@ -79,15 +79,14 @@ export default function MortgageCalculator() {
       <Stack gap={4}>
         <Flex gap={3} wrap>
           {FIELDS.map((f) => (
-            <Stack key={f.key} gap={0}>
-              <Text variant="caption" color="muted">{f.label}</Text>
-              <Input
-                type="number"
-                data-testid={f.testid}
-                value={String(inputs[f.key])}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => set(f.key, e.target.value)}
-              />
-            </Stack>
+            <Input
+              key={f.key}
+              label={f.label}
+              type="number"
+              data-testid={f.testid}
+              value={String(inputs[f.key])}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => set(f.key, e.target.value)}
+            />
           ))}
         </Flex>
 
