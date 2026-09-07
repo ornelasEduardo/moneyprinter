@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { FinancialContext } from './context';
 import { monthlyIncome, monthlySurplus, liquidBalance } from './signals';
+import { colThresholds } from './col';
 import type { PlanDefinition, PlanResult } from './registry';
 
 export interface MortgageInputs {
@@ -66,6 +67,7 @@ export async function assessMortgage(
   const income = await ctx.get(monthlyIncome);
   const surplus = await ctx.get(monthlySurplus);
   const liquid = await ctx.get(liquidBalance);
+  const caps = await ctx.get(colThresholds);
 
   const frontEndDTI = income > 0 ? math.monthlyPayment / income : 0;
   const backEndDTI = income > 0 ? (math.monthlyPayment + inputs.existingMonthlyDebt) / income : 0;
@@ -77,7 +79,15 @@ export async function assessMortgage(
   else if (surplus <= 0) monthsToDownPayment = null;
   else monthsToDownPayment = Math.ceil(shortfall / surplus);
 
-  const verdict = frontEndDTI <= 0.28 ? 'comfortable' : frontEndDTI <= 0.36 ? 'stretch' : 'over';
+  // Back-end is the binding constraint (backEndDTI >= frontEndDTI): comfortable
+  // requires both ratios within cap; stretch tolerates an over-cap front as long
+  // as total debt load stays within the back cap; otherwise over.
+  const verdict =
+    frontEndDTI <= caps.front && backEndDTI <= caps.back
+      ? 'comfortable'
+      : backEndDTI <= caps.back
+        ? 'stretch'
+        : 'over';
 
   return { frontEndDTI, backEndDTI, surplusAfterPayment, monthsToDownPayment, verdict };
 }

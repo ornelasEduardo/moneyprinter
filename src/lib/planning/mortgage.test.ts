@@ -54,8 +54,15 @@ describe('mortgageMath', () => {
   });
 });
 
-const ctx = (over: Record<string, number> = {}) =>
-  createSnapshotContext({ monthlyIncome: 8000, monthlySurplus: 2500, liquidBalance: 50000, netWorth: 120000, ...over });
+const ctx = (over: Record<string, unknown> = {}) =>
+  createSnapshotContext({
+    monthlyIncome: 8000,
+    monthlySurplus: 2500,
+    liquidBalance: 50000,
+    netWorth: 120000,
+    colThresholds: { front: 0.28, back: 0.36 },
+    ...over,
+  });
 
 describe('assessMortgage', () => {
   it('computes front/back DTI against income', async () => {
@@ -84,11 +91,43 @@ describe('assessMortgage', () => {
     expect(a.monthsToDownPayment).toBeNull();
   });
 
-  it('verdict tiers on front-end DTI (<=0.28 comfortable, <=0.36 stretch, else over)', async () => {
+  it('verdict uses both ratios: comfortable needs front<=cap AND back<=cap', async () => {
     const m = mortgageMath(base);
-    expect((await assessMortgage({ ...m, monthlyPayment: 2000 }, base, ctx())).verdict).toBe('comfortable'); // .25
-    expect((await assessMortgage({ ...m, monthlyPayment: 2800 }, base, ctx())).verdict).toBe('stretch');     // .35
-    expect((await assessMortgage({ ...m, monthlyPayment: 3600 }, base, ctx())).verdict).toBe('over');        // .45
+    // base has existingMonthlyDebt 0, so back == front here
+    expect((await assessMortgage({ ...m, monthlyPayment: 2000 }, base, ctx())).verdict).toBe('comfortable'); // 0.25 / 0.25
+    expect((await assessMortgage({ ...m, monthlyPayment: 2800 }, base, ctx())).verdict).toBe('stretch');     // 0.35 front>0.28, back 0.35<=0.36
+    expect((await assessMortgage({ ...m, monthlyPayment: 3600 }, base, ctx())).verdict).toBe('over');        // 0.45 back>0.36
+  });
+
+  it('back-end DTI gates the verdict: low front but high existing debt is over, not comfortable', async () => {
+    const m = mortgageMath(base);
+    // payment 2000 -> front 0.25 (<=0.28); existing debt 2200 -> back 0.525 (>0.36)
+    const a = await assessMortgage({ ...m, monthlyPayment: 2000 }, { ...base, existingMonthlyDebt: 2200 }, ctx());
+    expect(a.frontEndDTI).toBeCloseTo(0.25, 3);
+    expect(a.verdict).toBe('over');
+  });
+
+  it('stretch when front exceeds cap but back-end still within cap', async () => {
+    const m = mortgageMath(base);
+    // payment 2600 -> front 0.325 (>0.28); existing debt 0 -> back 0.325 (<=0.36)
+    expect((await assessMortgage({ ...m, monthlyPayment: 2600 }, base, ctx())).verdict).toBe('stretch');
+  });
+
+  it('comfortable at the exact national boundary (front 0.28 AND back 0.36, inclusive)', async () => {
+    const m = mortgageMath(base);
+    // payment 2240 -> front 0.28; + existing debt 640 -> back 0.36
+    const a = await assessMortgage({ ...m, monthlyPayment: 2240 }, { ...base, existingMonthlyDebt: 640 }, ctx());
+    expect(a.frontEndDTI).toBeCloseTo(0.28, 3);
+    expect(a.backEndDTI).toBeCloseTo(0.36, 3);
+    expect(a.verdict).toBe('comfortable');
+  });
+
+  it('VHCOL caps (0.43/0.52) make an SF-scale plan comfortable that national rejects', async () => {
+    const m = mortgageMath(base);
+    const inputs = { ...base, existingMonthlyDebt: 480 };
+    // payment 3200 -> front 0.40; back (3200+480)/8000 = 0.46
+    expect((await assessMortgage({ ...m, monthlyPayment: 3200 }, inputs, ctx())).verdict).toBe('over');            // national 0.28/0.36
+    expect((await assessMortgage({ ...m, monthlyPayment: 3200 }, inputs, ctx({ colThresholds: { front: 0.43, back: 0.52 } }))).verdict).toBe('comfortable'); // VHCOL
   });
 });
 
