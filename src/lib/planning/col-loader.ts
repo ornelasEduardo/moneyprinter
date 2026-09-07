@@ -29,10 +29,10 @@ async function manualOrNational(userId: number): Promise<ColResolution> {
 // GeoFips of the user's metro is the only thing that leaves the machine.
 function beaUrl(geoFips: string, key: string): string {
   const params = new URLSearchParams({
+    // LineCode 3 = "RPPs: Services: Rents"; Year=ALL (MARPP has no 'LAST', and
+    // the parser takes the most recent year). GeoFips is the metro's CBSA code.
     UserID: key, method: 'GetData', datasetname: 'Regional',
-    // LineCode 3 = RPP for housing (rents); the metro's GeoFips (a CBSA code),
-    // latest year. Verify the line code against a live BEA response.
-    TableName: 'MARPP', LineCode: '3', GeoFips: geoFips, Year: 'LAST', ResultFormat: 'json',
+    TableName: 'MARPP', LineCode: '3', GeoFips: geoFips, Year: 'ALL', ResultFormat: 'json',
   });
   return `https://apps.bea.gov/api/data?${params.toString()}`;
 }

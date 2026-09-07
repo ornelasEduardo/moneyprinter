@@ -7,7 +7,7 @@ vi.mock('@/lib/integrations/client', () => ({ governedFetch: vi.fn() }));
 
 import prisma from '@/lib/prisma';
 import { governedFetch } from '@/lib/integrations/client';
-import { NATIONAL, TIER_PRESETS, scaleFromRentsRpp, parseBeaRentsRpp } from './col';
+import { NATIONAL, TIER_PRESETS, scaleFromRentsRpp, parseBeaRentsRpp, parseBeaGeoName } from './col';
 import { loadColThresholds } from './col-loader';
 
 // helper: make user_settings.findUnique resolve a map of key->value
@@ -46,6 +46,22 @@ describe('parseBeaRentsRpp', () => {
     expect(() => parseBeaRentsRpp({ BEAAPI: { Results: { Data: [{ GeoName: 'San Diego' }] } } })).toThrow();
     expect(() => parseBeaRentsRpp({ BEAAPI: { Results: {} } })).toThrow();
     expect(() => parseBeaRentsRpp({ BEAAPI: { Results: { Data: [{ DataValue: '(NA)' }] } } })).toThrow();
+  });
+  it('picks the most recent year from a Year=ALL response', () => {
+    // Real shape: San Diego rents across years — 2024 is 179.267.
+    const json = { BEAAPI: { Results: { Data: [
+      { TimePeriod: '2022', DataValue: '170.0' },
+      { TimePeriod: '2024', DataValue: '179.267' },
+      { TimePeriod: '2023', DataValue: '175.0' },
+    ] } } };
+    expect(parseBeaRentsRpp(json)).toBeCloseTo(179.267, 2);
+  });
+});
+
+describe('parseBeaGeoName', () => {
+  it('trims the "(Metropolitan Statistical Area)" suffix', () => {
+    const json = { BEAAPI: { Results: { Data: [{ GeoName: 'San Diego-Chula Vista-Carlsbad, CA (Metropolitan Statistical Area)' }] } } };
+    expect(parseBeaGeoName(json)).toBe('San Diego-Chula Vista-Carlsbad, CA');
   });
 });
 
