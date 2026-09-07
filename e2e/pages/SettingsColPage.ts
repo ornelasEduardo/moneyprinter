@@ -30,10 +30,19 @@ export class SettingsColPage {
     await expect(this.mode).toBeVisible({ timeout: 15_000 });
   }
 
+  /** Which mode is active — inferred from whether the manual custom-cap inputs render. */
+  async currentMode(): Promise<'manual' | 'bea'> {
+    return (await this.front.isVisible().catch(() => false)) ? 'manual' : 'bea';
+  }
+
+  async setMode(mode: 'manual' | 'bea') {
+    await this.mode.getByText(mode === 'bea' ? 'BEA' : 'Manual', { exact: true }).click();
+  }
+
   /** Custom caps only render in manual mode; switch to it if BEA mode is active. */
   async ensureManualMode() {
     if (await this.front.isVisible().catch(() => false)) return;
-    await this.mode.getByText('Manual', { exact: true }).click();
+    await this.setMode('manual');
     await expect(this.front).toBeVisible({ timeout: 5_000 });
   }
 

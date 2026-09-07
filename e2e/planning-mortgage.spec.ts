@@ -60,20 +60,26 @@ test.describe('Mortgage planning', () => {
   });
 
   test('cost-of-living custom caps flow through to the calculator limits', async ({ page }) => {
-    // 1) Set VHCOL custom caps in Settings (manual mode; ensureManualMode()
-    // guards the flow even if a prior run left the account in BEA mode).
     const settings = new SettingsColPage(page);
     await settings.open();
-    await settings.setCustomCaps('0.43', '0.52');
-    await settings.saveConfig();
+    // This runs against the shared sandbox, so restore whatever mode it was in
+    // (e.g. a real BEA setup) rather than leaving it stuck in manual.
+    const originalMode = await settings.currentMode();
+    try {
+      await settings.setCustomCaps('0.43', '0.52');
+      await settings.saveConfig();
 
-    // 2) Open the mortgage calculator; the note must reflect the loosened limits
-    // and name their source (custom caps set in Settings).
-    const mc = new MortgageCalculatorPage(page);
-    await mc.open();
-    await expect(mc.colNote).toBeVisible({ timeout: 15_000 });
-    await expect(mc.colNote).toContainText('custom');
-    await expect(mc.colNote).toContainText('43%');
-    await expect(mc.colNote).toContainText('52%');
+      // The note must reflect the loosened limits and name their source.
+      const mc = new MortgageCalculatorPage(page);
+      await mc.open();
+      await expect(mc.colNote).toBeVisible({ timeout: 15_000 });
+      await expect(mc.colNote).toContainText('custom');
+      await expect(mc.colNote).toContainText('43%');
+      await expect(mc.colNote).toContainText('52%');
+    } finally {
+      await settings.open();
+      await settings.setMode(originalMode);
+      await settings.saveConfig();
+    }
   });
 });
