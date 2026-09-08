@@ -7,7 +7,7 @@ Every feature, every decision should serve that core value — data stays local,
 ## Stack
 
 - **Framework**: Next.js 15 (App Router, `src/app/`)
-- **UI**: `doom-design-system@0.6.1` — neubrutalist component library
+- **UI**: `doom-design-system@0.8.0` — neubrutalist component library
 - **Styling**: SASS modules (emotion was removed, see git history)
 - **DB**: Prisma + PostgreSQL (`pg`)
 - **Tables**: TanStack Table v8 + TanStack Virtual
@@ -40,7 +40,7 @@ npx tsc --noEmit     # type check
 
 ## doom-design-system
 
-Version `0.5.1`. `transpilePackages: ['doom-design-system']` is set in `next.config.mjs`.
+Version `0.8.0`. `transpilePackages: ['doom-design-system']` is set in `next.config.mjs`.
 
 ## Test setup
 
