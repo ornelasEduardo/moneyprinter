@@ -44,17 +44,14 @@ Version `0.8.0`. `transpilePackages: ['doom-design-system']` is set in `next.con
 
 ## Designing finance dashboards & product UI
 
-Guidance for planning/analytics surfaces (Plan hub, Analytics, calculators). Grounded in dashboard-UX research (NN/g progressive disclosure; Pencil & Paper; fintech "verdict-first" patterns).
+**Full guide: `DESIGN.md`** (Gestalt, hierarchy/type, data-viz, finance-product craft, accessibility, with sources + a pre-ship checklist). Read it before building any planning/analytics surface. The non-negotiables:
 
-- **doom tokens only — never hardcode.** Style through doom's CSS custom properties: colors (`--primary`, `--secondary`, `--success`/`--warning`/`--error`, `--background`, `--card-bg`, `--card-border`, `--muted-foreground`), `--space-*`, `--radius-*`, `--shadow-md`, `--text-*`, `--font-*`. Real values live in `doom-design-system/dist/styles/{palettes.js, globals.css, themes/definitions.js}`; the app uses the `default` theme. Prefer doom components over ad-hoc markup/D3.
-- **Verdict first.** Lead each surface with the single "am I okay?" number in the largest type, top-left (F-pattern) — goal timeline on the Plan hub, savings rate / net position on Analytics.
-- **Three-tier hierarchy — Summary → Context → Details.** Group cards by the question they answer ("where I stand" / "what I'm planning" / "what I can do"); don't place unrelated metrics adjacent.
-- **Every tile is actionable.** One clear next action per card (Continue / Open / Save). No dead data.
-- **Progressive disclosure.** Surfaces show summaries; open detail (full tables, a calculator) on drill-in via drawer or route. Don't dump dense tables into an overview.
-- **Encode state in form, not just number.** Pill / chip / severity stripe so what needs attention reads at a glance. Semantic color (`--success`/`--warning`/`--error`) is separate from the `--primary` accent; never rely on color alone.
-- **Design empty states.** New users have no goal or plans — every list/section needs an inviting empty state carrying the first action.
-- **Numerals discipline.** `font-variant-numeric: tabular-nums`; reuse the shared `money()` currency formatters.
-- **Match the app and verify visually.** Neubrutalist doom language (bordered cards, hard offset shadows, uppercase heavy headings). Screenshot the result — passing tests ≠ good design.
+- **doom tokens only — never hardcode** a color/space/radius/shadow. Style through doom CSS custom properties (`--primary`, `--secondary`, `--success`/`--warning`/`--error`, `--background`, `--card-bg`, `--card-border`, `--muted-foreground`, `--space-*`, `--radius-*`, `--shadow-*`, `--text-*`, `--font-*`); values in `doom-design-system/dist/styles/{palettes.js, globals.css, themes/definitions.js}` (`default` theme). Prefer doom components over ad-hoc markup/D3.
+- **One focal point** per view — the single "am I okay?" number, largest, top-left. **Group by question** (proximity/common-region), not a flat grid of equal tiles.
+- **Every number carries context + an action**; **meaning never rides on color alone** (pair with sign/icon/text).
+- **Design empty/loading/error/edge states**, not just the happy path.
+- **Numerals:** `tabular-nums`, right-aligned, consistent precision, shared `money()` formatters.
+- **Accessible + verified visually:** AA contrast (AAA on primary figures), visible focus, keyboard-operable tables/drawers, reduced-motion honored — then screenshot it (passing tests ≠ good design).
 
 ## Test setup
 
