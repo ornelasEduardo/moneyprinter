@@ -21,6 +21,7 @@ import type { BackupHistoryEntry } from "@/lib/constants";
 import AnalyticsOverview from "@/components/AnalyticsOverview";
 import AnalyticsReports from "@/components/AnalyticsReports";
 import MortgageTab from "@/components/planning/MortgageTab";
+import PlanHub from "@/components/planning/PlanHub";
 import {
   ActionRow,
   Card,
@@ -107,6 +108,7 @@ export default function DashboardClient(props: DashboardClientProps) {
     networth: 'finance',
     analytics: 'analytics',
     reports: 'analytics',
+    plan: 'plan',
     mortgage: 'plan',
     history: 'system',
     data: 'system',
@@ -326,6 +328,17 @@ export default function DashboardClient(props: DashboardClientProps) {
       case "reports":
         return <AnalyticsReports />;
 
+      case "plan":
+        return (
+          <PlanHub
+            goal={props.primaryGoal}
+            emergencyFund={props.emergencyFund}
+            netWorth={props.netWorth}
+            monthlySavings={props.monthlyNetWorthIncrease}
+            monthlyExpenses={props.yearlySpending / 12}
+          />
+        );
+
       case "mortgage": {
         const goalParam = searchParams.get("goal");
         const goalId = goalParam ? Number(goalParam) || null : null;
@@ -368,9 +381,7 @@ export default function DashboardClient(props: DashboardClientProps) {
               <Sidebar.Item href="/reports" icon={<FileBarChart size={18} strokeWidth={2.5} />}>Reports</Sidebar.Item>
             </Sidebar.Section>
             <Sidebar.Section id="plan" label="Plan" icon={<Calculator size={20} strokeWidth={2.5} />}>
-              <Sidebar.Group id="plan-home" label="Home" icon={<Home size={18} strokeWidth={2.5} />}>
-                <Sidebar.Item href="/mortgage" icon={<Calculator size={18} strokeWidth={2.5} />}>Mortgage</Sidebar.Item>
-              </Sidebar.Group>
+              <Sidebar.Item href="/plan" icon={<Calculator size={18} strokeWidth={2.5} />}>Overview</Sidebar.Item>
             </Sidebar.Section>
             <Sidebar.Section id="system" label="System" icon={<Settings size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/history" icon={<Clock size={18} strokeWidth={2.5} />}>History</Sidebar.Item>
