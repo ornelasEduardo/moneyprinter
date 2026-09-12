@@ -75,6 +75,7 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
     } catch {
       // saveGoalFromPlan does schema.parse (throws) — e.g. down payment > home
       // price, or all-zero after Clear. Surface it instead of a silent no-op.
+      setSaved(false);
       toastError("Couldn't save this plan — check your inputs and try again.");
     }
   };
