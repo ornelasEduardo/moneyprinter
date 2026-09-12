@@ -3,6 +3,7 @@
 import React from "react";
 import { Text, Card, useTheme, ThemeKey } from "doom-design-system";
 import IntegrationsSettings from "./settings/IntegrationsSettings";
+import LlmSettings from "./settings/LlmSettings";
 import styles from "./SettingsView.module.scss";
 
 export default function SettingsView() {
@@ -69,6 +70,20 @@ export default function SettingsView() {
         </div>
 
         <IntegrationsSettings />
+      </Card>
+
+      <Card className={styles.section}>
+        <div>
+          <Text variant="h4" className="mb-2">
+            Local AI (Ollama)
+          </Text>
+          <Text color="muted">
+            Optional. Use a local LLM to suggest categories for your transactions —
+            entirely on your machine, no data leaves the device.
+          </Text>
+        </div>
+
+        <LlmSettings />
       </Card>
     </div>
   );

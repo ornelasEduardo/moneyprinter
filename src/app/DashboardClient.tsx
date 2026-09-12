@@ -22,6 +22,7 @@ import AnalyticsOverview from "@/components/AnalyticsOverview";
 import AnalyticsReports from "@/components/AnalyticsReports";
 import MortgageTab from "@/components/planning/MortgageTab";
 import PlanHub from "@/components/planning/PlanHub";
+import CategorySuggestions from "@/components/llm/CategorySuggestions";
 import {
   ActionRow,
   Card,
@@ -265,12 +266,15 @@ export default function DashboardClient(props: DashboardClientProps) {
 
       case "transactions":
         return (
-          <TransactionsTable
-            transactions={props.transactions}
-            selectedYear={selectedYear}
-            accounts={props.accounts}
-            tagProvenance={props.tagProvenance}
-          />
+          <>
+            <CategorySuggestions />
+            <TransactionsTable
+              transactions={props.transactions}
+              selectedYear={selectedYear}
+              accounts={props.accounts}
+              tagProvenance={props.tagProvenance}
+            />
+          </>
         );
 
       case "accounts":
