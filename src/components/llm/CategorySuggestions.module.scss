@@ -1,25 +1,43 @@
-.card {
+.bar {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
-.list {
-  margin-top: var(--space-2);
+/* Keep the sheet content a readable column instead of stretching the slats
+   edge-to-edge across the full-width bottom sheet. */
+.sheet {
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.state {
+  padding: var(--space-6) var(--space-2);
 }
 
 .row {
-  display: grid;
-  grid-template-columns: 1fr auto 160px auto;
-  gap: var(--space-3);
+  display: flex;
   align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
   padding: var(--space-3) 0;
   border-top: var(--surface-border-width) solid var(--card-border);
 }
 
+.row:first-child {
+  border-top: none;
+}
+
 .txn {
+  flex: 1 1 200px;
   min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
 }
 
 .name {
@@ -28,12 +46,27 @@
   white-space: nowrap;
 }
 
-@media (max-width: 640px) {
+/* Confidence + category + Apply stay grouped together on the right. */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+.cat {
+  width: 160px;
+}
+
+@media (max-width: 540px) {
   .row {
-    grid-template-columns: 1fr auto;
-    align-items: start;
+    align-items: stretch;
+  }
+  .controls {
+    width: 100%;
   }
   .cat {
-    grid-column: 1 / -1;
+    flex: 1;
+    width: auto;
   }
 }

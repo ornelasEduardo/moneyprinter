@@ -264,10 +264,11 @@ export default function DashboardClient(props: DashboardClientProps) {
           </div>
         );
 
-      case "transactions":
+      case "transactions": {
+        const hasUntagged = props.transactions.some((t) => !t.tags || t.tags.trim() === "");
         return (
           <>
-            <CategorySuggestions />
+            {hasUntagged && <CategorySuggestions />}
             <TransactionsTable
               transactions={props.transactions}
               selectedYear={selectedYear}
@@ -276,6 +277,7 @@ export default function DashboardClient(props: DashboardClientProps) {
             />
           </>
         );
+      }
 
       case "accounts":
         return <AccountsTable accounts={props.accounts} />;
