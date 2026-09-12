@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { mortgagePlanSchema } from '@/lib/planning/mortgage';
 
 const coerceNumber = z.coerce.number();
 const coerceDate = z.coerce.date();
@@ -62,10 +63,16 @@ export const goalSchema = z.object({
   target_date: coerceDate.nullable().optional(),
   plan_kind: z.enum(['mortgage']).nullable().optional(),
   plan_inputs: z.record(z.string(), z.unknown()).nullable().optional(),
-}).refine(
-  (g) => (g.plan_kind == null) === (g.plan_inputs == null),
-  { message: 'plan_kind and plan_inputs must both be set or both be null', path: ['plan_inputs'] },
-);
+}).superRefine((g, ctx) => {
+  if ((g.plan_kind == null) !== (g.plan_inputs == null)) {
+    ctx.addIssue({ code: 'custom', path: ['plan_inputs'], message: 'plan_kind and plan_inputs must both be set or both be null' });
+    return;
+  }
+  // Don't persist a malformed plan blob that renders as NaN when reopened.
+  if (g.plan_kind === 'mortgage' && g.plan_inputs != null && !mortgagePlanSchema.safeParse(g.plan_inputs).success) {
+    ctx.addIssue({ code: 'custom', path: ['plan_inputs'], message: 'plan_inputs is not a valid mortgage plan' });
+  }
+});
 
 export const transferSchema = z.object({
   from_account_id: coerceNumber,

@@ -27,12 +27,15 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export function mortgageMath(inputs: MortgageInputs): MortgageMath {
   const loanAmount = Math.max(0, inputs.homePrice - inputs.downPayment);
-  const n = Math.max(1, Math.round(inputs.termYears * 12));
-  const r = inputs.annualRatePct / 100 / 12;
+  // Clamp so a fat-fingered rate/term (the calculator recomputes on every
+  // keystroke, before the save-time schema bounds apply) can't overflow
+  // Math.pow to Infinity and render "$NaN".
+  const n = Math.min(Math.max(1, Math.round(inputs.termYears * 12)), 600);
+  const r = Math.min(Math.max(inputs.annualRatePct, 0), 200) / 100 / 12;
 
-  const principalAndInterest = r === 0
-    ? loanAmount / n
-    : (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  const pow = Math.pow(1 + r, n);
+  const rawPI = r === 0 ? loanAmount / n : (loanAmount * r * pow) / (pow - 1);
+  const principalAndInterest = Number.isFinite(rawPI) ? rawPI : 0;
 
   const escrow =
     inputs.propertyTaxAnnual / 12 +

@@ -2,7 +2,8 @@
 
 import type { ReactNode } from 'react';
 import { Container, Stack, Text, Flex } from 'doom-design-system';
-import BackLink from '@/components/BackLink';
+import { ArrowLeft } from 'lucide-react';
+import styles from './PlanningWorkspace.module.scss';
 
 // No wrapping Card — the tool composes its own cards, which one outer card would flatten.
 export function PlanningWorkspace({ title, header, backHref, children }: {
@@ -11,13 +12,17 @@ export function PlanningWorkspace({ title, header, backHref, children }: {
   return (
     <Container maxWidth="lg">
       <Stack gap={6}>
-        <Flex align="center" justify="space-between" wrap gap={3}>
-          <Flex align="center" gap={3}>
-            {backHref && <BackLink href={backHref} ariaLabel="Back to Plan" />}
+        <div>
+          {backHref && (
+            <a href={backHref} className={styles.back}>
+              <ArrowLeft size={16} strokeWidth={2.5} /> Back to Plan
+            </a>
+          )}
+          <Flex align="center" justify="space-between" wrap gap={3}>
             <Text variant="h2" weight="black">{title}</Text>
+            {header}
           </Flex>
-          {header}
-        </Flex>
+        </div>
         {children}
       </Stack>
     </Container>

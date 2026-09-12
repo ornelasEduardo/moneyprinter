@@ -90,8 +90,11 @@ export async function savePlanningColConfig(input: unknown): Promise<void> {
   }
   const cfg = result.data;
 
-  // Enabling BEA requires a key — provided now or already stored.
-  if (cfg.beaEnabled) {
+  // BEA egress is only ever on in BEA mode — so leaving BEA mode clears the
+  // opt-in (no involuntary egress), and the key requirement / key-check don't
+  // block an unrelated Manual-mode save.
+  const beaEnabled = cfg.mode === 'bea' && cfg.beaEnabled === true;
+  if (beaEnabled) {
     const stored = await readSetting(userId, BEA_COL.credentialKey!);
     if (!cfg.beaKey && !stored) throw new Error('Enabling the BEA integration requires an API key');
   }
@@ -101,7 +104,7 @@ export async function savePlanningColConfig(input: unknown): Promise<void> {
   if (cfg.front !== undefined) await writeSetting(userId, 'col_front', String(cfg.front));
   if (cfg.back !== undefined) await writeSetting(userId, 'col_back', String(cfg.back));
   if (cfg.region !== undefined) await writeSetting(userId, 'home_region', cfg.region);
-  if (cfg.beaEnabled !== undefined) await writeSetting(userId, BEA_COL.enabledKey, String(cfg.beaEnabled));
+  await writeSetting(userId, BEA_COL.enabledKey, String(beaEnabled));
   if (cfg.beaKey !== undefined) await writeSetting(userId, BEA_COL.credentialKey!, cfg.beaKey);
 
   revalidatePath('/');

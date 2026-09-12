@@ -1,19 +1,18 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Card, Flex, Input, ProgressBar, Sheet, Stack, Text } from 'doom-design-system';
+import { Badge, Button, Card, Flex, Input, ProgressBar, Sheet, Stack, Text, useToast } from 'doom-design-system';
 import { PlanningWorkspace } from './PlanningWorkspace';
 import PlanGoalsList from './PlanGoalsList';
 import { resolvePlanContext, saveGoalFromPlan } from '@/app/actions/planning';
 import { mortgageMath, assessMortgage, type MortgageInputs, type MortgageAssessment } from '@/lib/planning/mortgage';
 import { createSnapshotContext } from '@/lib/planning/context';
+import { NATIONAL, type ColThresholds } from '@/lib/planning/col';
+import { money } from '@/lib/planning/format';
+import { useDialogFocusTrap } from '@/lib/useDialogFocusTrap';
 import styles from './MortgageCalculator.module.scss';
 
-const money = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 const pct = (n: number) => `${Math.round(n * 100)}%`;
-
-const NATIONAL_CAPS = { front: 0.28, back: 0.36 };
 
 type Field = { key: keyof MortgageInputs; label: string; testid: string; start?: string; end?: string };
 const GROUPS: { title: string; fields: Field[] }[] = [
@@ -48,6 +47,8 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
   const [assessment, setAssessment] = useState<MortgageAssessment | null>(null);
   const [saved, setSaved] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
+  const { toastError } = useToast();
+  const { setDialogNode, openFrom } = useDialogFocusTrap(plansOpen);
 
   useEffect(() => {
     // Resolve a fresh snapshot even for a reopened plan, so the verdict reflects
@@ -68,8 +69,14 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
 
   const onSave = async () => {
     if (!inputs) return;
-    await saveGoalFromPlan('mortgage', inputs, { targetDate: null });
-    setSaved(true);
+    try {
+      await saveGoalFromPlan('mortgage', inputs, { targetDate: null });
+      setSaved(true);
+    } catch {
+      // saveGoalFromPlan does schema.parse (throws) — e.g. down payment > home
+      // price, or all-zero after Clear. Surface it instead of a silent no-op.
+      toastError("Couldn't save this plan — check your inputs and try again.");
+    }
   };
 
   const clear = () => {
@@ -84,7 +91,7 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
       <Button size="sm" variant="ghost" data-testid="mc-clear" onClick={clear} disabled={!inputs}>
         Clear
       </Button>
-      <Button size="sm" variant="secondary" data-testid="mc-open-plans" onClick={() => setPlansOpen(true)}>
+      <Button size="sm" variant="secondary" data-testid="mc-open-plans" onClick={(e) => { openFrom(e); setPlansOpen(true); }}>
         Saved plans
       </Button>
       <Button size="sm" variant="primary" data-testid="mc-save-goal" onClick={onSave} disabled={!inputs}>
@@ -93,9 +100,11 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
     </Flex>
   );
 
-  const plansDrawer = (
+  const plansDrawer = plansOpen && (
     <Sheet isOpen={plansOpen} onClose={() => setPlansOpen(false)} title="Saved plans">
-      <PlanGoalsList />
+      <div ref={setDialogNode} tabIndex={-1}>
+        <PlanGoalsList />
+      </div>
     </Sheet>
   );
 
@@ -113,9 +122,9 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
     setInputs((prev) => (prev ? { ...prev, [key]: Number(raw) || 0 } : prev));
   };
 
-  const caps: { front: number; back: number; source?: string; detail?: string } =
-    (snapshot?.colThresholds as { front: number; back: number; source?: string; detail?: string } | undefined) ?? NATIONAL_CAPS;
-  const colAdjusted = caps.front !== NATIONAL_CAPS.front || caps.back !== NATIONAL_CAPS.back;
+  const caps: ColThresholds & { source?: string; detail?: string } =
+    (snapshot?.colThresholds as (ColThresholds & { source?: string; detail?: string }) | undefined) ?? NATIONAL;
+  const colAdjusted = caps.front !== NATIONAL.front || caps.back !== NATIONAL.back;
   const capsSource = caps.source ?? (colAdjusted ? 'Cost-of-living adjusted limits' : 'National guideline limits');
   const verdict = assessment ? VERDICT[assessment.verdict] : null;
 
@@ -193,6 +202,7 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
                   <Stack gap={0} data-testid="mc-col-note">
                     <Text variant="caption" color="muted">{capsSource} — {pct(caps.front)} / {pct(caps.back)} DTI limits</Text>
                     {caps.detail && <Text variant="caption" color="muted">{caps.detail}</Text>}
+                    <Text variant="caption" color="muted">DTI uses your average recorded monthly income; the 28/36 rule assumes gross income.</Text>
                   </Stack>
                 </Stack>
               ) : (

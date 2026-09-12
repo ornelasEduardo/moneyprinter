@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, Card, Sheet, Skeleton, Text, useToast } from 'doom-design-system';
 import { Home, Plus, ArrowRight } from 'lucide-react';
@@ -17,6 +17,7 @@ import {
 } from '@/lib/planning/tools';
 import { money } from '@/lib/planning/format';
 import { tabHref } from '@/lib/planning/nav';
+import { useDialogFocusTrap } from '@/lib/useDialogFocusTrap';
 import styles from './PlanHub.module.scss';
 
 const TOOL_ICON = { home: Home };
@@ -47,10 +48,7 @@ export default function PlanHub({
   const [plans, setPlans] = useState<PlanGoal[] | null>(null);
   const [error, setError] = useState(false);
   const [allOpen, setAllOpen] = useState(false);
-  const triggerRef = useRef<HTMLElement | null>(null);
-  // Node in state (not a ref) so the focus effect re-runs once doom's Sheet
-  // finishes its two-pass portal mount and the node actually exists.
-  const [sheetNode, setSheetNode] = useState<HTMLDivElement | null>(null);
+  const { setDialogNode, openFrom } = useDialogFocusTrap(allOpen);
 
   const load = useCallback(() => {
     setError(false);
@@ -68,35 +66,6 @@ export default function PlanHub({
   }, [toastError]);
 
   useEffect(() => load(), [load]);
-
-  // doom's Sheet sets role="dialog"/aria-modal but manages no focus — trap Tab
-  // across the whole dialog (incl. its own close button), focus it on open, and
-  // restore the trigger on close.
-  useEffect(() => {
-    if (!allOpen || !sheetNode) return;
-    const dialog = (sheetNode.closest('[role="dialog"]') as HTMLElement) ?? sheetNode;
-    const focusables = () =>
-      Array.from(
-        dialog.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-      ).filter((el) => el.offsetParent !== null);
-    (focusables()[0] ?? sheetNode).focus();
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
-      const items = focusables();
-      if (items.length === 0) { e.preventDefault(); return; }
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    };
-    dialog.addEventListener('keydown', onKeyDown);
-    return () => {
-      dialog.removeEventListener('keydown', onKeyDown);
-      triggerRef.current?.focus();
-    };
-  }, [allOpen, sheetNode]);
 
   const go = (tab: string, goalId?: number) => router.push(tabHref(searchParams, tab, goalId));
 
@@ -167,7 +136,7 @@ export default function PlanHub({
             <Button
               size="sm"
               variant="ghost"
-              onClick={(e) => { triggerRef.current = e?.currentTarget as HTMLElement; setAllOpen(true); }}
+              onClick={(e) => { openFrom(e); setAllOpen(true); }}
             >
               View all ({hubPlans.length})
             </Button>
@@ -266,7 +235,7 @@ export default function PlanHub({
 
       {allOpen && (
         <Sheet isOpen={allOpen} onClose={() => setAllOpen(false)} title="Saved plans">
-          <div ref={setSheetNode} tabIndex={-1}>
+          <div ref={setDialogNode} tabIndex={-1}>
             <PlanGoalsList />
           </div>
         </Sheet>

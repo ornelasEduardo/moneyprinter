@@ -4,6 +4,7 @@
 // imports for its pure math — stays free of Prisma and its
 // node:async_hooks dependency (@/lib/audit-context), which Next's client
 // webpack bundle cannot resolve.
+import { cache } from 'react';
 import prisma from '@/lib/prisma';
 import { TRAILING_MONTHS, liquidBalance, netWorth, monthlyIncome, monthlySurplus } from './signals';
 import { colThresholds } from './col';
@@ -34,7 +35,9 @@ export async function loadNetWorth(userId: number): Promise<number> {
   return Number(r._sum.balance) || 0;
 }
 
-async function trailingTotals(userId: number) {
+// Per-request memo so monthlyIncome and monthlySurplus share ONE transaction
+// scan (and one consistent snapshot) instead of each reading the table.
+const trailingTotals = cache(async (userId: number) => {
   const rows = await prisma.transactions.findMany({
     where: { user_id: userId, deleted_at: null, date: { gte: trailingStart() } },
     select: { amount: true, type: true },
@@ -47,7 +50,7 @@ async function trailingTotals(userId: number) {
     else expense += amt;
   }
   return { income, expense };
-}
+});
 
 export async function loadMonthlyIncome(userId: number): Promise<number> {
   const { income } = await trailingTotals(userId);

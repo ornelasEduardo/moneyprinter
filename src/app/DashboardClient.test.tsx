@@ -1,8 +1,9 @@
 import { render, screen } from '@/test-utils';
 import DashboardClient from './DashboardClient';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 
+const nav = vi.hoisted(() => ({ tab: 'home' }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -10,7 +11,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => ({
     get: vi.fn((key) => {
       if (key === 'year') return '2024';
-      if (key === 'tab') return 'home';
+      if (key === 'tab') return nav.tab;
       return null;
     }),
     toString: () => '',
@@ -29,6 +30,8 @@ vi.mock('@/components/NetWorthHistoryTable', () => ({ default: () => <div data-t
 vi.mock('@/components/SettingsView', () => ({ default: () => <div data-testid="settings-view" /> }));
 vi.mock('@/components/AnalyticsOverview', () => ({ default: () => <div data-testid="analytics-overview" /> }));
 vi.mock('@/components/AnalyticsReports', () => ({ default: () => <div data-testid="analytics-reports" /> }));
+vi.mock('@/components/planning/PlanHub', () => ({ default: () => <div data-testid="plan-hub" /> }));
+vi.mock('@/components/planning/MortgageTab', () => ({ default: () => <div data-testid="mortgage-tab" /> }));
 
 const mockProps: any = {
   user: { id: 1, username: 'test', display_name: 'Test', is_sandbox: false },
@@ -51,6 +54,21 @@ const mockProps: any = {
 };
 
 describe('DashboardClient', () => {
+  beforeEach(() => { nav.tab = 'home'; });
+
+  it('renders the Plan hub on the plan tab and keeps Overview as the Plan section leaf', () => {
+    nav.tab = 'plan';
+    render(<DashboardClient {...mockProps} />);
+    expect(screen.getByTestId('plan-hub')).toBeInTheDocument();
+    expect(screen.getAllByText('Overview').length).toBeGreaterThan(0);
+  });
+
+  it('renders the mortgage calculator on the mortgage tab', () => {
+    nav.tab = 'mortgage';
+    render(<DashboardClient {...mockProps} />);
+    expect(screen.getByTestId('mortgage-tab')).toBeInTheDocument();
+  });
+
   it('should render the dashboard with sidebar and home content', () => {
     render(<DashboardClient {...mockProps} />);
 

@@ -33,5 +33,8 @@ export async function governedFetch(
     data: { user_id: userId, integration_id: integrationId, host, purpose },
   });
 
-  return fetch(url, init);
+  // Fail closed on redirects: default fetch would follow a 3xx to an
+  // off-allowlist host (replaying the key-bearing URL) while the audit row
+  // still says the allowlisted host. Reject instead.
+  return fetch(url, { ...init, redirect: 'error' });
 }

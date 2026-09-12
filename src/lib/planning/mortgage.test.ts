@@ -20,6 +20,12 @@ describe('mortgageMath', () => {
     expect(m.principalAndInterest).toBeCloseTo(320000 / 360, 2);
   });
 
+  it('stays finite for absurd rate/term (no $NaN in the live UI)', () => {
+    const m = mortgageMath({ ...base, annualRatePct: 100000, termYears: 500 });
+    expect(Number.isFinite(m.principalAndInterest)).toBe(true);
+    expect(Number.isFinite(m.monthlyPayment)).toBe(true);
+  });
+
   it('monthlyPayment adds taxes, insurance, HOA, PMI (PITI)', () => {
     const m = mortgageMath({ ...base, hoaMonthly: 150, pmiMonthly: 100 });
     // P&I + 400 tax + 100 ins + 150 hoa + 100 pmi

@@ -53,7 +53,12 @@ export async function loadColThresholds(userId: number): Promise<ColResolution> 
   const mode = await getSetting(userId, 'col_mode');
   if (mode === 'bea') {
     try { return await beaThresholds(userId); }
-    catch { return await manualOrNational(userId); }
+    catch (err) {
+      // A revoked key or BEA outage silently degrades to manual/national — log
+      // so a broken integration is diagnosable instead of invisible.
+      console.error('[col] BEA threshold fetch failed; falling back to manual/national', err);
+      return await manualOrNational(userId);
+    }
   }
   return await manualOrNational(userId);
 }

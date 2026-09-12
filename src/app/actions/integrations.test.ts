@@ -54,6 +54,14 @@ describe('savePlanningColConfig validation', () => {
     expect(keys).toContain('integration.bea-col.enabled');
     expect(keys).toContain('integration.bea-col.key');
   });
+
+  it('does not require a key in Manual mode (even if beaEnabled is sent) and forces enabled=false', async () => {
+    settings({}); // no stored key
+    await expect(savePlanningColConfig({ mode: 'manual', beaEnabled: true, front: 0.40, back: 0.48 })).resolves.toBeUndefined();
+    const enabledCall = (prisma.user_settings.upsert as any).mock.calls
+      .find((c: any) => c[0].where.user_id_key.key === 'integration.bea-col.enabled');
+    expect(enabledCall?.[0].update.value).toBe('false'); // opt-in cleared, no egress
+  });
 });
 
 describe('getPlanningColConfig', () => {

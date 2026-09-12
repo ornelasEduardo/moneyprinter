@@ -6,9 +6,17 @@ import { revalidatePath } from 'next/cache';
 import { planRegistry, type PlanKind } from '@/lib/planning/registry';
 import { createServerContext, snapshotOf } from '@/lib/planning/server-context';
 
+// Server actions receive untyped runtime input — guard the registry lookup so a
+// bogus `kind` fails cleanly instead of a `undefined.defaults` TypeError.
+function requirePlan(kind: PlanKind) {
+  const def = planRegistry[kind];
+  if (!def) throw new Error(`Unknown plan kind: ${String(kind)}`);
+  return def;
+}
+
 export async function resolvePlanContext(kind: PlanKind) {
   const userId = await requireAuth();
-  const def = planRegistry[kind];
+  const def = requirePlan(kind);
   const ctx = createServerContext(userId);
   const defaults = await def.defaults(ctx);
   // Prime the assessment signals so the snapshot covers a first compute.
@@ -22,7 +30,7 @@ export async function saveGoalFromPlan(
   opts?: { name?: string; targetDate?: string | null },
 ) {
   const userId = await requireAuth();
-  const def = planRegistry[kind];
+  const def = requirePlan(kind);
   const parsed = def.schema.parse(inputs); // throws on invalid
   const { targetAmount, suggestedName } = def.toGoal(parsed);
 
