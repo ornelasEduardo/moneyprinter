@@ -40,6 +40,8 @@ model goals {
   current_amount Decimal?  @default(0) @db.Decimal(12, 2)
   is_primary     Boolean?  @default(false)
   target_date    DateTime? @db.Date
+  plan_kind      String?   @db.VarChar(50)
+  plan_inputs    Json?
   created_at     DateTime? @default(now()) @db.Timestamptz(6)
   user_id        Int?
   users          users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -128,6 +130,16 @@ model audit_log {
   users          users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
+model integration_audit {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  integration_id String   @db.VarChar(50)
+  host           String   @db.VarChar(255)
+  purpose        String   @db.VarChar(255)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  users          users    @relation(fields: [user_id], references: [id])
+}
+
 model users {
   id                    Int                     @id @default(autoincrement())
   username              String                  @unique @db.VarChar(255)
@@ -145,6 +157,7 @@ model users {
   import_history        import_history[]
   income_budgets        income_budgets[]
   income_sources        income_sources[]
+  integration_audit     integration_audit[]
   net_worth_history     net_worth_history[]
   provenance            provenance[]
   transactions          transactions[]

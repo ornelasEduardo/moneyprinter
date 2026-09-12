@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Text, Card, useTheme, ThemeKey } from "doom-design-system";
+import IntegrationsSettings from "./settings/IntegrationsSettings";
 import styles from "./SettingsView.module.scss";
 
 export default function SettingsView() {
@@ -54,6 +55,20 @@ export default function SettingsView() {
             </button>
           ))}
         </div>
+      </Card>
+
+      <Card className={styles.section}>
+        <div>
+          <Text variant="h4" className="mb-2">
+            Cost of living &amp; integrations
+          </Text>
+          <Text color="muted">
+            Configure how planning cost-of-living adjustments are sourced,
+            and review what the optional BEA integration sends off-machine.
+          </Text>
+        </div>
+
+        <IntegrationsSettings />
       </Card>
     </div>
   );

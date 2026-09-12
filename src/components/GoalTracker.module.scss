@@ -1,0 +1,13 @@
+// doom's ghost-button hover/focus gets defeated here by cross-stylesheet
+// @layer ordering (Next bundles CSS Modules separately from doom's globals),
+// leaving the card's only edit affordance with no visible state. A module rule
+// sits outside those layers, so it wins.
+.editBtn:hover {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.editBtn:focus-visible {
+  outline: var(--surface-border-width) solid var(--primary);
+  outline-offset: 2px;
+  color: var(--primary);
+}

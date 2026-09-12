@@ -1,0 +1,221 @@
+.hub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.verdict {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: var(--space-4);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+/* --primary-hover (purple-600) clears AA on small text where --primary (500) doesn't. */
+.cat { color: var(--primary-hover); }
+
+/* Letter-spacing for uppercase labels — the project ships no Tailwind, so the
+   `tracking-widest` utility is a no-op; this supplies the real tracking. */
+.eyebrow { letter-spacing: 0.12em; }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.toolRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+/* shared card-tile surface (neubrutalist, token-driven) */
+.tile,
+.tool {
+  text-align: left;
+  cursor: pointer;
+  padding: var(--space-6);
+  background: var(--card-bg);
+  color: var(--foreground);
+  border: var(--surface-border-width) solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font: inherit;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.tile:hover,
+.tool:hover {
+  transform: translate(calc(-1 * var(--space-0\.5)), calc(-1 * var(--space-0\.5)));
+  box-shadow: var(--shadow-lg);
+}
+
+.tile:focus-visible,
+.tool:focus-visible {
+  outline: var(--surface-border-width) solid var(--primary);
+  outline-offset: 2px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  // Fixed so 1- and 2-line plan names stay aligned and the loading Skeleton
+  // (same height) causes no layout shift. Keep in sync with the Skeleton height.
+  min-height: 138px;
+}
+
+.kind {
+  font-size: var(--text-2xs);
+  font-weight: var(--font-extrabold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--primary-hover);
+}
+
+.tileName {
+  font-size: var(--text-lg);
+  font-weight: var(--font-extrabold);
+  letter-spacing: -0.01em;
+}
+
+.amount {
+  margin-top: auto;
+  font-size: var(--text-xl);
+  font-weight: var(--font-black);
+  font-variant-numeric: tabular-nums;
+}
+
+.amount small {
+  display: block;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.go {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-extrabold);
+  color: var(--primary-hover);
+}
+
+.add {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-2);
+  border-style: dashed;
+  box-shadow: none;
+  color: var(--muted-foreground);
+}
+
+.add:hover { box-shadow: none; }
+
+/* tools */
+.tool {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.toolIco {
+  flex: 0 0 auto;
+  width: var(--size-11);
+  height: var(--size-11);
+  display: grid;
+  place-items: center;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-radius: var(--radius-md);
+}
+
+.toolBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.toolName {
+  font-size: var(--text-lg);
+  font-weight: var(--font-black);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.toolDesc {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+.soon {
+  border-style: dashed;
+  box-shadow: none;
+  cursor: default;
+}
+
+/* inert placeholder — don't fake an interactive lift on hover */
+.soon:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.soon .toolIco {
+  background: var(--surface-accent);
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 860px) {
+  .verdict { grid-template-columns: 1fr; }
+  .tiles { grid-template-columns: repeat(2, 1fr); }
+  .toolRow { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .tiles { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .tool { transition: none; }
+  .tile:hover,
+  .tool:hover { transform: none; }
+}

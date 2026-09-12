@@ -20,6 +20,8 @@ import DataTab from "@/components/DataTab";
 import type { BackupHistoryEntry } from "@/lib/constants";
 import AnalyticsOverview from "@/components/AnalyticsOverview";
 import AnalyticsReports from "@/components/AnalyticsReports";
+import MortgageTab from "@/components/planning/MortgageTab";
+import PlanHub from "@/components/planning/PlanHub";
 import {
   ActionRow,
   Card,
@@ -40,6 +42,7 @@ import {
   Receipt,
   BarChart3,
   FileBarChart,
+  Calculator,
 } from "lucide-react";
 import styles from "./DashboardClient.module.scss";
 
@@ -57,7 +60,7 @@ interface DashboardClientProps {
   monthlyNetWorthIncrease: number;
   windfalls: { name: string; amount: number; date: string; type: string }[];
   transactions: MovementRow[];
-  primaryGoal: { name: string; target_amount: number } | null;
+  primaryGoal: { id: number; name: string; target_amount: number; plan_kind?: string | null } | null;
   emergencyFund: number;
   accounts: SafeAccount[];
   availableYears: number[];
@@ -105,6 +108,8 @@ export default function DashboardClient(props: DashboardClientProps) {
     networth: 'finance',
     analytics: 'analytics',
     reports: 'analytics',
+    plan: 'plan',
+    mortgage: 'plan',
     history: 'system',
     data: 'system',
     settings: 'system',
@@ -323,6 +328,25 @@ export default function DashboardClient(props: DashboardClientProps) {
       case "reports":
         return <AnalyticsReports />;
 
+      case "plan":
+        return (
+          <PlanHub
+            goal={props.primaryGoal}
+            emergencyFund={props.emergencyFund}
+            netWorth={props.netWorth}
+            monthlySavings={props.monthlyNetWorthIncrease}
+            monthlyExpenses={props.yearlySpending / 12}
+          />
+        );
+
+      case "mortgage": {
+        const goalParam = searchParams.get("goal");
+        const goalId = goalParam ? Number(goalParam) || null : null;
+        // Key on goalId so switching between "no goal" and a specific goal
+        // (or between two goals) remounts the tab instead of reusing stale state.
+        return <MortgageTab key={goalId ?? "none"} goalId={goalId} />;
+      }
+
       default:
         return null;
     }
@@ -333,7 +357,7 @@ export default function DashboardClient(props: DashboardClientProps) {
       <div className={styles.layout}>
         <Sidebar
           withRail
-          activeItem={`/${activeTab}`}
+          activeItem={tabToSection[activeTab] === 'plan' ? '/plan' : `/${activeTab}`}
           activeSection={activeSection}
           onNavigate={handleNavigation}
           onSectionChange={setActiveSection}
@@ -355,6 +379,9 @@ export default function DashboardClient(props: DashboardClientProps) {
             <Sidebar.Section id="analytics" label="Analytics" icon={<BarChart3 size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/analytics" icon={<BarChart3 size={18} strokeWidth={2.5} />}>Overview</Sidebar.Item>
               <Sidebar.Item href="/reports" icon={<FileBarChart size={18} strokeWidth={2.5} />}>Reports</Sidebar.Item>
+            </Sidebar.Section>
+            <Sidebar.Section id="plan" label="Plan" icon={<Calculator size={20} strokeWidth={2.5} />}>
+              <Sidebar.Item href="/plan" icon={<Calculator size={18} strokeWidth={2.5} />}>Overview</Sidebar.Item>
             </Sidebar.Section>
             <Sidebar.Section id="system" label="System" icon={<Settings size={20} strokeWidth={2.5} />}>
               <Sidebar.Item href="/history" icon={<Clock size={18} strokeWidth={2.5} />}>History</Sidebar.Item>

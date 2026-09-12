@@ -165,3 +165,24 @@ describe('userSettingSchema', () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe('goalSchema plan pairing', () => {
+  it('rejects plan_kind without plan_inputs', () => {
+    expect(goalSchema.safeParse({ name: 'x', target_amount: 1, plan_kind: 'mortgage' }).success).toBe(false);
+  });
+  it('accepts a plain goal', () => {
+    expect(goalSchema.safeParse({ name: 'x', target_amount: 1 }).success).toBe(true);
+  });
+  it('rejects a malformed mortgage plan_inputs blob', () => {
+    expect(goalSchema.safeParse({
+      name: 'x', target_amount: 1, plan_kind: 'mortgage', plan_inputs: { homePrice: 'nope' },
+    }).success).toBe(false);
+  });
+  it('accepts a valid mortgage plan_inputs blob', () => {
+    const plan_inputs = {
+      homePrice: 400000, downPayment: 80000, annualRatePct: 6, termYears: 30,
+      propertyTaxAnnual: 4800, homeInsuranceAnnual: 1200, hoaMonthly: 0, pmiMonthly: 0, existingMonthlyDebt: 0,
+    };
+    expect(goalSchema.safeParse({ name: 'x', target_amount: 1, plan_kind: 'mortgage', plan_inputs }).success).toBe(true);
+  });
+});

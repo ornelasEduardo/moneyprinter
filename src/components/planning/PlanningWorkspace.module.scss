@@ -1,0 +1,23 @@
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-extrabold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  margin-bottom: var(--space-2);
+  width: fit-content;
+}
+
+.back:hover {
+  color: var(--primary-hover);
+}
+
+.back:focus-visible {
+  outline: var(--surface-border-width) solid var(--primary);
+  outline-offset: 2px;
+  color: var(--primary-hover);
+}

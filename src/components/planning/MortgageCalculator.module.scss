@@ -1,0 +1,35 @@
+.main {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.results {
+  position: sticky;
+  top: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+  // Show the answer before the form on narrow screens.
+  .results {
+    position: static;
+    order: -1;
+  }
+}
+
+.piti {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+}
+
+.railDivider {
+  height: var(--surface-border-width);
+  background: var(--foreground);
+  opacity: 0.12;
+  margin: var(--space-1) 0;
+}

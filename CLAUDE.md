@@ -42,6 +42,17 @@ npx tsc --noEmit     # type check
 
 Version `0.8.0`. `transpilePackages: ['doom-design-system']` is set in `next.config.mjs`.
 
+## Designing finance dashboards & product UI
+
+**Full guide: `DESIGN.md`** (Gestalt, hierarchy/type, data-viz, finance-product craft, accessibility, with sources + a pre-ship checklist). Read it before building any planning/analytics surface. The non-negotiables:
+
+- **doom tokens only — never hardcode** a color/space/radius/shadow. Style through doom CSS custom properties (`--primary`, `--secondary`, `--success`/`--warning`/`--error`, `--background`, `--card-bg`, `--card-border`, `--muted-foreground`, `--space-*`, `--radius-*`, `--shadow-*`, `--text-*`, `--font-*`); values in `doom-design-system/dist/styles/{palettes.js, globals.css, themes/definitions.js}` (`default` theme). Prefer doom components over ad-hoc markup/D3.
+- **One focal point** per view — the single "am I okay?" number, largest, top-left. **Group by question** (proximity/common-region), not a flat grid of equal tiles.
+- **Every number carries context + an action**; **meaning never rides on color alone** (pair with sign/icon/text).
+- **Design empty/loading/error/edge states**, not just the happy path.
+- **Numerals:** `tabular-nums`, right-aligned, consistent precision, shared `money()` formatters.
+- **Accessible + verified visually:** AA contrast (AAA on primary figures), visible focus, keyboard-operable tables/drawers, reduced-motion honored — then screenshot it (passing tests ≠ good design).
+
 ## Test setup
 
 `src/test-utils.tsx` wraps renders with `ThemeProvider` + `ToastProvider`. Always import `render` from there, not from `@testing-library/react`.
