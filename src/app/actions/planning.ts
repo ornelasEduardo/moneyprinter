@@ -43,7 +43,15 @@ export async function saveGoalFromPlan(
   return { id: goal.id };
 }
 
-export async function getPlanGoals() {
+export interface PlanGoal {
+  id: number;
+  name: string;
+  targetAmount: number;
+  kind: PlanKind;
+  createdAt: number;
+}
+
+export async function getPlanGoals(): Promise<PlanGoal[]> {
   const userId = await requireAuth();
   const goals = await prisma.goals.findMany({
     where: { user_id: userId, plan_kind: { not: null } },

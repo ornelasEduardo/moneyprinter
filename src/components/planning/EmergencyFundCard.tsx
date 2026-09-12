@@ -23,11 +23,11 @@ export function EmergencyFundCard({ target, monthlyExpenses }: EmergencyFundCard
     return (
       <Card>
         <Flex direction="column" gap={2}>
-          <Text variant="small" weight="bold" color="muted" className="uppercase tracking-widest">
+          <Text variant="small" weight="bold" color="muted" className="uppercase" style={{ letterSpacing: '0.12em' }}>
             Emergency fund
           </Text>
           <Text color="muted">
-            Set an emergency-fund target in your goal settings to track your coverage.
+            Set an emergency-fund target with the edit button on your goal to track your coverage.
           </Text>
         </Flex>
       </Card>
@@ -41,12 +41,12 @@ export function EmergencyFundCard({ target, monthlyExpenses }: EmergencyFundCard
     <Card>
       <Flex direction="column" gap={2}>
         <Flex justify="space-between" align="center" wrap gap={2}>
-          <Text variant="small" weight="bold" color="muted" className="uppercase tracking-widest">
+          <Text variant="small" weight="bold" color="muted" className="uppercase" style={{ letterSpacing: '0.12em' }}>
             Emergency fund
           </Text>
           <Badge variant={status.variant}>{status.label}</Badge>
         </Flex>
-        <Text variant="h2" weight="black" style={NUMERIC}>
+        <Text variant="h2" as="p" weight="black" style={NUMERIC}>
           {money(target)}
         </Text>
         {monthlyExpenses > 0 && (

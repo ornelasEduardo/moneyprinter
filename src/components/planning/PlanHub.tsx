@@ -1,19 +1,30 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button, Sheet, Text } from 'doom-design-system';
+import { Button, Card, Sheet, Skeleton, Text, useToast } from 'doom-design-system';
 import { Home, Plus, ArrowRight } from 'lucide-react';
 import { GoalTracker } from '@/components/GoalTracker';
 import { EmergencyFundCard } from './EmergencyFundCard';
 import PlanGoalsList from './PlanGoalsList';
-import { getPlanGoals } from '@/app/actions/planning';
-import { toolsByGroup } from '@/lib/planning/tools';
+import { getPlanGoals, type PlanGoal } from '@/app/actions/planning';
+import {
+  PLAN_TOOLS,
+  toolsByGroup,
+  tabForKind,
+  labelForKind,
+  amountLabelForKind,
+} from '@/lib/planning/tools';
 import { money } from '@/lib/planning/format';
+import { tabHref } from '@/lib/planning/nav';
 import styles from './PlanHub.module.scss';
 
 const TOOL_ICON = { home: Home };
-type PlanGoal = Awaited<ReturnType<typeof getPlanGoals>>[number];
+
+// One tool today, so "New plan" opens it directly. With >1 tool this needs a
+// picker — deriving from the registry keeps the CTA from silently routing to
+// mortgage the day a second tool ships.
+const soleTool = PLAN_TOOLS.length === 1 ? PLAN_TOOLS[0] : null;
 
 interface PlanHubProps {
   goal: { id: number; name: string; target_amount: number; plan_kind?: string | null } | null;
@@ -32,70 +43,151 @@ export default function PlanHub({
 }: PlanHubProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toastError } = useToast();
   const [plans, setPlans] = useState<PlanGoal[] | null>(null);
+  const [error, setError] = useState(false);
   const [allOpen, setAllOpen] = useState(false);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  // Node in state (not a ref) so the focus effect re-runs once doom's Sheet
+  // finishes its two-pass portal mount and the node actually exists.
+  const [sheetNode, setSheetNode] = useState<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setError(false);
+    setPlans(null);
     let cancelled = false;
     getPlanGoals()
       .then((g) => { if (!cancelled) setPlans(g); })
-      .catch(() => { if (!cancelled) setPlans([]); });
+      .catch(() => {
+        if (cancelled) return;
+        setError(true);
+        setPlans([]);
+        toastError("Couldn't load your saved plans.");
+      });
     return () => { cancelled = true; };
-  }, []);
+  }, [toastError]);
 
-  // Clone current params so year/etc. survive the jump — DashboardClient's idiom.
-  const go = (tab: string, goalId?: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tab);
-    if (goalId != null) params.set('goal', String(goalId));
-    else params.delete('goal');
-    router.push(`/?${params.toString()}`);
-  };
+  useEffect(() => load(), [load]);
 
-  const visiblePlans = plans ? plans.slice(0, 6) : [];
-  const hasMore = (plans?.length ?? 0) > 6;
+  // doom's Sheet sets role="dialog"/aria-modal but manages no focus — trap Tab
+  // across the whole dialog (incl. its own close button), focus it on open, and
+  // restore the trigger on close.
+  useEffect(() => {
+    if (!allOpen || !sheetNode) return;
+    const dialog = (sheetNode.closest('[role="dialog"]') as HTMLElement) ?? sheetNode;
+    const focusables = () =>
+      Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el.offsetParent !== null);
+    (focusables()[0] ?? sheetNode).focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const items = focusables();
+      if (items.length === 0) { e.preventDefault(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    dialog.addEventListener('keydown', onKeyDown);
+    return () => {
+      dialog.removeEventListener('keydown', onKeyDown);
+      triggerRef.current?.focus();
+    };
+  }, [allOpen, sheetNode]);
+
+  const go = (tab: string, goalId?: number) => router.push(tabHref(searchParams, tab, goalId));
+
+  const startNew = () => { if (soleTool) go(soleTool.tab); };
+  const eyebrow = `uppercase ${styles.eyebrow}`;
+
+  // The primary goal already headlines Zone 1 — don't repeat it as a tile.
+  const hubPlans = (plans ?? []).filter((p) => p.id !== goal?.id);
+  const visiblePlans = hubPlans.slice(0, 6);
+  const hasMore = hubPlans.length > 6;
 
   return (
     <div className={styles.hub} data-testid="plan-hub">
       <header className={styles.header}>
         <div>
-          <Text variant="small" weight="bold" color="muted" className="uppercase tracking-widest">
+          <Text variant="small" weight="bold" color="muted" className={eyebrow}>
             Your financial plan
           </Text>
           <Text variant="h1" weight="black" className="uppercase">Plan</Text>
         </div>
-        <Button variant="primary" onClick={() => go('mortgage')}>
-          <Plus size={18} strokeWidth={2.5} /> New plan
-        </Button>
+        {soleTool && (
+          <Button variant="primary" onClick={startNew}>
+            <Plus size={18} strokeWidth={2.5} /> New plan
+          </Button>
+        )}
       </header>
 
       {/* Zone 1 — where you stand */}
-      <section className={styles.verdict} aria-label="Where you stand">
-        <GoalTracker
-          goal={goal}
-          netWorth={netWorth}
-          monthlySavings={monthlySavings}
-          emergencyFund={emergencyFund}
-        />
-        <EmergencyFundCard target={emergencyFund} monthlyExpenses={monthlyExpenses} />
+      <section aria-labelledby="hub-standing">
+        <div className={styles.sectionHead}>
+          <Text as="h2" id="hub-standing" variant="small" weight="bold" className={eyebrow}>
+            Where you stand
+          </Text>
+        </div>
+        <div className={styles.verdict}>
+          {goal ? (
+            <GoalTracker
+              goal={goal}
+              netWorth={netWorth}
+              monthlySavings={monthlySavings}
+              emergencyFund={emergencyFund}
+            />
+          ) : (
+            <Card>
+              <Text variant="small" weight="bold" color="muted" className={eyebrow}>Primary goal</Text>
+              <Text variant="h3" weight="black" style={{ marginTop: 'var(--space-2)' }}>No goal set yet</Text>
+              <Text color="muted" style={{ marginTop: 'var(--space-1)' }}>
+                Set a primary goal to track your timeline and progress.
+              </Text>
+              {soleTool && (
+                <Button variant="primary" onClick={startNew} style={{ marginTop: 'var(--space-4)' }}>
+                  New plan
+                </Button>
+              )}
+            </Card>
+          )}
+          <EmergencyFundCard target={emergencyFund} monthlyExpenses={monthlyExpenses} />
+        </div>
       </section>
 
       {/* Zone 2 — your plans */}
-      <section aria-label="Your plans">
+      <section aria-labelledby="hub-plans">
         <div className={styles.sectionHead}>
-          <Text as="h2" variant="small" weight="bold" className="uppercase tracking-widest">
+          <Text as="h2" id="hub-plans" variant="small" weight="bold" className={eyebrow}>
             Your plans
           </Text>
-          {hasMore && (
-            <Button size="sm" variant="ghost" onClick={() => setAllOpen(true)}>
-              View all ({plans?.length})
+          {hasMore && !error && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => { triggerRef.current = e?.currentTarget as HTMLElement; setAllOpen(true); }}
+            >
+              View all ({hubPlans.length})
             </Button>
           )}
         </div>
-        {plans === null ? (
+        <span className={styles.srOnly} role="status" aria-live="polite">
+          {plans === null ? 'Loading your plans…' : error ? "Couldn't load your saved plans." : ''}
+        </span>
+        {error ? (
+          <Card>
+            <Text weight="bold">Couldn&apos;t load your saved plans.</Text>
+            <Text color="muted" style={{ marginTop: 'var(--space-1)' }}>
+              Something went wrong reaching your data.
+            </Text>
+            <Button variant="secondary" onClick={load} style={{ marginTop: 'var(--space-4)' }}>Retry</Button>
+          </Card>
+        ) : plans === null ? (
           <div className={styles.tiles} aria-hidden="true">
             {[0, 1, 2].map((i) => (
-              <div key={i} className={`${styles.tile} ${styles.skeleton}`} />
+              <Skeleton key={i} height="138px" variant="rectangular" />
             ))}
           </div>
         ) : (
@@ -104,28 +196,30 @@ export default function PlanHub({
               <button
                 key={p.id}
                 className={styles.tile}
-                onClick={() => go('mortgage', p.id)}
-                aria-label={`Open plan ${p.name}`}
+                onClick={() => go(tabForKind(p.kind), p.id)}
+                aria-label={`View plan ${p.name}, ${money(p.targetAmount)} ${amountLabelForKind(p.kind).toLowerCase()}`}
               >
-                <span className={styles.kind}>{p.kind}</span>
+                <span className={styles.kind}>{labelForKind(p.kind)}</span>
                 <span className={styles.tileName}>{p.name}</span>
                 <span className={styles.amount}>
                   {money(p.targetAmount)}
-                  <small>Down payment</small>
+                  <small>{amountLabelForKind(p.kind)}</small>
                 </span>
                 <span className={styles.go}>
-                  Continue <ArrowRight size={14} strokeWidth={2.5} />
+                  View plan <ArrowRight size={14} strokeWidth={2.5} />
                 </span>
               </button>
             ))}
-            <button
-              className={`${styles.tile} ${styles.add}`}
-              onClick={() => go('mortgage')}
-              aria-label="Save a new plan"
-            >
-              <Plus size={26} strokeWidth={2.5} />
-              <span>Save a new plan</span>
-            </button>
+            {visiblePlans.length === 0 && soleTool && (
+              <button
+                className={`${styles.tile} ${styles.add}`}
+                onClick={startNew}
+                aria-label="New plan"
+              >
+                <Plus size={26} strokeWidth={2.5} />
+                <span>New plan</span>
+              </button>
+            )}
           </div>
         )}
       </section>
@@ -134,7 +228,7 @@ export default function PlanHub({
       {toolsByGroup().map(({ group, tools }) => (
         <section key={group} aria-label={`Tools: ${group}`}>
           <div className={styles.sectionHead}>
-            <Text as="h2" variant="small" weight="bold" className="uppercase tracking-widest">
+            <Text as="h2" variant="small" weight="bold" className={eyebrow}>
               Tools · <span className={styles.cat}>{group}</span>
             </Text>
           </div>
@@ -146,7 +240,7 @@ export default function PlanHub({
                   key={t.kind}
                   className={styles.tool}
                   onClick={() => go(t.tab)}
-                  aria-label={`Open ${t.label}`}
+                  aria-label={`Open ${t.label}: ${t.description}`}
                 >
                   <span className={styles.toolIco}><Icon size={22} strokeWidth={2.5} /></span>
                   <span className={styles.toolBody}>
@@ -170,9 +264,13 @@ export default function PlanHub({
         </section>
       ))}
 
-      <Sheet isOpen={allOpen} onClose={() => setAllOpen(false)} title="Saved plans">
-        <PlanGoalsList />
-      </Sheet>
+      {allOpen && (
+        <Sheet isOpen={allOpen} onClose={() => setAllOpen(false)} title="Saved plans">
+          <div ref={setSheetNode} tabIndex={-1}>
+            <PlanGoalsList />
+          </div>
+        </Sheet>
+      )}
     </div>
   );
 }

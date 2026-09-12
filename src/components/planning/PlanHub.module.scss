@@ -26,7 +26,24 @@
   margin-bottom: var(--space-3);
 }
 
-.cat { color: var(--primary); }
+/* --primary-hover (purple-600) clears AA on small text where --primary (500) doesn't. */
+.cat { color: var(--primary-hover); }
+
+/* Letter-spacing for uppercase labels — the project ships no Tailwind, so the
+   `tracking-widest` utility is a no-op; this supplies the real tracking. */
+.eyebrow { letter-spacing: 0.12em; }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 .tiles {
   display: grid;
@@ -59,7 +76,7 @@
 
 .tile:hover,
 .tool:hover {
-  transform: translate(-1px, -1px);
+  transform: translate(calc(-1 * var(--space-0\.5)), calc(-1 * var(--space-0\.5)));
   box-shadow: var(--shadow-lg);
 }
 
@@ -73,6 +90,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  // Fixed so 1- and 2-line plan names stay aligned and the loading Skeleton
+  // (same height) causes no layout shift. Keep in sync with the Skeleton height.
   min-height: 138px;
 }
 
@@ -81,7 +100,7 @@
   font-weight: var(--font-extrabold);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--primary-hover);
 }
 
 .tileName {
@@ -113,7 +132,7 @@
   margin-top: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-extrabold);
-  color: var(--primary);
+  color: var(--primary-hover);
 }
 
 .add {
@@ -127,13 +146,6 @@
 }
 
 .add:hover { box-shadow: none; }
-
-.skeleton {
-  border-style: dashed;
-  box-shadow: none;
-  opacity: 0.5;
-  cursor: default;
-}
 
 /* tools */
 .tool {
@@ -150,9 +162,7 @@
   place-items: center;
   background: var(--secondary);
   color: var(--secondary-foreground);
-  border: var(--surface-border-width) solid var(--card-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
 }
 
 .toolBody {
@@ -180,6 +190,12 @@
   border-style: dashed;
   box-shadow: none;
   cursor: default;
+}
+
+/* inert placeholder — don't fake an interactive lift on hover */
+.soon:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .soon .toolIco {

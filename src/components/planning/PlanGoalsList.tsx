@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, Table, Text } from 'doom-design-system';
 import type { ColumnDef } from '@tanstack/react-table';
-import { getPlanGoals } from '@/app/actions/planning';
+import { getPlanGoals, type PlanGoal } from '@/app/actions/planning';
+import { tabForKind, amountLabelForKind } from '@/lib/planning/tools';
+import { tabHref } from '@/lib/planning/nav';
+import { money } from '@/lib/planning/format';
 
-const money = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 const fmtDate = (ms: number) =>
   new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(ms));
 
@@ -20,31 +21,27 @@ function bucketOf(ms: number, now: number): (typeof BUCKETS)[number] {
   return 'Earlier';
 }
 
-type PlanGoal = Awaited<ReturnType<typeof getPlanGoals>>[number];
-type Row = { id: number; name: string; downPayment: number; createdAt: number; period: string };
+type Row = { id: number; name: string; kind: string; downPayment: number; createdAt: number; period: string };
 
 export default function PlanGoalsList() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [goals, setGoals] = useState<PlanGoal[] | null>(null);
 
+  const [error, setError] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
-    getPlanGoals().then((g) => {
-      if (!cancelled) setGoals(g);
-    });
+    getPlanGoals()
+      .then((g) => { if (!cancelled) setGoals(g); })
+      .catch(() => { if (!cancelled) { setError(true); setGoals([]); } });
     return () => {
       cancelled = true;
     };
   }, []);
 
   const viewPlan = useCallback(
-    (id: number) => {
-      const p = new URLSearchParams(searchParams.toString());
-      p.set('tab', 'mortgage');
-      p.set('goal', String(id));
-      router.push('/?' + p.toString());
-    },
+    (id: number, kind: string) => router.push(tabHref(searchParams, tabForKind(kind), id)),
     [router, searchParams],
   );
 
@@ -52,30 +49,36 @@ export default function PlanGoalsList() {
     if (!goals) return [];
     const now = Date.now();
     return goals
-      .map((g) => ({ id: g.id, name: g.name, downPayment: g.targetAmount, createdAt: g.createdAt, period: bucketOf(g.createdAt, now) }))
+      .map((g) => ({ id: g.id, name: g.name, kind: g.kind, downPayment: g.targetAmount, createdAt: g.createdAt, period: bucketOf(g.createdAt, now) }))
       .sort((a, b) => b.createdAt - a.createdAt); // newest first
   }, [goals]);
+
+  // Registry-driven so a future non-mortgage plan kind labels its amount correctly.
+  const amountHeader = amountLabelForKind(rows[0]?.kind ?? 'mortgage');
 
   const columns = useMemo<ColumnDef<Row>[]>(
     () => [
       { accessorKey: 'createdAt', header: 'Saved', cell: (i) => <Text weight="medium">{fmtDate(i.getValue() as number)}</Text> },
       { accessorKey: 'period', header: 'Group' },
       { accessorKey: 'name', header: 'Plan', cell: (i) => <Text weight="bold">{i.getValue() as string}</Text> },
-      { accessorKey: 'downPayment', header: 'Down payment', cell: (i) => <Text>{money(i.getValue() as number)}</Text> },
+      { accessorKey: 'downPayment', header: amountHeader, cell: (i) => <Text>{money(i.getValue() as number)}</Text> },
       {
         id: 'actions',
         header: '',
         enableSorting: false,
         cell: ({ row }) => (
-          <Button size="sm" variant="primary" data-testid="pg-view-plan" onClick={() => viewPlan(row.original.id)}>
+          <Button size="sm" variant="primary" data-testid="pg-view-plan" onClick={() => viewPlan(row.original.id, row.original.kind)}>
             View plan
           </Button>
         ),
       },
     ],
-    [viewPlan],
+    [viewPlan, amountHeader],
   );
 
+  if (error) {
+    return <Text color="muted" data-testid="plan-goals-list">Couldn&apos;t load your saved plans.</Text>;
+  }
   if (goals == null) {
     return <Text color="muted" data-testid="plan-goals-list">Loading…</Text>;
   }

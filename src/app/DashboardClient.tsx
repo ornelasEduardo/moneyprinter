@@ -357,7 +357,7 @@ export default function DashboardClient(props: DashboardClientProps) {
       <div className={styles.layout}>
         <Sidebar
           withRail
-          activeItem={`/${activeTab}`}
+          activeItem={tabToSection[activeTab] === 'plan' ? '/plan' : `/${activeTab}`}
           activeSection={activeSection}
           onNavigate={handleNavigation}
           onSectionChange={setActiveSection}

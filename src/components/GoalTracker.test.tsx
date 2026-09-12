@@ -80,6 +80,26 @@ describe("GoalTracker", () => {
     });
   });
 
+  it("shows a prompt instead of a bogus timeline when there is no savings rate", () => {
+    render(<GoalTracker {...defaultProps} monthlySavings={0} />);
+    expect(
+      screen.getByText(/Add monthly savings to project a timeline/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/YEARS/)).not.toBeInTheDocument();
+  });
+
+  it("shows GOAL REACHED once the goal is fully funded", () => {
+    render(
+      <GoalTracker
+        netWorth={200000}
+        monthlySavings={2000}
+        goal={{ id: 1, name: "Starter fund", target_amount: 100000 }}
+        emergencyFund={10000}
+      />
+    );
+    expect(screen.getByText("GOAL REACHED")).toBeInTheDocument();
+  });
+
   it("does not show a View plan button when the goal carries no plan", () => {
     render(<GoalTracker {...defaultProps} />);
     expect(screen.queryByTestId("gt-view-plan")).not.toBeInTheDocument();

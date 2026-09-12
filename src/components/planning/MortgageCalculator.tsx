@@ -101,7 +101,7 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
 
   if (!inputs || !math) {
     return (
-      <PlanningWorkspace title="Mortgage" header={header}>
+      <PlanningWorkspace title="Mortgage" header={header} backHref="/?tab=plan">
         <Card><Text color="muted">Reading your finances…</Text></Card>
         {plansDrawer}
       </PlanningWorkspace>
@@ -128,7 +128,7 @@ export default function MortgageCalculator({ initialInputs }: { initialInputs?: 
   ].filter((p) => p.value > 0);
 
   return (
-    <PlanningWorkspace title="Mortgage" header={header}>
+    <PlanningWorkspace title="Mortgage" header={header} backHref="/?tab=plan">
       <div className={styles.main}>
         <Stack gap={4}>
           {GROUPS.map((g) => (
