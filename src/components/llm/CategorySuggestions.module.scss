@@ -56,6 +56,25 @@
   flex: 0 0 auto;
 }
 
+/* Size the bottom sheet to its content instead of doom's fixed 85vh drawer
+   (which leaves a huge white void with a short list); cap + scroll when long.
+   Unlayered so it beats doom's layered .panel { height: 85vh }. */
+.panelFit {
+  height: auto;
+  max-height: 85vh;
+}
+
+/* doom renders the title in an unstyled slot, so it reads as body text — give
+   it a real header treatment. */
+.sheetTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-black);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+}
+
 /* Keep the sheet content a readable column instead of stretching the slats
    edge-to-edge across the full-width bottom sheet. */
 .sheet {

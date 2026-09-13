@@ -96,7 +96,12 @@ export default function CategorySuggestions() {
     </div>
 
       {open && (
-        <Sheet isOpen={open} onClose={() => setOpen(false)} title="Review category suggestions">
+        <Sheet
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          title={<span className={styles.sheetTitle}>Review category suggestions</span>}
+          className={styles.panelFit}
+        >
           <div ref={setDialogNode} tabIndex={-1} className={styles.sheet}>
             {loading ? (
               <div className={styles.state}>
