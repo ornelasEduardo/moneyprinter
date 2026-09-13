@@ -22,7 +22,7 @@ describe('CategorySuggestions', () => {
     expect(screen.queryByTestId('llm-suggest')).not.toBeInTheDocument();
   });
 
-  it('opens a sheet with approval slats and applies a reviewed suggestion', async () => {
+  it('shows suggestions inline (no modal) and applies a reviewed one', async () => {
     healthy();
     fn(suggestCategories).mockResolvedValue([
       { id: 7, name: 'TRADER JOES', amount: -62, suggestion: { category: 'groceries', confidence: 0.9 } },
@@ -57,11 +57,13 @@ describe('CategorySuggestions', () => {
     expect(applyCategory).toHaveBeenCalledWith(8, 'transportation');
   });
 
-  it('shows an empty state in the sheet when nothing needs categorizing', async () => {
+  it('stays collapsed with no slats when there is nothing to categorize', async () => {
     healthy();
     fn(suggestCategories).mockResolvedValue([]);
     render(<CategorySuggestions />);
     fireEvent.click(await screen.findByTestId('llm-suggest'));
-    expect(await screen.findByText(/All caught up/)).toBeInTheDocument();
+    await waitFor(() => expect(suggestCategories).toHaveBeenCalled());
+    expect(screen.queryByTestId('llm-slat')).not.toBeInTheDocument();
+    expect(screen.getByTestId('llm-suggest')).toBeInTheDocument();
   });
 });

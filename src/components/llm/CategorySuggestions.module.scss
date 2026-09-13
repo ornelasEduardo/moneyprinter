@@ -1,9 +1,5 @@
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-4);
+/* In-context review panel (not a modal) — neubrutalist surface, token-driven. */
+.panel {
   margin-bottom: var(--space-4);
   padding: var(--space-4) var(--space-6);
   background: var(--card-bg);
@@ -12,7 +8,15 @@
   box-shadow: var(--shadow-md);
 }
 
-/* icon + copy read as one group (Gestalt proximity); the action sits apart */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+/* icon + copy read as one group (Gestalt proximity); actions sit apart */
 .intro {
   display: flex;
   align-items: center;
@@ -39,8 +43,7 @@
   min-width: 0;
 }
 
-/* zero the default <p> margins so title + caption stay one tight group
-   (Gestalt proximity) — the flex gap above is the only separation. */
+/* zero the default <p> margins so title + caption stay one tight group */
 .title {
   margin: 0;
   font-size: var(--text-base);
@@ -52,51 +55,22 @@
   line-height: 1.35;
 }
 
-.cta {
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   flex: 0 0 auto;
 }
 
-/* Size the bottom sheet to its content instead of doom's fixed 85vh drawer
-   (which leaves a huge white void with a short list); cap + scroll when long.
-   Unlayered so it beats doom's layered .panel { height: 85vh }. */
-.panelFit {
-  height: auto;
-  max-height: 85vh;
-}
-
-/* doom renders the title in an unstyled slot, so it reads as body text — give
-   it a real header treatment. */
-.sheetTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-2xl);
-  font-weight: var(--font-black);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  line-height: 1.1;
-}
-
-/* Keep the sheet content a readable column instead of stretching the slats
-   edge-to-edge across the full-width bottom sheet. */
-.sheet {
-  max-width: 820px;
-  width: 100%;
-  margin: 0 auto;
-}
-
 .state {
-  padding: var(--space-12) var(--space-2);
-  text-align: center;
+  padding: var(--space-4) 0 var(--space-2);
 }
 
-/* count + bulk action, set apart from the list by a rule */
-.sheetHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-bottom: var(--space-3);
-  margin-bottom: var(--space-2);
-  border-bottom: var(--surface-border-width) solid var(--card-border);
+/* the review list, separated from the header by a rule */
+.list {
+  margin-top: var(--space-3);
+  padding-top: var(--space-1);
+  border-top: var(--surface-border-width) solid var(--card-border);
 }
 
 /* Grid so confidence / category / action line up across every slat
