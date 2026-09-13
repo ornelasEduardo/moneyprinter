@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, type MouseEvent } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { Badge, Button, Card, Flex, Input, Sheet, Spinner, Stack, Text, useToast } from 'doom-design-system';
 import { Sparkles } from 'lucide-react';
-import { suggestCategories, applyCategory, type CategorySuggestionRow } from '@/app/actions/llm';
+import { suggestCategories, applyCategory, getLlmHealth, type CategorySuggestionRow } from '@/app/actions/llm';
 import { money } from '@/lib/planning/format';
 import { useDialogFocusTrap } from '@/lib/useDialogFocusTrap';
 import styles from './CategorySuggestions.module.scss';
@@ -16,7 +16,18 @@ export default function CategorySuggestions() {
   const [rows, setRows] = useState<CategorySuggestionRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [edits, setEdits] = useState<Record<number, string>>({});
+  const [available, setAvailable] = useState<boolean | null>(null);
   const { setDialogNode, openFrom } = useDialogFocusTrap(open);
+
+  // Only surface the AI UI when the local integration is actually usable
+  // (enabled + Ollama reachable + model pulled). Hidden until confirmed.
+  useEffect(() => {
+    let cancelled = false;
+    getLlmHealth()
+      .then((h) => { if (!cancelled) setAvailable(h.ok); })
+      .catch(() => { if (!cancelled) setAvailable(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const run = async () => {
     setLoading(true);
@@ -50,6 +61,8 @@ export default function CategorySuggestions() {
       toastError("Couldn't apply that category.");
     }
   };
+
+  if (!available) return null;
 
   return (
     <Card className={styles.bar}>

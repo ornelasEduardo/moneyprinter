@@ -63,17 +63,17 @@ export default function LlmSettings() {
         <Button variant="primary" onClick={save} disabled={saving} data-testid="llm-save">
           {saving ? 'Saving…' : 'Save'}
         </Button>
-        {cfg.reachable ? (
-          <Badge variant="success">● Connected{cfg.version ? ` · Ollama ${cfg.version}` : ''}</Badge>
+        {cfg.ready ? (
+          <Badge variant="success">● Ready{cfg.version ? ` · Ollama ${cfg.version}` : ''}</Badge>
+        ) : cfg.reachable ? (
+          <Badge variant="warning">● Model not pulled</Badge>
         ) : (
-          <Badge variant="error">● Not reachable at {cfg.endpoint}</Badge>
+          <Badge variant="error">● Not reachable</Badge>
         )}
       </Flex>
 
-      {!cfg.reachable && (
-        <Text variant="caption" color="muted">
-          Start Ollama (<code>ollama serve</code> or <code>brew services start ollama</code>), then Save to re-check.
-        </Text>
+      {!cfg.ready && cfg.detail && (
+        <Text variant="caption" color="muted">{cfg.detail}</Text>
       )}
     </Stack>
   );

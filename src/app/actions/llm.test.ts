@@ -8,7 +8,9 @@ vi.mock('@/lib/prisma', () => ({
     transactions: { findMany: vi.fn(), updateMany: vi.fn() },
   },
 }));
-vi.mock('@/lib/llm/client', () => ({ llmReachable: vi.fn(async () => ({ ok: true, version: '0.33.3' })) }));
+vi.mock('@/lib/llm/health', () => ({
+  llmHealth: vi.fn(async () => ({ ok: true, enabled: true, reachable: true, ready: true, version: '0.33.3' })),
+}));
 vi.mock('@/lib/llm/categorize', async (orig) => ({
   ...(await orig<typeof import('@/lib/llm/categorize')>()),
   suggestCategory: vi.fn(),
@@ -16,7 +18,7 @@ vi.mock('@/lib/llm/categorize', async (orig) => ({
 
 import prisma from '@/lib/prisma';
 import { suggestCategory } from '@/lib/llm/categorize';
-import { suggestCategories, applyCategory, saveLlmSettings, getLlmSettings } from './llm';
+import { suggestCategories, applyCategory, saveLlmSettings, getLlmSettings, getLlmHealth } from './llm';
 
 const fn = (m: unknown) => m as unknown as ReturnType<typeof vi.fn>;
 const enable = (on: boolean) =>
@@ -67,9 +69,14 @@ describe('llm actions', () => {
     expect(keys).toEqual(expect.arrayContaining(['llm.enabled', 'llm.endpoint', 'llm.model']));
   });
 
-  it('getLlmSettings reports reachability', async () => {
+  it('getLlmSettings reports reachability + readiness from the health check', async () => {
     enable(true);
     const view = await getLlmSettings();
-    expect(view).toMatchObject({ enabled: true, reachable: true, version: '0.33.3' });
+    expect(view).toMatchObject({ enabled: true, reachable: true, ready: true, version: '0.33.3' });
+  });
+
+  it('getLlmHealth returns the health result', async () => {
+    enable(true);
+    expect(await getLlmHealth()).toMatchObject({ ok: true, ready: true });
   });
 });

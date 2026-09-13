@@ -5,7 +5,7 @@ import { requireAuth } from '@/lib/action-middleware';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { llmConfig, LLM_DEFAULTS } from '@/lib/llm/config';
-import { llmReachable } from '@/lib/llm/client';
+import { llmHealth, type LocalIntegrationHealth } from '@/lib/llm/health';
 import { suggestCategory, type CategorySuggestion } from '@/lib/llm/categorize';
 import { splitTags } from '@/lib/tags';
 
@@ -26,14 +26,31 @@ export interface LlmSettingsView {
   endpoint: string;
   model: string;
   reachable: boolean;
+  ready: boolean;
   version?: string;
+  detail?: string;
 }
 
 export async function getLlmSettings(): Promise<LlmSettingsView> {
   const userId = await requireAuth();
   const cfg = await llmConfig(userId);
-  const r = await llmReachable(cfg.endpoint);
-  return { enabled: cfg.enabled, endpoint: cfg.endpoint, model: cfg.model, reachable: r.ok, version: r.version };
+  const h = await llmHealth(cfg);
+  return {
+    enabled: cfg.enabled,
+    endpoint: cfg.endpoint,
+    model: cfg.model,
+    reachable: h.reachable,
+    ready: h.ready,
+    version: h.version,
+    detail: h.detail,
+  };
+}
+
+// Cheap probe the AI suggestion UI gates on — only surface it when the local
+// integration is actually usable (enabled + Ollama up + model pulled).
+export async function getLlmHealth(): Promise<LocalIntegrationHealth> {
+  const userId = await requireAuth();
+  return llmHealth(await llmConfig(userId));
 }
 
 const settingsSchema = z.object({
