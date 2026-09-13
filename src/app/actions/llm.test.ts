@@ -11,14 +11,9 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/llm/health', () => ({
   llmHealth: vi.fn(async () => ({ ok: true, enabled: true, reachable: true, ready: true, version: '0.33.3' })),
 }));
-vi.mock('@/lib/llm/categorize', async (orig) => ({
-  ...(await orig<typeof import('@/lib/llm/categorize')>()),
-  suggestCategory: vi.fn(),
-}));
 
 import prisma from '@/lib/prisma';
-import { suggestCategory } from '@/lib/llm/categorize';
-import { suggestCategories, applyCategory, saveLlmSettings, getLlmSettings, getLlmHealth } from './llm';
+import { applyCategory, applyCategories, saveLlmSettings, getLlmSettings, getLlmHealth } from './llm';
 
 const fn = (m: unknown) => m as unknown as ReturnType<typeof vi.fn>;
 const enable = (on: boolean) =>
@@ -28,25 +23,6 @@ describe('llm actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fn(prisma.user_settings.upsert).mockResolvedValue({});
-  });
-
-  it('suggestCategories throws when the plugin is off', async () => {
-    enable(false);
-    await expect(suggestCategories()).rejects.toThrow(/turned off/i);
-  });
-
-  it('suggestCategories returns suggestions and writes nothing', async () => {
-    enable(true);
-    fn(prisma.transactions.findMany)
-      .mockResolvedValueOnce([]) // vocabulary (distinct tags)
-      .mockResolvedValueOnce([{ id: 7, name: 'SHELL OIL', amount: -40, type: 'expense' }]); // untagged
-    fn(suggestCategory).mockResolvedValue({ category: 'Transportation', confidence: 0.9 });
-
-    const rows = await suggestCategories();
-    expect(rows).toEqual([
-      { id: 7, name: 'SHELL OIL', amount: -40, suggestion: { category: 'Transportation', confidence: 0.9 } },
-    ]);
-    expect(prisma.transactions.updateMany).not.toHaveBeenCalled();
   });
 
   it('applyCategory writes the trimmed tag scoped by user_id', async () => {
@@ -61,6 +37,32 @@ describe('llm actions', () => {
   it('applyCategory rejects an empty tag', async () => {
     await expect(applyCategory(7, '   ')).rejects.toThrow(/required/i);
     expect(prisma.transactions.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('applyCategories groups by tag: one update per distinct category, empties skipped', async () => {
+    fn(prisma.transactions.updateMany).mockResolvedValue({ count: 2 });
+    const n = await applyCategories([
+      { id: 7, tag: 'Groceries' },
+      { id: 8, tag: '  Groceries  ' },
+      { id: 9, tag: 'Transportation' },
+      { id: 10, tag: '   ' }, // empty → skipped
+    ]);
+    expect(prisma.transactions.updateMany).toHaveBeenCalledTimes(2);
+    expect(prisma.transactions.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: [7, 8] }, user_id: 2 },
+      data: { tags: 'Groceries' },
+    });
+    expect(prisma.transactions.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: [9] }, user_id: 2 },
+      data: { tags: 'Transportation' },
+    });
+    expect(n).toBe(4); // 2 mocked rows × 2 update calls
+  });
+
+  it('applyCategories writes nothing when every item is empty', async () => {
+    const n = await applyCategories([{ id: 7, tag: '  ' }]);
+    expect(prisma.transactions.updateMany).not.toHaveBeenCalled();
+    expect(n).toBe(0);
   });
 
   it('saveLlmSettings persists enabled + endpoint + model', async () => {

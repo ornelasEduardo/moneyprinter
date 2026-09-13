@@ -6,12 +6,6 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { llmConfig, LLM_DEFAULTS } from '@/lib/llm/config';
 import { llmHealth, type LocalIntegrationHealth } from '@/lib/llm/health';
-import { suggestCategory, type CategorySuggestion } from '@/lib/llm/categorize';
-import { splitTags } from '@/lib/tags';
-
-// How many untagged transactions one "Suggest categories" run processes. Bounds
-// the wait (one local inference each, ~1–2s) — the user can run it again.
-const MAX_SUGGEST = 10;
 
 async function writeSetting(userId: number, key: string, value: string): Promise<void> {
   await prisma.user_settings.upsert({
@@ -68,55 +62,6 @@ export async function saveLlmSettings(input: unknown): Promise<void> {
   revalidatePath('/');
 }
 
-async function userVocabulary(userId: number): Promise<string[]> {
-  const rows = await prisma.transactions.findMany({
-    where: { user_id: userId, deleted_at: null, tags: { not: null } },
-    select: { tags: true },
-    distinct: ['tags'],
-  });
-  const set = new Set<string>();
-  for (const r of rows) for (const t of splitTags(r.tags)) set.add(t);
-  return Array.from(set).sort();
-}
-
-export interface CategorySuggestionRow {
-  id: number;
-  name: string;
-  amount: number;
-  suggestion: CategorySuggestion;
-}
-
-// Suggests categories for the most recent untagged transactions. DOES NOT WRITE
-// — the user approves each via applyCategory.
-export async function suggestCategories(): Promise<CategorySuggestionRow[]> {
-  const userId = await requireAuth();
-  const cfg = await llmConfig(userId);
-  if (!cfg.enabled) throw new Error('The local LLM plugin is turned off — enable it in Settings.');
-
-  const vocab = await userVocabulary(userId);
-  const txns = await prisma.transactions.findMany({
-    where: { user_id: userId, deleted_at: null, OR: [{ tags: null }, { tags: '' }] },
-    select: { id: true, name: true, amount: true, type: true },
-    orderBy: { date: 'desc' },
-    take: MAX_SUGGEST,
-  });
-
-  const results: CategorySuggestionRow[] = [];
-  for (const t of txns) {
-    try {
-      const suggestion = await suggestCategory(
-        cfg,
-        { name: t.name, amount: Number(t.amount), type: t.type ?? undefined },
-        vocab,
-      );
-      results.push({ id: t.id, name: t.name, amount: Number(t.amount), suggestion });
-    } catch {
-      // Skip a transaction the model couldn't categorize; keep the batch going.
-    }
-  }
-  return results;
-}
-
 export async function applyCategory(txnId: number, tag: string): Promise<void> {
   const userId = await requireAuth();
   const clean = tag.trim();
@@ -127,4 +72,37 @@ export async function applyCategory(txnId: number, tag: string): Promise<void> {
     data: { tags: clean },
   });
   revalidatePath('/');
+}
+
+export interface ApplyItem {
+  id: number;
+  tag: string;
+}
+
+// Applies reviewed categories in bulk — the workspace's "Apply group" / "Apply
+// high-confidence" actions can send hundreds at once. Grouping by tag issues one
+// UPDATE per distinct category (not one per row), all scoped by user_id, and
+// revalidates a single time. Returns how many rows were tagged.
+export async function applyCategories(items: ApplyItem[]): Promise<number> {
+  const userId = await requireAuth();
+
+  const byTag = new Map<string, number[]>();
+  for (const it of items) {
+    const clean = it.tag.trim();
+    if (!clean || !Number.isInteger(it.id)) continue;
+    const ids = byTag.get(clean) ?? [];
+    ids.push(it.id);
+    byTag.set(clean, ids);
+  }
+
+  let count = 0;
+  for (const [tag, ids] of byTag) {
+    const res = await prisma.transactions.updateMany({
+      where: { id: { in: ids }, user_id: userId },
+      data: { tags: tag },
+    });
+    count += res.count;
+  }
+  if (count > 0) revalidatePath('/');
+  return count;
 }

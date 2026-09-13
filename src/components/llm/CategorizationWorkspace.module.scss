@@ -1,0 +1,184 @@
+/* Grouped, virtualized review of streamed suggestions. Token-driven throughout. */
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Summary + triage actions sit on one line (Gestalt proximity groups the copy). */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.topCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0\.5);
+  min-width: 0;
+}
+
+.topTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.25;
+}
+
+.topSub {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+/* Live progress while the model streams — carries a % via width, not color alone. */
+.progress {
+  height: var(--space-2);
+  background: var(--muted);
+  border: var(--surface-border-width) solid var(--card-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 160ms linear;
+}
+
+/* The one scroll container the virtualizer measures against. Bounded height so a
+   thousand rows scroll inside the panel instead of blowing out the page. */
+.scroll {
+  position: relative;
+  max-height: 60vh;
+  overflow-y: auto;
+  border-top: var(--surface-border-width) solid var(--card-border);
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+}
+
+/* Every virtual item is absolutely positioned; translateY comes from JS. */
+.slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+/* Group header — a common-region band that collapses a whole category. */
+.group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-1);
+  background: var(--muted);
+  border-bottom: var(--surface-border-width) solid var(--card-border);
+}
+
+.groupToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-1) var(--space-1);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground);
+  font: inherit;
+  border-radius: var(--radius-sm);
+}
+
+.groupToggle:hover { background: var(--card-bg); }
+
+.groupToggle:focus-visible {
+  outline: var(--surface-border-width) solid var(--primary);
+  outline-offset: 2px;
+}
+
+.groupName {
+  font-weight: var(--font-bold);
+  text-transform: capitalize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.groupMeta {
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+  flex: 0 0 auto;
+}
+
+/* Row slat — aligned columns so confidence / category / action scan cleanly. */
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto 190px auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-3) var(--space-1);
+  border-bottom: var(--surface-border-width) solid var(--card-border);
+}
+
+.txn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0\.5);
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amount {
+  margin: 0;
+}
+
+/* Confidence: color flags the low-confidence rows, the % carries the meaning. */
+.conf {
+  justify-self: start;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-extrabold);
+  letter-spacing: 0.02em;
+  padding: var(--space-0\.5) var(--space-2);
+  border: var(--surface-border-width) solid var(--card-border);
+  border-radius: var(--radius-pill);
+  font-variant-numeric: tabular-nums;
+}
+
+.high { background: var(--success); color: var(--success-foreground); }
+.medium { background: var(--warning); color: var(--warning-foreground); }
+.low { background: var(--error); color: var(--error-foreground); }
+
+.cat {
+  width: 100%;
+}
+
+@media (max-width: 620px) {
+  .row {
+    grid-template-columns: 1fr auto;
+    gap: var(--space-2) var(--space-3);
+  }
+  .cat {
+    grid-column: 1 / -1;
+  }
+  .row > :last-child {
+    grid-column: 1 / -1;
+  }
+}
