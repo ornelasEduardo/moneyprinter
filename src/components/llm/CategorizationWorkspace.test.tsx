@@ -34,7 +34,6 @@ function renderWorkspace(rows: StreamSuggestion[], onApply = vi.fn()) {
       progress={{ done: rows.length, total: rows.length }}
       busy={false}
       onApply={onApply}
-      onDismiss={noop}
       onCancel={noop}
     />,
   );

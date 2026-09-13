@@ -62,3 +62,17 @@
   gap: var(--space-2);
   flex: 0 0 auto;
 }
+
+/* The review is a dedicated task — open it in a focus-trapped modal with room to
+   work. Widen doom's card (token override cascades to its `max-width`) so the
+   grouped list has breathing space; the workspace's own scroll bounds height. */
+.modalOverlay {
+  --width-modal-md: 960px;
+}
+
+.modalTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--font-black);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}

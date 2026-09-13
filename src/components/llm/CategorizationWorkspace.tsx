@@ -29,17 +29,17 @@ export interface CategorizationWorkspaceProps {
   progress: { done: number; total: number };
   busy: boolean;
   onApply: (items: { id: number; tag: string }[]) => void;
-  onDismiss: () => void;
   onCancel: () => void;
 }
 
+// Renders as the body of a modal — the modal supplies the title + close, so this
+// owns only the summary line, triage actions, and the grouped/virtualized list.
 export default function CategorizationWorkspace({
   rows,
   streaming,
   progress,
   busy,
   onApply,
-  onDismiss,
   onCancel,
 }: CategorizationWorkspaceProps) {
   const [edits, setEdits] = useState<Record<number, string>>({});
@@ -104,7 +104,6 @@ export default function CategorizationWorkspace({
     <div className={styles.workspace} data-testid="llm-workspace">
       <div className={styles.top}>
         <div className={styles.topCopy}>
-          <Text as="p" weight="bold" className={styles.topTitle}>Review categories</Text>
           <Text as="p" variant="caption" color="muted" className={styles.topSub}>
             {streaming
               ? `Categorizing ${progress.done} of ${progress.total} locally…`
@@ -125,11 +124,7 @@ export default function CategorizationWorkspace({
               Apply {highRows.length} high-confidence
             </Button>
           )}
-          {streaming ? (
-            <Button size="sm" variant="ghost" onClick={onCancel}>Stop</Button>
-          ) : (
-            <Button size="sm" variant="ghost" onClick={onDismiss}>Dismiss</Button>
-          )}
+          {streaming && <Button size="sm" variant="ghost" onClick={onCancel}>Stop</Button>}
         </div>
       </div>
 

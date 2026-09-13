@@ -1,23 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Button, Text, useToast } from 'doom-design-system';
+import { useEffect, useState, type MouseEvent } from 'react';
+import { Button, Modal, Text, useToast } from 'doom-design-system';
 import { Sparkles } from 'lucide-react';
 import { getLlmHealth, applyCategories } from '@/app/actions/llm';
 import { useCategorizationStream } from '@/lib/llm/useCategorizationStream';
+import { useDialogFocusTrap } from '@/lib/useDialogFocusTrap';
 import CategorizationWorkspace from './CategorizationWorkspace';
 import styles from './CategorySuggestions.module.scss';
 
 // Entry point for local-AI categorization on the Transactions page. Gated on the
-// integration being healthy (enabled + Ollama up + model pulled); collapsed to a
-// single CTA until the user opts in, then it streams suggestions into an inline
-// review workspace. Nothing is written without an explicit approval.
+// integration being healthy (enabled + Ollama up + model pulled). The CTA sits
+// inline; opening it is a dedicated task, so the streamed review runs in a
+// focus-trapped modal with room to work. Nothing is written without approval.
 export default function CategorySuggestions() {
   const { toastError, toastSuccess } = useToast();
   const [available, setAvailable] = useState<boolean | null>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const { rows, progress, streaming, error, start, cancel, reset, removeRows } = useCategorizationStream();
+  const { setDialogNode, openFrom } = useDialogFocusTrap(open);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +33,8 @@ export default function CategorySuggestions() {
     if (error) toastError(error);
   }, [error, toastError]);
 
-  const review = async () => {
+  const review = async (e: MouseEvent) => {
+    openFrom(e);
     setOpen(true);
     await start();
   };
@@ -59,18 +62,8 @@ export default function CategorySuggestions() {
   if (!available) return null;
 
   return (
-    <div className={styles.panel}>
-      {open ? (
-        <CategorizationWorkspace
-          rows={rows}
-          streaming={streaming}
-          progress={progress}
-          busy={busy}
-          onApply={onApply}
-          onDismiss={close}
-          onCancel={cancel}
-        />
-      ) : (
+    <>
+      <div className={styles.panel}>
         <div className={styles.header}>
           <div className={styles.intro}>
             <span className={styles.icon} aria-hidden="true">
@@ -87,7 +80,27 @@ export default function CategorySuggestions() {
             <Button variant="primary" onClick={review} data-testid="llm-suggest">Review categories</Button>
           </div>
         </div>
+      </div>
+
+      {open && (
+        <Modal
+          isOpen
+          onClose={close}
+          className={styles.modalOverlay}
+          title={<span className={styles.modalTitle}>Review categories</span>}
+        >
+          <div ref={setDialogNode}>
+            <CategorizationWorkspace
+              rows={rows}
+              streaming={streaming}
+              progress={progress}
+              busy={busy}
+              onApply={onApply}
+              onCancel={cancel}
+            />
+          </div>
+        </Modal>
       )}
-    </div>
+    </>
   );
 }
