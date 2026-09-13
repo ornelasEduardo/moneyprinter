@@ -40,6 +40,23 @@ describe('CategorySuggestions', () => {
     await waitFor(() => expect(applyCategory).toHaveBeenCalledWith(7, 'groceries'));
   });
 
+  it('applies every suggestion at once via "Apply all"', async () => {
+    healthy();
+    fn(suggestCategories).mockResolvedValue([
+      { id: 7, name: 'TRADER JOES', amount: -62, suggestion: { category: 'groceries', confidence: 0.9 } },
+      { id: 8, name: 'SHELL OIL', amount: -40, suggestion: { category: 'transportation', confidence: 0.95 } },
+    ]);
+    fn(applyCategory).mockResolvedValue(undefined);
+
+    render(<CategorySuggestions />);
+    fireEvent.click(await screen.findByTestId('llm-suggest'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Apply all' }));
+
+    await waitFor(() => expect(applyCategory).toHaveBeenCalledTimes(2));
+    expect(applyCategory).toHaveBeenCalledWith(7, 'groceries');
+    expect(applyCategory).toHaveBeenCalledWith(8, 'transportation');
+  });
+
   it('shows an empty state in the sheet when nothing needs categorizing', async () => {
     healthy();
     fn(suggestCategories).mockResolvedValue([]);

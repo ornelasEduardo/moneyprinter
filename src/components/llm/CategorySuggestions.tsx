@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type MouseEvent } from 'react';
-import { Badge, Button, Flex, Input, Sheet, Spinner, Stack, Text, useToast } from 'doom-design-system';
+import { Button, Flex, Input, Sheet, Spinner, Text, useToast } from 'doom-design-system';
 import { Sparkles } from 'lucide-react';
 import { suggestCategories, applyCategory, getLlmHealth, type CategorySuggestionRow } from '@/app/actions/llm';
 import { money } from '@/lib/planning/format';
@@ -62,6 +62,18 @@ export default function CategorySuggestions() {
     }
   };
 
+  const applyAll = async () => {
+    const current = rows ?? [];
+    let n = 0;
+    for (const r of current) {
+      const tag = (edits[r.id] ?? '').trim();
+      if (!tag) continue;
+      try { await applyCategory(r.id, tag); n += 1; } catch { /* skip and continue */ }
+    }
+    setRows([]);
+    toastSuccess(`Applied ${n} categor${n === 1 ? 'y' : 'ies'}.`);
+  };
+
   if (!available) return null;
 
   return (
@@ -87,37 +99,49 @@ export default function CategorySuggestions() {
         <Sheet isOpen={open} onClose={() => setOpen(false)} title="Review category suggestions">
           <div ref={setDialogNode} tabIndex={-1} className={styles.sheet}>
             {loading ? (
-              <Flex align="center" gap={2} className={styles.state}>
-                <Spinner size="sm" />
-                <Text color="muted">Categorizing your untagged transactions locally…</Text>
-              </Flex>
+              <div className={styles.state}>
+                <Flex align="center" justify="center" gap={2}>
+                  <Spinner size="sm" />
+                  <Text color="muted">Categorizing your untagged transactions locally…</Text>
+                </Flex>
+              </div>
             ) : rows && rows.length > 0 ? (
-              <Stack gap={0}>
-                {rows.map((r) => (
-                  <div key={r.id} className={styles.row} data-testid="llm-slat">
-                    <div className={styles.txn}>
-                      <Text weight="bold" className={styles.name}>{r.name}</Text>
-                      <Text variant="caption" color="muted" style={NUMERIC}>{money(r.amount)}</Text>
-                    </div>
-                    <div className={styles.controls}>
-                      <Badge variant="secondary" title={`${Math.round(r.suggestion.confidence * 100)}% confidence`}>
-                        {Math.round(r.suggestion.confidence * 100)}%
-                      </Badge>
-                      <Input
-                        aria-label={`Category for ${r.name}`}
-                        value={edits[r.id] ?? ''}
-                        onChange={(e) => setEdits((s) => ({ ...s, [r.id]: e.target.value }))}
-                        className={styles.cat}
-                      />
-                      <Button size="sm" variant="primary" onClick={() => apply(r.id)}>Apply</Button>
-                    </div>
-                  </div>
-                ))}
-              </Stack>
+              <>
+                <div className={styles.sheetHead}>
+                  <Text variant="caption" color="muted">
+                    {rows.length} suggestion{rows.length === 1 ? '' : 's'} — edit any category, then apply.
+                  </Text>
+                  <Button size="sm" variant="secondary" onClick={applyAll}>Apply all</Button>
+                </div>
+                <div className={styles.slats}>
+                  {rows.map((r) => {
+                    const conf = Math.round(r.suggestion.confidence * 100);
+                    const tier = conf >= 85 ? styles.high : conf >= 60 ? styles.medium : styles.low;
+                    return (
+                      <div key={r.id} className={styles.row} data-testid="llm-slat">
+                        <div className={styles.txn}>
+                          <Text as="p" weight="bold" className={styles.name}>{r.name}</Text>
+                          <Text as="p" variant="caption" color="muted" className={styles.amount} style={NUMERIC}>
+                            {money(r.amount)}
+                          </Text>
+                        </div>
+                        <span className={`${styles.conf} ${tier}`} title={`${conf}% confidence`}>{conf}%</span>
+                        <Input
+                          aria-label={`Category for ${r.name}`}
+                          value={edits[r.id] ?? ''}
+                          onChange={(e) => setEdits((s) => ({ ...s, [r.id]: e.target.value }))}
+                          className={styles.cat}
+                        />
+                        <Button size="sm" variant="primary" onClick={() => apply(r.id)}>Apply</Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             ) : (
-              <Text color="muted" className={styles.state}>
-                All caught up — every recent transaction already has a tag.
-              </Text>
+              <div className={styles.state}>
+                <Text color="muted">All caught up — every recent transaction already has a tag.</Text>
+              </div>
             )}
           </div>
         </Sheet>
