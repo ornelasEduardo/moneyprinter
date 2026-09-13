@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type MouseEvent } from 'react';
-import { Badge, Button, Card, Flex, Input, Sheet, Spinner, Stack, Text, useToast } from 'doom-design-system';
+import { Badge, Button, Flex, Input, Sheet, Spinner, Stack, Text, useToast } from 'doom-design-system';
 import { Sparkles } from 'lucide-react';
 import { suggestCategories, applyCategory, getLlmHealth, type CategorySuggestionRow } from '@/app/actions/llm';
 import { money } from '@/lib/planning/format';
@@ -65,16 +65,23 @@ export default function CategorySuggestions() {
   if (!available) return null;
 
   return (
-    <Card className={styles.bar}>
-      <div>
-        <Text weight="bold">Suggest categories with local AI</Text>
-        <Text variant="caption" color="muted">
-          Runs on your machine via Ollama; review each before it&apos;s applied.
-        </Text>
+    <>
+    <div className={styles.bar}>
+      <div className={styles.intro}>
+        <span className={styles.icon} aria-hidden="true">
+          <Sparkles size={20} strokeWidth={2.5} />
+        </span>
+        <div className={styles.copy}>
+          <Text as="p" weight="bold" className={styles.title}>Suggest categories with local AI</Text>
+          <Text as="p" variant="caption" color="muted" className={styles.sub}>
+            Runs on your machine via Ollama — review each before it&apos;s applied.
+          </Text>
+        </div>
       </div>
-      <Button variant="primary" onClick={start} disabled={loading} data-testid="llm-suggest">
-        <Sparkles size={16} strokeWidth={2.5} /> Suggest categories
+      <Button variant="primary" onClick={start} disabled={loading} data-testid="llm-suggest" className={styles.cta}>
+        {loading ? <><Spinner size="sm" /> Categorizing…</> : 'Suggest categories'}
       </Button>
+    </div>
 
       {open && (
         <Sheet isOpen={open} onClose={() => setOpen(false)} title="Review category suggestions">
@@ -115,6 +122,6 @@ export default function CategorySuggestions() {
           </div>
         </Sheet>
       )}
-    </Card>
+    </>
   );
 }
