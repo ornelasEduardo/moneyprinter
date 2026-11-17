@@ -143,3 +143,16 @@ describe('EXPORTABLE_ENTITIES', () => {
     expect(EXPORTABLE_ENTITIES).not.toContain('audit_log');
   });
 });
+
+ it('excludes provenance for removed entities and removed source rules', async () => {
+  for (const entity of EXPORTABLE_ENTITIES) vi.mocked((prisma as any)[entity].findMany).mockResolvedValue([]);
+  vi.mocked(prisma.transactions.findMany).mockResolvedValue([{ id: 1 }] as never);
+  vi.mocked(prisma.categorization_rules.findMany).mockResolvedValue([{ id: 10 }] as never);
+  vi.mocked(prisma.provenance.findMany).mockResolvedValue([
+    { id: 1, entity_type: 'transactions', entity_id: 1, source_type: 'manual' },
+    { id: 2, entity_type: 'transactions', entity_id: 2, source_type: 'manual' },
+    { id: 3, entity_type: 'transactions', entity_id: 1, source_type: 'rule', source_id: 11 },
+    { id: 4, entity_type: 'transactions', entity_id: 1, source_type: 'rule', source_id: 10 },
+  ] as never);
+  expect((await exportAllEntities(1)).provenance.map(row => row.id)).toEqual([1, 4]);
+ });

@@ -1,7 +1,9 @@
+import { transferDb, lockUnlinkedTransfer, writeTransferAudit } from '@/lib/transfer-db';
+import type { Prisma } from '@prisma/client';
 import Papa from 'papaparse';
 import { entitySchemas } from '@/lib/schemas';
 import prisma from '@/lib/prisma';
-import { withAuditContext } from '@/lib/audit-context';
+import { auditStore, withAuditContext } from '@/lib/audit-context';
 import { randomUUID } from 'node:crypto';
 import {
   EXPORTABLE_ENTITIES,
@@ -135,12 +137,20 @@ export async function commitImport(
             if (entity === 'transactions' && existing.transfer_id != null) {
               throw new Error('Unlink the reconciled payment before overwriting it');
             }
+            if (entity === 'transfers') {
+              await transferDb.$transaction(async (db) => {
+                const before = await lockUnlinkedTransfer(db, userId, id, 'overwriting this transfer', true);
+                const after = await db.transfers.update({ where: { id, user_id: userId }, data: data as Prisma.transfersUncheckedUpdateInput });
+                await writeTransferAudit(db, userId, id, before, after, 'UPDATE', auditStore.getStore()?.batchId);
+              });
+              updated++;
+              continue;
+            }
             const where = {
               id, user_id: userId,
               ...(entity === 'transactions' ? { transfer_id: null,
                 ...((existing.type !== data.type || existing.account_id !== data.account_id) ? { other_transactions: { none: { deleted_at: null } } } : {}),
               } : {}),
-              ...(entity === 'transfers' ? { transactions: { none: { deleted_at: null } } } : {}),
             };
             await model.update({ where, data });
             updated++;

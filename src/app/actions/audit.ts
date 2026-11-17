@@ -9,9 +9,10 @@ export async function getRecentAuditLog(params?: {
   limit?: number;
   offset?: number;
 }) {
-  await requireAuth();
+  const userId = await requireAuth();
 
   return getAuditLog({
+    userId,
     entityType: params?.entityType,
     limit: params?.limit ?? 50,
     offset: params?.offset ?? 0,
@@ -19,17 +20,17 @@ export async function getRecentAuditLog(params?: {
 }
 
 export async function undoEntry(entryId: number) {
-  await requireAuth();
+  const userId = await requireAuth();
 
-  await undoAuditEntry(entryId);
+  await undoAuditEntry(entryId, userId);
   revalidatePath('/');
   revalidatePath('/history');
 }
 
 export async function undoEntryBatch(batchId: string) {
-  await requireAuth();
+  const userId = await requireAuth();
 
-  await undoBatch(batchId);
+  await undoBatch(batchId, userId);
   revalidatePath('/');
   revalidatePath('/history');
 }

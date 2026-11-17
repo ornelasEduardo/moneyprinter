@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { parseCsvEntity, validateRows, commitImport } from './import';
 import prisma from '@/lib/prisma';
+import { transferDb } from '@/lib/transfer-db';
+vi.mock('@/lib/transfer-db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/transfer-db')>();
+  const db = { $queryRaw: vi.fn(), $executeRaw: vi.fn(), transactions: { count: vi.fn() }, transfers: { update: vi.fn() } };
+  return { ...actual, transferDb: { ...db, $transaction: vi.fn(async (fn) => fn(db)) } };
+});
 
 vi.mock('@/lib/prisma', () => ({ default: {
   transactions: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
@@ -53,9 +59,12 @@ describe('import ownership and reconciliation safety', () => {
 
   it('guards transfer overwrite atomically against statement links', async () => {
     vi.mocked(prisma.transfers.findFirst).mockResolvedValue({ id: 3 } as never);
+    vi.mocked(transferDb.$queryRaw).mockResolvedValue([{ id: 3 }]);
+    vi.mocked(transferDb.transactions.count).mockResolvedValue(0);
+    vi.mocked(transferDb.transfers.update).mockResolvedValue({ id: 3 } as never);
     await commitImport(7, 'transfers', [{ id: 3, from_account_id: 4, to_account_id: 5, amount: 50, transfer_date: '2026-01-01' }], 'overwrite');
-    expect(prisma.transfers.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 3, user_id: 7, transactions: { none: { deleted_at: null } } },
+    expect(transferDb.transfers.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 3, user_id: 7 },
     }));
   });
 

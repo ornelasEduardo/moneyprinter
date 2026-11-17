@@ -1,3 +1,5 @@
+import { transferDb, lockUnlinkedTransfer } from '@/lib/transfer-db';
+import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE';
@@ -38,12 +40,13 @@ export async function writeAuditLog(params: {
 }
 
 export async function getAuditLog(params: {
+  userId: number;
   entityType?: string;
   entityId?: number;
   limit?: number;
   offset?: number;
 }): Promise<AuditEntry[]> {
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { user_id: params.userId };
   if (params.entityType) where.entity_type = params.entityType;
   if (params.entityId) where.entity_id = params.entityId;
 
@@ -93,20 +96,20 @@ async function assertCurrentUndoSafe(entry: { entity_type: string; entity_id: nu
   }
 }
 
-function undoWhere(entry: { entity_type: string; entity_id: number }) {
+function undoWhere(entry: { entity_type: string; entity_id: number; user_id: number }) {
   // Recheck links in the mutation itself, so a match created after the preflight
   // cannot be removed by undoing an older import or transfer edit.
   if (entry.entity_type === 'transactions') return {
-    id: entry.entity_id, transfer_id: null, other_transactions: { none: { deleted_at: null } },
+    id: entry.entity_id, user_id: entry.user_id, transfer_id: null, other_transactions: { none: { deleted_at: null } },
   };
   if (entry.entity_type === 'transfers') return {
-    id: entry.entity_id, transactions: { none: { deleted_at: null } },
+    id: entry.entity_id, user_id: entry.user_id, transactions: { none: { deleted_at: null } },
   };
-  return { id: entry.entity_id };
+  return { id: entry.entity_id, user_id: entry.user_id };
 }
 
-export async function undoAuditEntry(entryId: number): Promise<void> {
-  const entry = await prisma.audit_log.findUnique({ where: { id: entryId } });
+export async function undoAuditEntry(entryId: number, userId: number): Promise<void> {
+  const entry = await prisma.audit_log.findUnique({ where: { id: entryId, user_id: userId } });
   if (!entry) throw new Error('Audit entry not found');
   if (entry.undone_at) throw new Error('Audit entry already undone');
   assertUndoSafe(entry);
@@ -123,6 +126,28 @@ async function undoEntry(entry: {
   previous_value: unknown;
   new_value: unknown;
 }): Promise<void> {
+  if (entry.entity_type === 'transfers') {
+    await transferDb.$transaction(async (db) => {
+      await lockUnlinkedTransfer(db, entry.user_id, entry.entity_id, 'undoing transfer history', true);
+      // Another undo may have completed while this request waited for the row.
+      const current = await db.audit_log.findUnique({ where: { id: entry.id, user_id: entry.user_id } });
+      if (!current) throw new Error('Audit entry not found');
+      if (current.undone_at) throw new Error('Audit entry already undone');
+      assertUndoSafe(current);
+      let data: Prisma.transfersUncheckedUpdateInput;
+      if (current.action === 'UPDATE') {
+        const previous = current.previous_value as Record<string, unknown> | null;
+        if (!previous) throw new Error('Transfer history has no previous value');
+        const { id: _id, user_id: _owner, ...fields } = previous;
+        data = fields as Prisma.transfersUncheckedUpdateInput;
+      } else if (current.action === 'CREATE') data = { deleted_at: new Date() };
+      else if (current.action === 'DELETE') data = { deleted_at: null };
+      else throw new Error('Unknown audit action');
+      await db.transfers.update({ where: { id: entry.entity_id, user_id: entry.user_id }, data });
+      await db.audit_log.update({ where: { id: entry.id, user_id: entry.user_id }, data: { undone_at: new Date() } });
+    });
+    return;
+  }
   await assertCurrentUndoSafe(entry);
   const model = getModelDelegate(entry.entity_type);
   const where = undoWhere(entry);
@@ -147,15 +172,15 @@ async function undoEntry(entry: {
 
     // Mark the original entry as undone
     await prisma.audit_log.update({
-      where: { id: entry.id },
+      where: { id: entry.id, user_id: entry.user_id },
       data: { undone_at: new Date() },
     });
   });
 }
 
-export async function undoBatch(batchId: string): Promise<void> {
+export async function undoBatch(batchId: string, userId: number): Promise<void> {
   const entries = await prisma.audit_log.findMany({
-    where: { batch_id: batchId },
+    where: { batch_id: batchId, user_id: userId },
     orderBy: { created_at: 'desc' },
   });
 

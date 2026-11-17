@@ -9,7 +9,7 @@ if (!['127.0.0.1', 'localhost'].includes(db.hostname) || !db.pathname.endsWith('
 process.env.E2E_BASE_URL = 'http://localhost:3107';
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /(?:refund-payments|refund-imports)\.spec\.ts/,
+  testMatch: /(?:refund-payments|refund-imports|refund-restore)\.spec\.ts/,
   workers: 1,
   timeout: 60_000,
   expect: { timeout: 15_000 },

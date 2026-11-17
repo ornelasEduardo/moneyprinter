@@ -8,6 +8,7 @@ const db = vi.hoisted(() => {
   for (const name of entities) client[name] = {
     create: vi.fn(async ({ data }) => ({ ...data, id: nextId++ })),
     update: vi.fn(async ({ where, data }) => ({ ...data, id: where.id })),
+    findUnique: vi.fn(async () => null),
     upsert: vi.fn(async ({ create }) => ({ ...create, id: nextId++ })),
   };
   return { client, transaction: vi.fn(async (fn) => fn(client)) };
@@ -44,6 +45,42 @@ describe('backup relationship restoration', () => {
     expect(transactions.create.mock.calls[2][0].data).toMatchObject({ user_id: 42, account_id: checkingId, transfer_id: transferId });
     expect(transactions.update).toHaveBeenCalledWith(expect.objectContaining({ data: { original_transaction_id: purchaseId } }));
     expect(result.created).toBe(7);
+  });
+
+  it('never copies settings secrets into audit history', async () => {
+    await restoreSnapshot(42, { user_settings: [{ id: 1, key: 'integration.bea-col.key', value: 'secret-token' }] });
+    expect((db.client.audit_log as any).create).not.toHaveBeenCalled();
+  });
+
+  it('preserves keyed existing rows and reports actual created and skipped counts', async () => {
+    for (const entity of ['budget_limits', 'net_worth_history', 'user_settings']) {
+      (db.client[entity] as any).findUnique.mockResolvedValueOnce({ id: 900 });
+    }
+    expect(await restoreSnapshot(42, {
+      budget_limits: [{ id: 1, category: 'Food', limit_amount: 100 }],
+      net_worth_history: [{ id: 2, date: '2026-01-01', net_worth: 100 }],
+      user_settings: [{ id: 3, key: 'theme', value: 'dark' }],
+    })).toEqual({ created: 0, skipped: 3 });
+    expect((db.client.audit_log as any).create).not.toHaveBeenCalled();
+  });
+
+  it('remaps nested account rule conditions including lists', async () => {
+    const conditions = { type: 'group', conditions: [
+      { type: 'condition', field: 'account_id', operator: 'eq', value: 1 },
+      { type: 'group', conditions: [
+        { type: 'condition', field: 'account_id', operator: 'neq', value: 2 },
+        { type: 'condition', field: 'account_id', operator: 'in', value: [1, 2] },
+        { type: 'condition', field: 'account_id', operator: 'notIn', value: [2] },
+      ] },
+    ] };
+    await restoreSnapshot(42, { accounts: snapshot.accounts, categorization_rules: [{ id: 3, name: 'Rule', conditions, actions: {} }] });
+    const a = (db.client.accounts as any).create;
+    const first = (await a.mock.results[0].value).id;
+    const second = (await a.mock.results[1].value).id;
+    const restored = (db.client.categorization_rules as any).create.mock.calls[0][0].data.conditions;
+    expect(restored.conditions[0].value).toBe(first);
+    expect(restored.conditions[1].conditions.map((c: any) => c.value)).toEqual([second, [first, second], [second]]);
+    expect(() => validateSnapshot({ categorization_rules: [{ id: 3, name: 'Rule', conditions, actions: {} }] })).toThrow(/reference/i);
   });
 
   it('rejects references outside the archive instead of linking another user records', async () => {
