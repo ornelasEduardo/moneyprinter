@@ -15,7 +15,10 @@ vi.mock('@/lib/prisma', () => ({
     },
     transactions: {
       update: vi.fn(),
+      findFirst: vi.fn(),
+      count: vi.fn(),
     },
+    transfers: { update: vi.fn() },
     net_worth_history: {
       update: vi.fn(),
     },
@@ -25,6 +28,50 @@ vi.mock('@/lib/prisma', () => ({
     $transaction: vi.fn((fn: any) => fn(prisma)),
   },
 }));
+
+describe('historical undo after payment matching', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.transactions.count).mockResolvedValue(0);
+  });
+
+  it('rejects undoing an old statement creation after it has been reconciled', async () => {
+    vi.mocked(prisma.audit_log.findUnique).mockResolvedValue({ id: 100, user_id: 7, entity_type: 'transactions', entity_id: 1, action: 'CREATE', new_value: { type: 'payment_out' }, undone_at: null } as never);
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 1, transfer_id: 20 } as never);
+    await expect(undoAuditEntry(100)).rejects.toThrow(/unlink/i);
+    expect(prisma.transactions.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects undoing an old transfer edit when statement entries now link to it', async () => {
+    vi.mocked(prisma.audit_log.findUnique).mockResolvedValue({ id: 101, user_id: 7, entity_type: 'transfers', entity_id: 20, action: 'UPDATE', previous_value: { amount: 99 }, undone_at: null } as never);
+    vi.mocked(prisma.transactions.count).mockResolvedValue(1);
+    await expect(undoAuditEntry(101)).rejects.toThrow(/unlink/i);
+    expect(prisma.transfers.update).not.toHaveBeenCalled();
+  });
+
+  it('checks all current links before starting any batch undo', async () => {
+    vi.mocked(prisma.audit_log.findMany).mockResolvedValue([
+      { id: 102, user_id: 7, entity_type: 'accounts', entity_id: 10, action: 'CREATE' },
+      { id: 103, user_id: 7, entity_type: 'transactions', entity_id: 1, action: 'CREATE' },
+    ] as never);
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 1, transfer_id: 20 } as never);
+    await expect(undoBatch('550e8400-e29b-41d4-a716-446655440000')).rejects.toThrow(/unlink/i);
+    expect(prisma.accounts.update).not.toHaveBeenCalled();
+    expect(prisma.transactions.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('relational operation undo safety', () => {
+  it('does not undo a single reconciliation write and strand its other side', async () => {
+    vi.mocked(prisma.audit_log.findUnique).mockResolvedValue({ id: 91, action: 'UPDATE', entity_type: 'transactions', entity_id: 1, new_value: { payment_reconciliation: true }, undone_at: null } as never);
+    await expect(undoAuditEntry(91)).rejects.toThrow(/unlink/i);
+  });
+  it('does not partially undo a restore batch', async () => {
+    vi.mocked(prisma.audit_log.findMany).mockResolvedValue([{ id: 92, batch_id: 'restore:abc', action: 'CREATE', entity_type: 'accounts', entity_id: 1 }] as never);
+    await expect(undoBatch('restore:abc')).rejects.toThrow(/restore/i);
+  });
+});
 
 describe('writeAuditLog', () => {
   beforeEach(() => {

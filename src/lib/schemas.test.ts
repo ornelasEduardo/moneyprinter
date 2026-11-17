@@ -186,3 +186,15 @@ describe('goalSchema plan pairing', () => {
     expect(goalSchema.safeParse({ name: 'x', target_amount: 1, plan_kind: 'mortgage', plan_inputs }).success).toBe(true);
   });
 });
+
+
+describe('transaction purposes', () => {
+  const base = { name: 'Statement entry', amount: 30, date: '2026-03-15' };
+  it('rejects unknown purposes instead of treating them as expenses', () => {
+    expect(transactionSchema.safeParse({ ...base, type: 'credit' }).success).toBe(false);
+  });
+  it.each(['refund', 'payment_in', 'payment_out'])('accepts positive %s and rejects negative amounts', (type) => {
+    expect(transactionSchema.safeParse({ ...base, type }).success).toBe(true);
+    expect(transactionSchema.safeParse({ ...base, amount: -30, type }).success).toBe(false);
+  });
+});

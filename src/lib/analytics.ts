@@ -1,4 +1,5 @@
 import { splitTags, normalizeTag } from './tags';
+import { expenseContribution, incomeContribution } from './transaction-types';
 
 export interface DateRange {
   start: Date;
@@ -63,17 +64,18 @@ export interface SpendingTrendPeriod {
 }
 
 export function spendingByCategory(transactions: Transaction[]): CategorySpending[] {
-  const expenses = transactions.filter((t) => t.type === 'expense');
+  const expenses = transactions.filter((t) => t.type === 'expense' || t.type === 'refund');
   const categoryData = new Map<string, { total: number; merchants: Map<string, { amount: number; count: number }> }>();
 
   for (const tx of expenses) {
+    const amount = expenseContribution(tx.type, tx.amount);
     const tags = splitTags(tx.tags);
     const categories = tags.length > 0 ? tags : ['uncategorized'];
     for (const category of categories) {
       const cat = categoryData.get(category) ?? { total: 0, merchants: new Map() };
-      cat.total += tx.amount;
+      cat.total += amount;
       const merchant = cat.merchants.get(tx.name) ?? { amount: 0, count: 0 };
-      merchant.amount += tx.amount;
+      merchant.amount += amount;
       merchant.count++;
       cat.merchants.set(tx.name, merchant);
       categoryData.set(category, cat);
@@ -129,13 +131,11 @@ export function cashFlow(
   const periods = new Map<string, { income: number; expenses: number }>();
 
   for (const tx of transactions) {
+    if (tx.type !== 'income' && tx.type !== 'expense' && tx.type !== 'refund') continue;
     const key = periodKey(tx.date, granularity);
     const period = periods.get(key) ?? { income: 0, expenses: 0 };
-    if (tx.type === 'income') {
-      period.income += tx.amount;
-    } else {
-      period.expenses += tx.amount;
-    }
+    period.income += incomeContribution(tx.type, tx.amount);
+    period.expenses += expenseContribution(tx.type, tx.amount);
     periods.set(key, period);
   }
 
@@ -191,12 +191,12 @@ export function spendingTrend(
   transactions: Transaction[],
   granularity: 'month' | 'week' = 'month',
 ): SpendingTrendPeriod[] {
-  const expenses = transactions.filter((t) => t.type === 'expense');
+  const expenses = transactions.filter((t) => t.type === 'expense' || t.type === 'refund');
   const periods = new Map<string, number>();
 
   for (const tx of expenses) {
     const key = periodKey(tx.date, granularity);
-    periods.set(key, (periods.get(key) ?? 0) + tx.amount);
+    periods.set(key, (periods.get(key) ?? 0) + expenseContribution(tx.type, tx.amount));
   }
 
   return Array.from(periods.entries())

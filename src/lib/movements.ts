@@ -1,13 +1,15 @@
 import prisma from '@/lib/prisma';
+import type { TransactionType } from './transaction-types';
 
 export type TransactionMovement = {
-  kind: 'income' | 'expense';
+  kind: TransactionType;
   id: number;
   name: string;
   amount: number;
   date: Date;
   tags: string | null;
   account_id: number | null;
+  original_transaction_id?: number | null;
 };
 
 export type TransferMovement = {
@@ -35,6 +37,7 @@ export async function listMovements(params: { userId: number; year?: number }): 
       where: {
         user_id: userId,
         deleted_at: null,
+        transfer_id: null,
         ...(yearRange ? { date: yearRange } : {}),
       },
     }),
@@ -48,13 +51,14 @@ export async function listMovements(params: { userId: number; year?: number }): 
   ]);
 
   const txMovements: TransactionMovement[] = txs.map((t: any) => ({
-    kind: (t.type as 'income' | 'expense') ?? 'expense',
+    kind: (t.type as TransactionType) ?? 'expense',
     id: t.id,
     name: t.name,
     amount: Number(t.amount),
     date: t.date,
     tags: t.tags,
     account_id: t.account_id,
+    original_transaction_id: t.original_transaction_id,
   }));
 
   const trMovements: TransferMovement[] = trs.map((t: any) => ({

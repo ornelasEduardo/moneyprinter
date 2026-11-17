@@ -23,7 +23,7 @@ vi.mock('@/components/GoalTracker', () => ({ GoalTracker: () => <div data-testid
 vi.mock('@/components/NetWorthChart', () => ({ default: () => <div data-testid="net-worth-chart" /> }));
 vi.mock('@/components/DashboardHeader', () => ({ default: () => <div data-testid="dashboard-header" /> }));
 vi.mock('@/components/SummaryCards', () => ({ default: () => <div data-testid="summary-cards" /> }));
-vi.mock('@/components/ProjectionsTable', () => ({ default: () => <div data-testid="projections-table" /> }));
+vi.mock('@/components/ProjectionsTable', () => ({ default: ({ projections }: { projections: { change: number }[] }) => <div data-testid="projections-table">{projections?.[0]?.change}</div> }));
 vi.mock('@/components/TransactionsTable', () => ({ default: () => <div data-testid="transactions-table" /> }));
 vi.mock('@/components/AccountsTable', () => ({ default: () => <div data-testid="accounts-table" /> }));
 vi.mock('@/components/NetWorthHistoryTable', () => ({ default: () => <div data-testid="net-worth-history-table" /> }));
@@ -83,5 +83,15 @@ describe('DashboardClient', () => {
     expect(screen.getAllByText('Transactions').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Accounts').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Settings').length).toBeGreaterThan(0);
+  });
+
+  it('counts refunds as reversed spending in projections and excludes both payment directions', () => {
+    render(<DashboardClient {...mockProps} transactions={[
+      { kind: 'expense', amount: 100, date: '2024-01-01' },
+      { kind: 'refund', amount: 30, date: '2024-01-02' },
+      { kind: 'payment_out', amount: 500, date: '2024-01-03' },
+      { kind: 'payment_in', amount: 500, date: '2024-01-04' },
+    ]} />);
+    expect(screen.getByTestId('projections-table')).toHaveTextContent('430');
   });
 });

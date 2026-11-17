@@ -192,3 +192,27 @@ describe('detectDuplicates', () => {
     expect(result.status).toBe('valid');
   });
 });
+
+
+describe('refund and payment imports', () => {
+  it.each(['negative_is_debit', 'positive_is_debit'])('preserves explicit purposes with %s', (convention) => {
+    for (const type of ['refund', 'payment_in', 'payment_out']) {
+      const result = normalizeAmounts(makeRow({ amount: -30, type }), { amount_convention: convention }, emptyContext);
+      expect(result.data).toMatchObject({ amount: 30, type });
+    }
+  });
+  it('normalizes explicit refunds even without a sign convention', () => {
+    expect(normalizeAmounts(makeRow({ amount: -30, type: 'refund' }), {}, emptyContext).data.amount).toBe(30);
+  });
+  it('infers expenses and income for positive-is-debit statements', () => {
+    expect(normalizeAmounts(makeRow({ amount: 50 }), { amount_convention: 'positive_is_debit' }, emptyContext).data).toMatchObject({ amount: 50, type: 'expense' });
+    expect(normalizeAmounts(makeRow({ amount: -50 }), { amount_convention: 'positive_is_debit' }, emptyContext).data).toMatchObject({ amount: 50, type: 'income' });
+  });
+  it('does not confuse records from different accounts or purposes with duplicates', () => {
+    const data = { name: 'Payment', amount: 100, date: new Date('2026-03-15'), account_id: 1, type: 'payment_out' };
+    for (const existing of [{ ...data, account_id: 2 }, { ...data, type: 'payment_in' }, { ...data, type: 'expense' }]) {
+      expect(detectDuplicates(makeRow(data), {}, { existingTransactions: [existing] }).status).toBe('valid');
+    }
+    expect(detectDuplicates(makeRow(data), {}, { existingTransactions: [data] }).status).toBe('duplicate');
+  });
+});

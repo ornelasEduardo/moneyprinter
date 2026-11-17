@@ -41,4 +41,16 @@ describe('signal loaders', () => {
     // (12000 - 6000) / 6
     expect(await loadMonthlySurplus(2)).toBe(1000);
   });
+
+  it('refunds reduce trailing expenses while payments never affect surplus or income', async () => {
+    vi.mocked(prisma.transactions.findMany).mockResolvedValue([
+      { amount: 12000, type: 'income' },
+      { amount: 6000, type: 'expense' },
+      { amount: 600, type: 'refund' },
+      { amount: 1200, type: 'payment_in' },
+      { amount: 1200, type: 'payment_out' },
+    ] as never);
+    expect(await loadMonthlyIncome(3)).toBe(2000);
+    expect(await loadMonthlySurplus(3)).toBe(1100);
+  });
 });

@@ -70,10 +70,47 @@ function getModelDelegate(entityType: string) {
   return model;
 }
 
+function assertUndoSafe(entry: { batch_id?: string | null; new_value?: unknown }): void {
+  const value = entry.new_value && typeof entry.new_value === 'object' ? entry.new_value as Record<string, unknown> : {};
+  if (value.payment_reconciliation) throw new Error('Use Unlink entry in the transfer details to reverse a payment match safely');
+  if (value.backup_restore || entry.batch_id?.startsWith('restore:')) throw new Error('Backup restore cannot be partially undone through history');
+}
+
+async function assertCurrentUndoSafe(entry: { entity_type: string; entity_id: number; user_id: number; previous_value?: unknown }): Promise<void> {
+  if (entry.entity_type === 'transactions') {
+    const current = await prisma.transactions.findFirst({ where: { id: entry.entity_id, user_id: entry.user_id }, select: { transfer_id: true } });
+    const previous = entry.previous_value && typeof entry.previous_value === 'object' ? entry.previous_value as Record<string, unknown> : {};
+    if (current?.transfer_id != null || previous.transfer_id != null) {
+      throw new Error('Unlink the statement payment before undoing its history');
+    }
+    if (await prisma.transactions.count({ where: { original_transaction_id: entry.entity_id, deleted_at: null } })) {
+      throw new Error('Unlink refunds from this purchase before undoing its history');
+    }
+  } else if (entry.entity_type === 'transfers') {
+    if (await prisma.transactions.count({ where: { transfer_id: entry.entity_id, deleted_at: null } })) {
+      throw new Error('Unlink statement payments before undoing transfer history');
+    }
+  }
+}
+
+function undoWhere(entry: { entity_type: string; entity_id: number }) {
+  // Recheck links in the mutation itself, so a match created after the preflight
+  // cannot be removed by undoing an older import or transfer edit.
+  if (entry.entity_type === 'transactions') return {
+    id: entry.entity_id, transfer_id: null, other_transactions: { none: { deleted_at: null } },
+  };
+  if (entry.entity_type === 'transfers') return {
+    id: entry.entity_id, transactions: { none: { deleted_at: null } },
+  };
+  return { id: entry.entity_id };
+}
+
 export async function undoAuditEntry(entryId: number): Promise<void> {
   const entry = await prisma.audit_log.findUnique({ where: { id: entryId } });
   if (!entry) throw new Error('Audit entry not found');
   if (entry.undone_at) throw new Error('Audit entry already undone');
+  assertUndoSafe(entry);
+  await assertCurrentUndoSafe(entry);
   await undoEntry(entry as any);
 }
 
@@ -86,22 +123,24 @@ async function undoEntry(entry: {
   previous_value: unknown;
   new_value: unknown;
 }): Promise<void> {
+  await assertCurrentUndoSafe(entry);
   const model = getModelDelegate(entry.entity_type);
+  const where = undoWhere(entry);
 
   await prisma.$transaction(async (_tx: any) => {
     if (entry.action === 'UPDATE') {
       await model.update({
-        where: { id: entry.entity_id },
+        where,
         data: entry.previous_value as Record<string, unknown>,
       });
     } else if (entry.action === 'CREATE') {
       await model.update({
-        where: { id: entry.entity_id },
+        where,
         data: { deleted_at: new Date() },
       });
     } else if (entry.action === 'DELETE') {
       await model.update({
-        where: { id: entry.entity_id },
+        where,
         data: { deleted_at: null },
       });
     }
@@ -120,6 +159,9 @@ export async function undoBatch(batchId: string): Promise<void> {
     orderBy: { created_at: 'desc' },
   });
 
+  entries.forEach(assertUndoSafe);
+  // Preflight the entire batch before touching its first entry.
+  for (const entry of entries) await assertCurrentUndoSafe(entry);
   for (const entry of entries) {
     await undoEntry(entry as any);
   }

@@ -1,5 +1,7 @@
 'use server';
 
+import type { TransactionType } from '@/lib/transaction-types';
+
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { requireAuth } from '@/lib/action-middleware';
@@ -122,7 +124,7 @@ async function fetchRuleAsCompiled(id: number, userId: number): Promise<Compiled
     id: r.id,
     priority: r.priority,
     conditions: r.conditions as unknown as Filter,
-    actions: r.actions as unknown as { addTags: string[]; setType?: 'income' | 'expense' },
+    actions: r.actions as unknown as { addTags: string[]; setType?: TransactionType },
   };
 }
 

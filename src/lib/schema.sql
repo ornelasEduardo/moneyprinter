@@ -35,9 +35,13 @@ CREATE TABLE IF NOT EXISTS transactions (
   date DATE NOT NULL,
   name VARCHAR(255) NOT NULL,
   tags VARCHAR(255),
-  type VARCHAR(50) DEFAULT 'expense', -- 'income', 'expense'
+  type VARCHAR(50) DEFAULT 'expense', -- income, expense, refund, payment_in, payment_out
+  original_transaction_id INTEGER REFERENCES transactions(id),
+  transfer_id INTEGER,
   pending BOOLEAN DEFAULT FALSE,
-  deleted_at TIMESTAMP WITH TIME ZONE
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT transactions_refund_reference CHECK (original_transaction_id IS NULL OR (type = 'refund' AND original_transaction_id <> id)),
+  CONSTRAINT transactions_payment_link CHECK (transfer_id IS NULL OR (type IN ('payment_in', 'payment_out') AND account_id IS NOT NULL AND amount > 0))
 );
 
 CREATE TABLE IF NOT EXISTS income_sources (
@@ -179,6 +183,12 @@ CREATE TABLE IF NOT EXISTS transfers (
 CREATE INDEX IF NOT EXISTS transfers_user_date_idx
   ON transfers(user_id, transfer_date DESC)
   WHERE deleted_at IS NULL;
+
+ALTER TABLE transactions ADD CONSTRAINT transactions_transfer_id_fkey FOREIGN KEY (transfer_id) REFERENCES transfers(id);
+CREATE INDEX IF NOT EXISTS transactions_original_transaction_id_idx ON transactions(original_transaction_id);
+CREATE INDEX IF NOT EXISTS transactions_transfer_id_idx ON transactions(transfer_id);
+CREATE UNIQUE INDEX IF NOT EXISTS transactions_active_transfer_account_idx
+  ON transactions(transfer_id, account_id) WHERE deleted_at IS NULL AND transfer_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS provenance (
   id SERIAL PRIMARY KEY,

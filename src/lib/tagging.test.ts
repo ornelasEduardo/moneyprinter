@@ -142,7 +142,7 @@ describe('applyRulesAtCreate', () => {
     await applyRulesAtCreate({ transactionId: 100, userId: 1, rules });
 
     expect(prisma.transactions.update).toHaveBeenCalledWith({
-      where: { id: 100 },
+      where: expect.objectContaining({ id: 100 }),
       data: expect.objectContaining({ tags: 'coffee', type: 'expense' }),
     });
     expect(provenance.recordProvenance).toHaveBeenCalledWith(expect.objectContaining({
@@ -178,7 +178,7 @@ describe('applyRulesAtCreate', () => {
       }],
     });
     expect(prisma.transactions.update).toHaveBeenCalledWith({
-      where: { id: 100 },
+      where: expect.objectContaining({ id: 100 }),
       data: expect.objectContaining({ type: 'income' }),
     });
     expect(provenance.recordProvenance).toHaveBeenCalledWith(expect.objectContaining({
@@ -256,10 +256,48 @@ describe('stripRuleApplications', () => {
     });
     // Transaction 2: type reset to 'expense' (default)
     expect(prisma.transactions.update).toHaveBeenCalledWith({
-      where: { id: 2 },
+      where: expect.objectContaining({ id: 2, transfer_id: null, original_transaction_id: null }),
       data: expect.objectContaining({ type: 'expense' }),
     });
     // All provenance for the rule is deleted
     expect(provenance.stripBySource).toHaveBeenCalledWith({ sourceType: 'rule', sourceId: 7 });
   });
+});
+
+
+describe('statement purpose preservation', () => {
+  beforeEach(() => vi.clearAllMocks());
+  it.each(['refund', 'payment_in', 'payment_out'])('tag-only rules preserve %s', async (type) => {
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 100, user_id: 1, tags: '', type, name: 'Starbucks', amount: 5 } as never);
+    await applyRulesAtCreate({ transactionId: 100, userId: 1, rules: [rule()] });
+    expect(prisma.transactions.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type }) }));
+  });
+  it('does not reclassify a reconciled payment', async () => {
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 100, user_id: 1, tags: '', type: 'payment_in', transfer_id: 9, name: 'Starbucks', amount: 5 } as never);
+    await applyRulesAtCreate({ transactionId: 100, userId: 1, rules: [rule({ actions: { addTags: ['coffee'], setType: 'expense' } })] });
+    expect(prisma.transactions.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: 'payment_in' }) }));
+    expect(provenance.recordProvenance).not.toHaveBeenCalledWith(expect.objectContaining({ field: 'type' }));
+  });
+  it('does not reset reconciled payments when stripping a rule', async () => {
+    vi.mocked(provenance.findEntitiesBySource).mockResolvedValue([{ entity_type: 'transactions', entity_id: 100, field: 'type', value: null }] as never);
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 100, user_id: 1, tags: '', type: 'payment_in', transfer_id: 9 } as never);
+    await stripRuleApplications(1, 1);
+    expect(prisma.transactions.update).not.toHaveBeenCalled();
+  });
+});
+
+
+it('normalizes a signed statement credit when a rule explicitly classifies it as a refund', async () => {
+  vi.clearAllMocks();
+  vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 100, user_id: 1, tags: '', type: 'expense', name: 'Starbucks', amount: -30 } as never);
+  await applyRulesAtCreate({ transactionId: 100, userId: 1, rules: [rule({ actions: { addTags: [], setType: 'refund' } })] });
+  expect(prisma.transactions.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: 'refund', amount: 30 }) }));
+});
+
+
+it('guards classification writes against concurrent payment reconciliation', async () => {
+  vi.clearAllMocks();
+  vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 100, user_id: 1, tags: '', type: 'expense', transfer_id: null, original_transaction_id: null, name: 'Starbucks', amount: 30 } as never);
+  await applyRulesAtCreate({ transactionId: 100, userId: 1, rules: [rule({ actions: { addTags: [], setType: 'refund' } })] });
+  expect(prisma.transactions.update).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ id: 100, transfer_id: null, original_transaction_id: null }) }));
 });

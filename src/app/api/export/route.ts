@@ -42,7 +42,8 @@ export async function GET(request: NextRequest) {
 
   // Full archive export
   const entityData = await exportAllEntities(userId);
-  const metadata = buildMetadata('export', entityData);
+  const isBackup = searchParams.get('type') === 'backup';
+  const metadata = buildMetadata(isBackup ? 'backup' : 'export', entityData);
   const date = new Date().toISOString().split('T')[0];
 
   const passthrough = new PassThrough();
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
     if (rows.length > 0) {
       const csv = Papa.unparse(rows);
       archive.append(csv, { name: `${name}.csv` });
+      if (isBackup) archive.append(JSON.stringify(rows), { name: `${name}.json` });
     }
   }
 

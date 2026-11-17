@@ -1,5 +1,7 @@
 "use client";
 
+import { expenseContribution, incomeContribution } from '@/lib/transaction-types';
+
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GoalTracker } from "@/components/GoalTracker";
@@ -178,12 +180,10 @@ export default function DashboardClient(props: DashboardClientProps) {
       });
 
       const monthlyExpenseTotal = monthlyTransactions
-        .filter((t) => t.kind === "expense")
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + expenseContribution(t.kind, t.amount), 0);
 
       const monthlyIncomeTotal = monthlyTransactions
-        .filter((t) => t.kind === "income")
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + incomeContribution(t.kind, t.amount), 0);
 
       const monthlyChange =
         props.monthlyNetWorthIncrease +

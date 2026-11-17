@@ -134,7 +134,7 @@ describe('Transaction Actions', () => {
       await updateTransaction(1, formData);
 
       expect(prisma.transactions.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: expect.objectContaining({ id: 1, transfer_id: null }),
         data: expect.objectContaining({
           name: 'Updated Groceries',
           amount: 200,
@@ -151,7 +151,7 @@ describe('Transaction Actions', () => {
       await deleteTransaction(1);
 
       expect(prisma.transactions.deleteMany).toHaveBeenCalledWith({
-        where: { id: 1, user_id: mockUserId },
+        where: { id: 1, user_id: mockUserId, transfer_id: null, other_transactions: { none: { deleted_at: null } } },
       });
       expect(revalidatePath).toHaveBeenCalledWith('/');
     });

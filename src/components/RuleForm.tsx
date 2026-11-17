@@ -1,5 +1,7 @@
 'use client';
 
+import { transactionTypeOptions, type TransactionType } from '@/lib/transaction-types';
+
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -35,7 +37,7 @@ export interface RuleFormInitial {
   enabled: boolean;
   priority: number;
   conditions: Filter;
-  actions: { addTags: string[]; setType?: 'income' | 'expense' };
+  actions: { addTags: string[]; setType?: TransactionType };
 }
 
 interface RuleFormProps {
@@ -76,7 +78,7 @@ export default function RuleForm({ accounts, initial }: RuleFormProps) {
   });
 
   const [tagsText, setTagsText] = useState(initial?.actions.addTags.join(',') ?? '');
-  const [setType, setSetType] = useState<'' | 'income' | 'expense'>(initial?.actions.setType ?? '');
+  const [setType, setSetType] = useState<'' | TransactionType>(initial?.actions.setType ?? '');
   const [enabled, setEnabled] = useState(initial?.enabled ?? true);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -91,8 +93,8 @@ export default function RuleForm({ accounts, initial }: RuleFormProps) {
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean);
-      const actions: { addTags: string[]; setType?: 'income' | 'expense' } = { addTags };
-      if (setType === 'income' || setType === 'expense') actions.setType = setType;
+      const actions: { addTags: string[]; setType?: TransactionType } = { addTags };
+      if (setType) actions.setType = setType;
       fd.set('actions', JSON.stringify(actions));
       fd.set('enabled', enabled ? 'true' : 'false');
 
@@ -167,11 +169,10 @@ export default function RuleForm({ accounts, initial }: RuleFormProps) {
                 <Select
                   aria-label="Set type"
                   value={setType}
-                  onChange={(e) => setSetType(e.target.value as '' | 'income' | 'expense')}
+                  onChange={(e) => setSetType(e.target.value as '' | TransactionType)}
                   options={[
                     { value: '', label: '— no change —' },
-                    { value: 'income', label: 'Income' },
-                    { value: 'expense', label: 'Expense' },
+                    ...transactionTypeOptions,
                   ]}
                 />
               </Field>

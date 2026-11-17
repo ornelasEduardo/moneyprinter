@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from './auth';
+import { expenseContribution } from './transaction-types';
 
 export async function getNetWorth() {
   const userId = await getCurrentUser();
@@ -44,16 +45,15 @@ export async function getMonthlySpending() {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const result = await prisma.transactions.aggregate({
+  const rows = await prisma.transactions.findMany({
     where: {
       user_id: userId,
       date: { gte: startOfMonth },
-      amount: { gt: 0 },
       deleted_at: null
     },
-    _sum: { amount: true }
+    select: { type: true, amount: true },
   });
-  return Number(result._sum.amount) || 0;
+  return rows.reduce((total, row) => total + expenseContribution(row.type, Number(row.amount)), 0);
 }
 
 export async function getNetWorthHistory(days: number = 30) {
@@ -186,7 +186,6 @@ export async function getTransactionsForYear(year: number) {
         gte: startDate,
         lt: endDate
       },
-      amount: { gt: 0 },
       deleted_at: null
     },
     orderBy: { date: 'asc' },

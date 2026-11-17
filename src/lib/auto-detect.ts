@@ -1,3 +1,4 @@
+import { TRANSACTION_TYPES, type TransactionType } from './transaction-types';
 import { parseValue } from './system-types';
 import type { SystemType } from './system-types';
 
@@ -42,6 +43,11 @@ function detectColumnType(
 ): { type: SystemType; field: string | null } {
   const nonEmpty = values.filter((v) => v && v.trim().length > 0);
   if (nonEmpty.length === 0) return { type: 'string', field: null };
+
+  // A canonical purpose column differs from a bank's free-form category/type label.
+  if (/^(type|transaction type)$/i.test(columnName.trim()) && nonEmpty.every((value) => TRANSACTION_TYPES.includes(value.trim() as TransactionType))) {
+    return { type: 'string', field: 'type' };
+  }
 
   // Check header name hints first
   for (const [field, hints] of Object.entries(FIELD_HINTS)) {

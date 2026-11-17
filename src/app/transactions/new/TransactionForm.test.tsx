@@ -46,4 +46,11 @@ describe("TransactionForm", () => {
       screen.getByRole("button", { name: /Add Transaction/i })
     ).toBeInTheDocument();
   });
+
+  it('offers refunds and both payment directions separately from income', () => {
+    render(<TransactionForm accounts={mockAccounts} />);
+    expect(screen.getByRole('radio', { name: 'Refund' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /money arriving/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /money leaving/i })).toBeInTheDocument();
+  });
 });

@@ -1,3 +1,4 @@
+import { transactionTypeOptions } from '@/lib/transaction-types';
 import type { Filter, FilterField } from 'doom-design-system/filter';
 
 export interface AccountOption {
@@ -24,10 +25,7 @@ export function transactionFilterFields(accounts: AccountOption[] = []): FilterF
       key: 'type',
       label: 'Type',
       type: 'select',
-      options: [
-        { value: 'income', label: 'Income' },
-        { value: 'expense', label: 'Expense' },
-      ],
+      options: transactionTypeOptions,
       operators: ['eq', 'neq'],
     },
     {

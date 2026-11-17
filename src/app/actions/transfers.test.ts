@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache';
 vi.mock('@/lib/prisma', () => ({
   default: {
     accounts: { findMany: vi.fn() },
+    transactions: { count: vi.fn(async () => 0) },
     transfers: { create: vi.fn() },
   },
 }));
@@ -126,7 +127,7 @@ describe('updateTransfer', () => {
     await updateTransfer(99, fd());
 
     expect((prisma as any).transfers.update).toHaveBeenCalledWith({
-      where: { id: 99 },
+      where: expect.objectContaining({ id: 99, transactions: { none: { deleted_at: null } } }),
       data: expect.objectContaining({ amount: 300, note: 'Adjusted', tags: null }),
     });
   });

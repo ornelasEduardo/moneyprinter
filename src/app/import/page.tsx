@@ -20,6 +20,8 @@ export default async function ImportPage() {
         date: new Date(t.date),
         amount: t.amount,
         name: t.name,
+        account_id: t.accountId,
+        type: t.type,
       }))}
       accounts={accounts.map((a) => ({ id: a.id, name: a.name }))}
     />

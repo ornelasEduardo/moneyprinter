@@ -25,7 +25,7 @@ function parseAndValidate(formData: FormData): TransferFields {
   if (!from_account_id || !to_account_id || !transferDateRaw || isNaN(amount)) {
     throw new Error('Missing required fields');
   }
-  if (amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     throw new Error('Amount must be positive');
   }
   if (from_account_id === to_account_id) {
@@ -85,8 +85,10 @@ export async function updateTransfer(id: number, formData: FormData) {
 
     await assertAccountsValid(userId, fields.from_account_id, fields.to_account_id);
 
+    if (await prisma.transactions.count({ where: { transfer_id: id, deleted_at: null } })) throw new Error('Unlink statement payments before editing this transfer');
+
     await prisma.transfers.update({
-      where: { id },
+      where: { id, user_id: userId, transactions: { none: { deleted_at: null } } },
       data: { ...fields, updated_at: new Date() },
     });
 
@@ -98,6 +100,7 @@ export async function deleteTransfer(id: number) {
   const userId = await requireAuth();
 
   return withAuditContext({ userId }, async () => {
+    if (await prisma.transactions.count({ where: { transfer_id: id, deleted_at: null } })) throw new Error('Unlink statement payments before deleting this transfer');
     const result = await prisma.transfers.deleteMany({
       where: { id, user_id: userId },
     });
