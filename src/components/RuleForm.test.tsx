@@ -61,3 +61,12 @@ describe('RuleForm — edit', () => {
     expect((updateRule as any).mock.calls[0][0]).toBe(5);
   });
 });
+
+
+it('offers refund and payment classifications for rules', () => {
+  render(<RuleForm accounts={accounts} />);
+  fireEvent.click(screen.getByRole('combobox', { name: 'Set type' }));
+  for (const label of ['Refund', 'Account payment — money arriving', 'Account payment — money leaving']) {
+    expect(screen.getByRole('option', { name: label })).toBeInTheDocument();
+  }
+});

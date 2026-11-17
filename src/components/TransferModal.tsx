@@ -14,6 +14,7 @@ import {
   Text,
   useToast,
 } from 'doom-design-system';
+import LinkedPayments from './LinkedPayments';
 import { createTransfer, updateTransfer, deleteTransfer } from '@/app/actions/transfers';
 
 export interface TransferModalAccount {
@@ -65,6 +66,7 @@ export default function TransferModal({
   );
   const [isLoading, setIsLoading] = useState(false);
 
+  const [linkedCount, setLinkedCount] = useState(0);
   const isEdit = Boolean(initial);
 
   if (!isOpen) return null;
@@ -122,6 +124,7 @@ export default function TransferModal({
         </Text>
       </Modal.Header>
       <Modal.Body>
+        {initial && <LinkedPayments transferId={initial.id} onLoaded={setLinkedCount} onUnlinked={() => { onClose(); router.refresh(); }} />}
         <Form id="transfer-form" onSubmit={handleSubmit}>
           <Flex direction="column" gap={4}>
             <Field label="From" required>
@@ -201,7 +204,7 @@ export default function TransferModal({
                 type="button"
                 variant="ghost"
                 onClick={handleDelete}
-                disabled={isLoading}
+                disabled={isLoading || linkedCount > 0}
               >
                 Delete
               </Button>
@@ -216,7 +219,7 @@ export default function TransferModal({
             >
               Cancel
             </Button>
-            <Button type="submit" form="transfer-form" disabled={isLoading}>
+            <Button type="submit" form="transfer-form" disabled={isLoading || linkedCount > 0}>
               {isLoading ? (
                 <>
                   <Spinner size="sm" /> Saving...

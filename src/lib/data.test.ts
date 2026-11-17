@@ -116,14 +116,18 @@ describe('Data Library', () => {
       expect(result).toBe(0);
     });
 
-    it('should return sum of transactions', async () => {
+    it('should return net expenses after refunds and exclude income and payments', async () => {
       (getCurrentUser as any).mockResolvedValue(1);
-      (prisma.transactions.aggregate as any).mockResolvedValue({
-        _sum: { amount: 500 },
-      });
+      vi.mocked(prisma.transactions.findMany).mockResolvedValue([
+        { type: 'expense', amount: 500 },
+        { type: 'refund', amount: 30 },
+        { type: 'income', amount: 5000 },
+        { type: 'payment_in', amount: 500 },
+        { type: 'payment_out', amount: 500 },
+      ] as never);
 
       const result = await getMonthlySpending();
-      expect(result).toBe(500);
+      expect(result).toBe(470);
     });
   });
 

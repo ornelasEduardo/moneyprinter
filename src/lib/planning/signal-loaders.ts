@@ -9,6 +9,7 @@ import prisma from '@/lib/prisma';
 import { TRAILING_MONTHS, liquidBalance, netWorth, monthlyIncome, monthlySurplus } from './signals';
 import { colThresholds } from './col';
 import { loadColThresholds } from './col-loader';
+import { expenseContribution, incomeContribution } from '@/lib/transaction-types';
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -46,8 +47,8 @@ const trailingTotals = cache(async (userId: number) => {
   let expense = 0;
   for (const row of rows) {
     const amt = Number(row.amount);
-    if (row.type === 'income') income += amt;
-    else expense += amt;
+    income += incomeContribution(row.type, amt);
+    expense += expenseContribution(row.type, amt);
   }
   return { income, expense };
 });

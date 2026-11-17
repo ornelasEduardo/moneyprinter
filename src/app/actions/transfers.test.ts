@@ -1,12 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createTransfer, updateTransfer, deleteTransfer, listTransfers } from './transfers';
 import prisma from '@/lib/prisma';
+import { transferDb } from '@/lib/transfer-db';
+
+vi.mock('@/lib/transfer-db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/transfer-db')>();
+  const db = { $queryRaw: vi.fn(), $executeRaw: vi.fn(), accounts: { findMany: vi.fn() }, transactions: { count: vi.fn(async () => 0) }, transfers: { update: vi.fn() } };
+  return { ...actual, transferDb: { ...db, $transaction: vi.fn(async (fn) => fn(db)) } };
+});
 import { requireAuth } from '@/lib/action-middleware';
 import { revalidatePath } from 'next/cache';
 
 vi.mock('@/lib/prisma', () => ({
   default: {
     accounts: { findMany: vi.fn() },
+    transactions: { count: vi.fn(async () => 0) },
     transfers: { create: vi.fn() },
   },
 }));
@@ -114,25 +122,23 @@ describe('updateTransfer', () => {
   }
 
   it('updates a transfer owned by the user', async () => {
-    (prisma as any).transfers.findFirst = vi.fn().mockResolvedValue({
-      id: 99, user_id: mockUserId,
-    });
-    (prisma as any).transfers.update = vi.fn().mockResolvedValue({ id: 99 });
-    (prisma.accounts.findMany as any).mockResolvedValue([
+    vi.mocked(transferDb.$queryRaw).mockResolvedValue([{ id: 99, user_id: mockUserId }]);
+    vi.mocked(transferDb.transfers.update).mockResolvedValue({ id: 99 } as any);
+    (transferDb.accounts.findMany as any).mockResolvedValue([
       { id: 1, user_id: mockUserId, currency: 'USD', deleted_at: null },
       { id: 2, user_id: mockUserId, currency: 'USD', deleted_at: null },
     ]);
 
     await updateTransfer(99, fd());
 
-    expect((prisma as any).transfers.update).toHaveBeenCalledWith({
-      where: { id: 99 },
+    expect(transferDb.transfers.update).toHaveBeenCalledWith({
+      where: { id: 99, user_id: mockUserId },
       data: expect.objectContaining({ amount: 300, note: 'Adjusted', tags: null }),
     });
   });
 
   it('rejects when transfer is not owned by user', async () => {
-    (prisma as any).transfers.findFirst = vi.fn().mockResolvedValue(null);
+    vi.mocked(transferDb.$queryRaw).mockResolvedValue([]);
     await expect(updateTransfer(99, fd())).rejects.toThrow(/not found|unauthorized/i);
   });
 });
@@ -146,18 +152,20 @@ describe('deleteTransfer', () => {
   });
 
   it('soft-deletes a transfer the user owns', async () => {
-    (prisma as any).transfers.deleteMany = vi.fn().mockResolvedValue({ count: 1 });
+    vi.mocked(transferDb.$queryRaw).mockResolvedValue([{ id: 7, user_id: mockUserId }]);
+    vi.mocked(transferDb.transfers.update).mockResolvedValue({ id: 7 } as any);
 
     await deleteTransfer(7);
 
-    expect((prisma as any).transfers.deleteMany).toHaveBeenCalledWith({
+    expect(transferDb.transfers.update).toHaveBeenCalledWith({
       where: { id: 7, user_id: mockUserId },
+      data: { deleted_at: expect.any(Date) },
     });
     expect(revalidatePath).toHaveBeenCalledWith('/');
   });
 
   it('throws when nothing was deleted', async () => {
-    (prisma as any).transfers.deleteMany = vi.fn().mockResolvedValue({ count: 0 });
+    vi.mocked(transferDb.$queryRaw).mockResolvedValue([]);
     await expect(deleteTransfer(99)).rejects.toThrow(/not found|unauthorized/i);
   });
 });

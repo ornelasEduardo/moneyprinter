@@ -10,7 +10,9 @@
     "lint": "eslint",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:refunds": "playwright test --config playwright.refunds.config.ts",
+    "test:integration:refunds": "RUN_PAYMENT_DB_TESTS=1 vitest --run --config scripts/vitest.refunds.config.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

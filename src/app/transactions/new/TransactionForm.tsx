@@ -1,5 +1,8 @@
 "use client";
+import { transactionTypeOptions } from '@/lib/transaction-types';
 
+import { useState } from "react";
+import RefundFields from "@/components/RefundFields";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createTransaction } from "@/app/actions/transactions";
 import { X, Receipt, Plus } from "lucide-react";
@@ -30,6 +33,10 @@ interface TransactionFormProps {
 }
 
 export default function TransactionForm({ accounts }: TransactionFormProps) {
+  const [type, setType] = useState("expense");
+  const [accountId, setAccountId] = useState<number | null>(null);
+  const [tags, setTags] = useState("");
+  const [amount, setAmount] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
   const year = searchParams.get("year");
@@ -96,7 +103,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
               Add Transaction
             </Text>
             <Text color="muted" align="center">
-              Record a new expense or income
+              Record income, spending, a refund, or an account payment
             </Text>
           </div>
         </header>
@@ -106,9 +113,8 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
             <input type="hidden" name="year" value={year || ""} />
             <FormGroup>
               <Label>Type</Label>
-              <RadioGroup name="type" defaultValue="expense">
-                <RadioGroupItem value="expense">Expense</RadioGroupItem>
-                <RadioGroupItem value="income">Income</RadioGroupItem>
+              <RadioGroup name="type" value={type} onValueChange={setType}>
+                {transactionTypeOptions.map(o => <RadioGroupItem key={o.value} value={o.value}>{o.label}</RadioGroupItem>)}
               </RadioGroup>
             </FormGroup>
 
@@ -126,6 +132,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
               <Label>Amount</Label>
               <Input
                 name="amount"
+                onChange={e => setAmount(Number(e.target.value))}
                 type="number"
                 step="0.01"
                 placeholder="0.00"
@@ -148,6 +155,8 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
               <Label>Tags</Label>
               <Input
                 name="tags"
+                value={tags}
+                onChange={e => setTags(e.target.value)}
                 type="text"
                 placeholder="e.g. Food, Housing, Transport"
               />
@@ -157,11 +166,15 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
               <Label>Account</Label>
               <Select
                 name="accountId"
+                aria-label="Account"
+                onChange={e => setAccountId(Number(e.target.value))}
                 required
                 options={accountOptions}
                 style={{ width: "100%" }}
               />
             </FormGroup>
+
+            {type === "refund" && <RefundFields accountId={accountId} amount={amount} onCopyTags={setTags} />}
 
             <Flex justify="space-between" className="mt-8">
               <Button type="button" variant="ghost" onClick={handleCancel}>

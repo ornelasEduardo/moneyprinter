@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { transferDb, lockUnlinkedTransfer, writeTransferAudit } from '@/lib/transfer-db';
 import { revalidatePath } from 'next/cache';
 import { requireAuth } from '@/lib/action-middleware';
 import { withAuditContext } from '@/lib/audit-context';
@@ -25,7 +26,7 @@ function parseAndValidate(formData: FormData): TransferFields {
   if (!from_account_id || !to_account_id || !transferDateRaw || isNaN(amount)) {
     throw new Error('Missing required fields');
   }
-  if (amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     throw new Error('Amount must be positive');
   }
   if (from_account_id === to_account_id) {
@@ -42,8 +43,17 @@ function parseAndValidate(formData: FormData): TransferFields {
   };
 }
 
-async function assertAccountsValid(userId: number, fromId: number, toId: number) {
-  const accounts = await prisma.accounts.findMany({
+type AccountValidationDb = {
+  accounts: {
+    findMany(args: {
+      where: { id: { in: number[] }; user_id: number; deleted_at: null };
+      select: { id: true; currency: true };
+    }): PromiseLike<{ id: number; currency: string | null }[]>;
+  };
+};
+
+async function assertAccountsValid(userId: number, fromId: number, toId: number, db: AccountValidationDb = prisma) {
+  const accounts = await db.accounts.findMany({
     where: { id: { in: [fromId, toId] }, user_id: userId, deleted_at: null },
     select: { id: true, currency: true },
   });
@@ -71,41 +81,33 @@ export async function createTransfer(formData: FormData) {
   });
 }
 
+async function mutateUnlinkedTransfer(id: number, userId: number, fields?: TransferFields) {
+  await transferDb.$transaction(async (db) => {
+    // Reconciliation takes the same row lock before attaching a statement.
+    // Check links only after acquiring it, so neither operation can pass a
+    // stale precheck and invalidate the other operation's result.
+    const before = await lockUnlinkedTransfer(db, userId, id, fields ? 'editing this transfer' : 'deleting this transfer');
+    if (fields) await assertAccountsValid(userId, fields.from_account_id, fields.to_account_id, db);
+    const now = new Date();
+    const after = await db.transfers.update({
+      where: { id, user_id: userId },
+      data: fields ? { ...fields, updated_at: now } : { deleted_at: now },
+    });
+    await writeTransferAudit(db, userId, id, before, after, fields ? 'UPDATE' : 'DELETE');
+  });
+}
+
 export async function updateTransfer(id: number, formData: FormData) {
   const userId = await requireAuth();
   const fields = parseAndValidate(formData);
-
-  return withAuditContext({ userId }, async () => {
-    const existing = await prisma.transfers.findFirst({
-      where: { id, user_id: userId, deleted_at: null },
-    });
-    if (!existing) {
-      throw new Error('Transfer not found or unauthorized');
-    }
-
-    await assertAccountsValid(userId, fields.from_account_id, fields.to_account_id);
-
-    await prisma.transfers.update({
-      where: { id },
-      data: { ...fields, updated_at: new Date() },
-    });
-
-    revalidatePath('/');
-  });
+  await mutateUnlinkedTransfer(id, userId, fields);
+  revalidatePath('/');
 }
 
 export async function deleteTransfer(id: number) {
   const userId = await requireAuth();
-
-  return withAuditContext({ userId }, async () => {
-    const result = await prisma.transfers.deleteMany({
-      where: { id, user_id: userId },
-    });
-    if (result.count === 0) {
-      throw new Error('Transfer not found or unauthorized');
-    }
-    revalidatePath('/');
-  });
+  await mutateUnlinkedTransfer(id, userId);
+  revalidatePath('/');
 }
 
 export async function listTransfers() {

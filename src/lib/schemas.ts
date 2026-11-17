@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TRANSACTION_TYPES } from '@/lib/transaction-types';
 import { mortgagePlanSchema } from '@/lib/planning/mortgage';
 
 const coerceNumber = z.coerce.number();
@@ -22,10 +23,22 @@ export const transactionSchema = z.object({
   amount: coerceNumber,
   date: coerceDate,
   tags: z.string().nullable().optional(),
-  type: z.string().default('expense'),
+  type: z.enum(TRANSACTION_TYPES).default('expense'),
   pending: coerceBoolean.default(false),
   account_id: coerceNumber.optional(),
   plaid_transaction_id: z.string().nullable().optional(),
+  original_transaction_id: coerceNumber.int().positive().nullable().optional(),
+  transfer_id: coerceNumber.int().positive().nullable().optional(),
+}).superRefine((row, ctx) => {
+  if (['refund', 'payment_in', 'payment_out'].includes(row.type) && row.amount <= 0) {
+    ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Refunds and payments require a positive amount' });
+  }
+  if (row.original_transaction_id != null && row.type !== 'refund') {
+    ctx.addIssue({ code: 'custom', path: ['original_transaction_id'], message: 'Only refunds can reference a purchase' });
+  }
+  if (row.transfer_id != null && !['payment_in', 'payment_out'].includes(row.type)) {
+    ctx.addIssue({ code: 'custom', path: ['transfer_id'], message: 'Only payments can reference a transfer' });
+  }
 });
 
 export const netWorthHistorySchema = z.object({
@@ -134,7 +147,7 @@ export const categorizationRuleSchema = z.object({
   conditions: filterSchema,
   actions: z.object({
     addTags: z.array(z.string()).default([]),
-    setType: z.enum(['income', 'expense']).optional(),
+    setType: z.enum(TRANSACTION_TYPES).optional(),
   }),
 });
 

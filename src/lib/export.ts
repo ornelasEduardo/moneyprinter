@@ -21,7 +21,7 @@ function serializeRow(row: Record<string, unknown>): Record<string, unknown> {
   return serialized;
 }
 
-export async function exportEntity(userId: number, entity: string): Promise<Record<string, unknown>[]> {
+async function exportRows(userId: number, entity: string): Promise<Record<string, unknown>[]> {
   if (!EXPORTABLE_ENTITIES.includes(entity as ExportableEntity)) {
     throw new Error(`Unknown entity: ${entity}`);
   }
@@ -38,6 +38,19 @@ export async function exportEntity(userId: number, entity: string): Promise<Reco
   return rows.map((row: Record<string, unknown>) => serializeRow(row));
 }
 
+function filterProvenance(data: Record<string, Record<string, unknown>[]>): void {
+  const ids = new Map(Object.entries(data).map(([entity, rows]) => [entity, new Set(rows.map(row => row.id))]));
+  data.provenance = (data.provenance ?? []).filter(row =>
+    ids.get(String(row.entity_type))?.has(row.entity_id) &&
+    (row.source_type !== 'rule' || row.source_id == null || ids.get('categorization_rules')?.has(row.source_id)),
+  );
+}
+
+export async function exportEntity(userId: number, entity: string): Promise<Record<string, unknown>[]> {
+  if (entity === 'provenance') return (await exportAllEntities(userId)).provenance;
+  return exportRows(userId, entity);
+}
+
 export async function exportEntityCsv(userId: number, entity: string): Promise<string> {
   const data = await exportEntity(userId, entity);
   return Papa.unparse(data);
@@ -46,8 +59,9 @@ export async function exportEntityCsv(userId: number, entity: string): Promise<s
 export async function exportAllEntities(userId: number): Promise<Record<string, Record<string, unknown>[]>> {
   const result: Record<string, Record<string, unknown>[]> = {};
   for (const entity of EXPORTABLE_ENTITIES) {
-    result[entity] = await exportEntity(userId, entity);
+    result[entity] = await exportRows(userId, entity);
   }
+  filterProvenance(result);
   return result;
 }
 

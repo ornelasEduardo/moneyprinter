@@ -46,11 +46,14 @@ function applyAmountConvention(
   amount: number,
   behaviors: Record<string, unknown>,
 ): ProcessedRow {
-  if (behaviors.amount_convention !== 'negative_is_debit') return row;
-  if (amount < 0) {
-    return { ...row, data: { ...row.data, amount: Math.abs(amount), type: row.data.type || 'expense' } };
+  const convention = behaviors.amount_convention;
+  const explicitType = row.data.type || behaviors.default_type;
+  const isSpecial = ['refund', 'payment_in', 'payment_out'].includes(String(explicitType));
+  if (convention !== 'negative_is_debit' && convention !== 'positive_is_debit') {
+    return isSpecial ? { ...row, data: { ...row.data, amount: Math.abs(amount), type: explicitType } } : row;
   }
-  return { ...row, data: { ...row.data, type: row.data.type || 'income' } };
+  const debit = convention === 'negative_is_debit' ? amount < 0 : amount >= 0;
+  return { ...row, data: { ...row.data, amount: Math.abs(amount), type: explicitType || (debit ? 'expense' : 'income') } };
 }
 
 export const skipRows: PipelineStep = (row, behaviors) => {
@@ -100,6 +103,9 @@ export const detectDuplicates: PipelineStep = (row, behaviors, context) => {
   if (isNaN(rowDate.getTime()) || isNaN(rowAmount)) return row;
 
   for (const existing of context.existingTransactions) {
+    const accountId = row.data.account_id ?? behaviors.default_account_id;
+    if (String(accountId ?? '') !== String(existing.account_id ?? existing.accountId ?? '')) continue;
+    if ((row.data.type || behaviors.default_type || 'expense') !== (existing.type || 'expense')) continue;
     const existingDate = existing.date instanceof Date ? existing.date : new Date(String(existing.date));
     const existingAmount = Number(existing.amount);
     const existingName = String(existing.name || '').toLowerCase().trim();

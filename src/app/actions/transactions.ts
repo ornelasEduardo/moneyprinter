@@ -7,6 +7,7 @@ import { requireAuth } from '@/lib/action-middleware';
 import { withAuditContext } from '@/lib/audit-context';
 import { applyRulesAtCreate, type CompiledRule } from '@/lib/tagging';
 import type { Filter } from 'doom-design-system/filter';
+import { TRANSACTION_TYPES, type TransactionType } from '@/lib/transaction-types';
 
 export async function createTransaction(formData: FormData) {
   const userId = await requireAuth();
@@ -18,8 +19,17 @@ export async function createTransaction(formData: FormData) {
   const accountId = parseInt(formData.get('accountId') as string);
   const type = (formData.get('type') as string) || 'expense';
 
-  if (!name || isNaN(amount) || !date || !accountId) {
+  if (!name || !Number.isFinite(amount) || !date || Number.isNaN(new Date(date).getTime()) || !accountId) {
     throw new Error('Missing required fields');
+  }
+
+  if (!TRANSACTION_TYPES.includes(type as TransactionType)) throw new Error('Unknown transaction type');
+  if ((type === 'refund' || type.startsWith('payment_')) && amount <= 0) throw new Error('Refunds and payments require a positive amount');
+  const originalTransactionId = Number(formData.get('originalTransactionId')) || null;
+  if (originalTransactionId) {
+    if (type !== 'refund') throw new Error('Only refunds can link a purchase');
+    const original = await prisma.transactions.findFirst({ where: { id: originalTransactionId, user_id: userId, deleted_at: null, type: 'expense', account_id: accountId } });
+    if (!original) throw new Error('Original purchase not found in this account');
   }
 
   return withAuditContext({ userId }, async () => {
@@ -45,6 +55,7 @@ export async function createTransaction(formData: FormData) {
           tags,
           account_id: accountId,
           type,
+          ...(originalTransactionId ? { original_transaction_id: originalTransactionId } : {}),
           pending: false
         }
       });
@@ -87,9 +98,22 @@ export async function updateTransaction(id: number, formData: FormData) {
   const accountId = parseInt(formData.get('accountId') as string);
   const type = (formData.get('type') as string) || 'expense';
 
-  if (!name || isNaN(amount) || !date || !accountId) {
+  if (!name || !Number.isFinite(amount) || !date || Number.isNaN(new Date(date).getTime()) || !accountId) {
     throw new Error('Missing required fields');
   }
+
+  if (!TRANSACTION_TYPES.includes(type as TransactionType)) throw new Error('Unknown transaction type');
+  if ((type === 'refund' || type.startsWith('payment_')) && amount <= 0) throw new Error('Refunds and payments require a positive amount');
+  const originalTransactionId = Number(formData.get('originalTransactionId')) || null;
+  if (originalTransactionId) {
+    if (type !== 'refund') throw new Error('Only refunds can link a purchase');
+    const original = await prisma.transactions.findFirst({ where: { id: originalTransactionId, user_id: userId, deleted_at: null, type: 'expense', account_id: accountId } });
+    if (!original) throw new Error('Original purchase not found in this account');
+  }
+
+  const linked = await prisma.transactions.findFirst({ where: { id, user_id: userId, deleted_at: null } });
+  if (linked?.transfer_id) throw new Error('Unlink this payment before editing it');
+  if (originalTransactionId === id) throw new Error('A refund cannot link to itself');
 
   return withAuditContext({ userId }, async () => {
     try {
@@ -119,7 +143,8 @@ export async function updateTransaction(id: number, formData: FormData) {
 
       await prisma.transactions.update({
         where: {
-          id: id
+          id: id, user_id: userId, transfer_id: null,
+          ...((linked && (linked.account_id !== accountId || linked.type !== type)) ? { other_transactions: { none: { deleted_at: null } } } : {})
         },
         data: {
           name,
@@ -127,7 +152,8 @@ export async function updateTransaction(id: number, formData: FormData) {
           date: new Date(date),
           tags,
           account_id: accountId,
-          type
+          type,
+          original_transaction_id: originalTransactionId
         }
       });
 
@@ -142,12 +168,15 @@ export async function updateTransaction(id: number, formData: FormData) {
 export async function deleteTransaction(id: number) {
   const userId = await requireAuth();
 
+  const linked = await prisma.transactions.findFirst({ where: { id, user_id: userId, deleted_at: null } });
+  if (linked?.transfer_id) throw new Error('Unlink this payment before deleting it');
+
   return withAuditContext({ userId }, async () => {
     try {
       const result = await prisma.transactions.deleteMany({
         where: {
           id: id,
-          user_id: userId
+          user_id: userId, transfer_id: null, other_transactions: { none: { deleted_at: null } }
         }
       });
 
@@ -181,4 +210,18 @@ export async function getAccounts() {
   });
   
   return accounts;
+}
+
+export async function getRefundPurchases(accountId: number, originalId?: number | null) {
+  const userId = await requireAuth();
+  const rows = await prisma.transactions.findMany({
+    where: { user_id: userId, account_id: accountId, type: 'expense', deleted_at: null },
+    select: { id: true, name: true, amount: true, tags: true, date: true },
+    orderBy: { date: 'desc' }, take: 100,
+  });
+  if (originalId && !rows.some(r => r.id === originalId)) {
+    const original = await prisma.transactions.findFirst({ where: { id: originalId, user_id: userId, account_id: accountId, type: 'expense', deleted_at: null }, select: { id: true, name: true, amount: true, tags: true, date: true } });
+    if (original) rows.push(original);
+  }
+  return rows.map(r => ({ ...r, amount: Number(r.amount), date: r.date.toISOString().slice(0, 10) }));
 }

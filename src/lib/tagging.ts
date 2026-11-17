@@ -1,3 +1,4 @@
+import { TRANSACTION_TYPES, type TransactionType } from '@/lib/transaction-types';
 import { evaluateFilter, type Filter } from 'doom-design-system/filter';
 import { normalizeTag, splitTags } from '@/lib/tags';
 
@@ -7,7 +8,7 @@ export interface CompiledRule {
   conditions: Filter;
   actions: {
     addTags: string[];
-    setType?: 'income' | 'expense';
+    setType?: TransactionType;
   };
 }
 
@@ -15,7 +16,7 @@ export interface RuleMatch {
   ruleId: number;
   priority: number;
   addTags: string[];
-  setType?: 'income' | 'expense';
+  setType?: TransactionType;
 }
 
 export interface ResolvedApplication {
@@ -25,7 +26,7 @@ export interface ResolvedApplication {
 
 export interface ResolveResult {
   tags: string[];
-  type: 'income' | 'expense';
+  type: TransactionType;
   applications: ResolvedApplication[];
   typeSource: { ruleId: number } | null;
 }
@@ -50,7 +51,7 @@ export function evaluateRules(
 
 export function resolveMatches(
   currentTags: string[],
-  currentType: 'income' | 'expense',
+  currentType: TransactionType,
   matches: RuleMatch[]
 ): ResolveResult {
   const existing = new Set(currentTags.map(normalizeTag));
@@ -128,16 +129,23 @@ export async function applyRulesAtCreate(input: ApplyRulesAtCreateInput): Promis
   if (matches.length === 0) return;
 
   const currentTags = splitTags(tx.tags);
-  const currentType = (tx.type === 'income' ? 'income' : 'expense') as 'income' | 'expense';
+  const currentType: TransactionType = TRANSACTION_TYPES.includes(tx.type as TransactionType) ? tx.type as TransactionType : 'expense';
   const resolved = resolveMatches(currentTags, currentType, matches);
+  // Reclassification would invalidate a confirmed transfer or purchase reference.
+  if (tx.transfer_id != null || tx.original_transaction_id != null) {
+    resolved.type = currentType;
+    resolved.typeSource = null;
+  }
 
   if (resolved.applications.length === 0 && !resolved.typeSource) return;
 
   await prisma.transactions.update({
-    where: { id: transactionId },
+    where: { id: transactionId, transfer_id: tx.transfer_id ?? null, original_transaction_id: tx.original_transaction_id ?? null, type: tx.type },
     data: {
       tags: resolved.tags.join(','),
       type: resolved.type,
+      ...(['refund', 'payment_in', 'payment_out'].includes(resolved.type) && tx.transfer_id == null
+        ? { amount: Math.abs(Number(tx.amount)) } : {}),
     },
   });
 
@@ -240,10 +248,10 @@ export async function stripRuleApplications(ruleId: number, userId: number): Pro
     const tx = await prisma.transactions.findFirst({
       where: { id: txId, user_id: userId, deleted_at: null },
     });
-    if (!tx) continue;
+    if (!tx || tx.transfer_id != null || tx.original_transaction_id != null) continue;
     // Reset to default 'expense' (the column default per schema).
     await prisma.transactions.update({
-      where: { id: txId },
+      where: { id: txId, transfer_id: null, original_transaction_id: null },
       data: { type: 'expense' },
     });
   }

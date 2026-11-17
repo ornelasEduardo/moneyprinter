@@ -49,4 +49,13 @@ describe('listMovements', () => {
     expect(txArgs.where.deleted_at).toBeNull();
     expect(trArgs.where.deleted_at).toBeNull();
   });
+
+  it('queries only unlinked statement entries so confirmed payments appear once as transfers', async () => {
+    vi.mocked(prisma.transactions.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.transfers.findMany).mockResolvedValue([]);
+    await listMovements({ userId: 42 });
+    expect(prisma.transactions.findMany).toHaveBeenCalledWith({
+      where: { user_id: 42, deleted_at: null, transfer_id: null },
+    });
+  });
 });

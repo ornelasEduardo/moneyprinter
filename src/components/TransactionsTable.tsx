@@ -1,3 +1,4 @@
+import { transactionTypeOptions, type TransactionType, isPaymentType } from '@/lib/transaction-types';
 import React, { useMemo, useState, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
@@ -30,12 +31,15 @@ import { Serialized, Transaction as PrismaTransaction } from "@/lib/types";
 import { ConfirmDialog } from "./ConfirmDialog";
 import TransferModal, { type TransferModalInitial } from "./TransferModal";
 import TagBadge from "./TagBadge";
+import RefundFields from "./RefundFields";
+import PaymentMatchModal from "./PaymentMatchModal";
 
 export interface TransactionRow
   extends Serialized<
     Pick<PrismaTransaction, "id" | "name" | "amount" | "date" | "tags" | "type">
   > {
-  kind: "income" | "expense";
+  kind: TransactionType;
+  original_transaction_id?: number | null;
   accountId: number | null;
   accountName?: string;
 }
@@ -104,6 +108,8 @@ export default function TransactionsTable({
   const [editingTransfer, setEditingTransfer] =
     useState<TransferModalInitial | null>(null);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+
+  const [matchingPayment, setMatchingPayment] = useState<TransactionRow | null>(null);
 
   const filteredTransactions = useMemo(() => {
     let result = transactions;
@@ -235,7 +241,7 @@ export default function TransactionsTable({
               : "secondary";
           return (
             <Badge variant={variant as any} className="text-xs">
-              {kind}
+              {isPaymentType(kind) ? "Payment — needs matching" : kind}
             </Badge>
           );
         },
@@ -299,6 +305,7 @@ export default function TransactionsTable({
           if (row.kind === "transfer") return null;
           return (
             <Flex gap={2} justify="flex-end" className="row-actions">
+              {isPaymentType(row.kind) && <Button size="sm" variant="secondary" onClick={() => setMatchingPayment(row)} aria-label={`Match payment ${row.name}`}>Match payment</Button>}
               <Tooltip content="Edit transaction">
                 <Button
                   variant="ghost"
@@ -431,19 +438,22 @@ export default function TransactionsTable({
                 <Field label="Type">
                   <RadioGroup
                     name="type"
-                    defaultValue={editingTransaction.type || "expense"}
+                    value={editingTransaction.type || "expense"}
+                    onValueChange={value => setEditingTransaction({ ...editingTransaction, type: value, kind: value as TransactionType })}
                   >
-                    <RadioGroupItem value="expense">Expense</RadioGroupItem>
-                    <RadioGroupItem value="income">Income</RadioGroupItem>
+                    {transactionTypeOptions.map(o => <RadioGroupItem key={o.value} value={o.value}>{o.label}</RadioGroupItem>)}
                   </RadioGroup>
                 </Field>
+
+                {editingTransaction.type === "refund" && <RefundFields accountId={editingTransaction.accountId} amount={editingTransaction.amount} originalId={editingTransaction.original_transaction_id} onCopyTags={tags => setEditingTransaction({ ...editingTransaction, tags })} />}
 
                 <Field label="Amount" required>
                   <Input
                     name="amount"
                     type="number"
                     step="0.01"
-                    defaultValue={editingTransaction.amount}
+                    value={editingTransaction.amount}
+                    onChange={e => setEditingTransaction({ ...editingTransaction, amount: Number(e.target.value) })}
                     required
                   />
                 </Field>
@@ -460,7 +470,8 @@ export default function TransactionsTable({
                 <Field label="Tags">
                   <Input
                     name="tags"
-                    defaultValue={editingTransaction.tags || ""}
+                    value={editingTransaction.tags || ""}
+                    onChange={e => setEditingTransaction({ ...editingTransaction, tags: e.target.value })}
                     placeholder="e.g. Food, Travel"
                   />
                 </Field>
@@ -468,9 +479,9 @@ export default function TransactionsTable({
                 <Field label="Account">
                   <Select
                     name="accountId"
-                    defaultValue={
-                      editingTransaction.accountId?.toString() || ""
-                    }
+                    aria-label="Account"
+                    value={editingTransaction.accountId?.toString() || ""}
+                    onChange={e => setEditingTransaction({ ...editingTransaction, accountId: Number(e.target.value), original_transaction_id: null })}
                     options={accounts.map((acc) => ({
                       value: acc.id.toString(),
                       label: acc.name,
@@ -518,7 +529,10 @@ export default function TransactionsTable({
         variant="danger"
       />
 
+      {matchingPayment && <PaymentMatchModal key={matchingPayment.id} transactionId={matchingPayment.id} accounts={accounts.filter(a => a.id !== matchingPayment.accountId)} onClose={() => setMatchingPayment(null)} />}
+
       <TransferModal
+        key={`${isTransferModalOpen}-${editingTransfer?.id ?? "new"}`}
         isOpen={isTransferModalOpen}
         onClose={() => {
           setIsTransferModalOpen(false);

@@ -29,7 +29,7 @@ describe('getRecentAuditLog', () => {
 
     const result = await getRecentAuditLog();
 
-    expect(getAuditLog).toHaveBeenCalledWith({ limit: 50, offset: 0 });
+    expect(getAuditLog).toHaveBeenCalledWith({ userId: 1, limit: 50, offset: 0 });
     expect(result).toEqual(mockEntries);
   });
 
@@ -38,7 +38,7 @@ describe('getRecentAuditLog', () => {
 
     await getRecentAuditLog({ entityType: 'accounts', limit: 10, offset: 5 });
 
-    expect(getAuditLog).toHaveBeenCalledWith({ entityType: 'accounts', limit: 10, offset: 5 });
+    expect(getAuditLog).toHaveBeenCalledWith({ userId: 1, entityType: 'accounts', limit: 10, offset: 5 });
   });
 });
 
@@ -51,7 +51,7 @@ describe('undoEntry', () => {
   it('should call undoAuditEntry with the given id', async () => {
     await undoEntry(5);
 
-    expect(undoAuditEntry).toHaveBeenCalledWith(5);
+    expect(undoAuditEntry).toHaveBeenCalledWith(5, 1);
   });
 });
 
@@ -66,6 +66,6 @@ describe('undoEntryBatch', () => {
 
     await undoEntryBatch(batchId);
 
-    expect(undoBatch).toHaveBeenCalledWith(batchId);
+    expect(undoBatch).toHaveBeenCalledWith(batchId, 1);
   });
 });

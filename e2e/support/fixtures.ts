@@ -13,7 +13,7 @@ export const test = base.extend<{ freshUser: EphemeralUser; freshUserPage: Page 
   freshUserPage: async ({ browser, freshUser }, run) => {
     const context = await browser.newContext();
     await context.addCookies([
-      { name: SESSION_COOKIE, value: freshUser.sessionToken, domain: 'localhost', path: '/', httpOnly: true, secure: false, sameSite: 'Lax' },
+      { name: SESSION_COOKIE, value: freshUser.sessionToken, domain: new URL(process.env.E2E_BASE_URL ?? 'http://localhost:3000').hostname, path: '/', httpOnly: true, secure: false, sameSite: 'Lax' },
     ]);
     const page = await context.newPage();
     await run(page);

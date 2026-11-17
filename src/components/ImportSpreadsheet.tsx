@@ -24,6 +24,7 @@ import {
 import { recordImportHistory } from '@/app/actions/import-history';
 import '@/styles/ag-theme-doom.scss';
 import styles from './ImportSpreadsheet.module.scss';
+import { TRANSACTION_TYPES, transactionTypeOptions } from '@/lib/transaction-types';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -31,6 +32,12 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const EMPTY_TRANSACTIONS: Record<string, unknown>[] = [];
 const EMPTY_ACCOUNTS: { id: number; name: string }[] = [];
+interface SavedImportConfig {
+  id: number;
+  name: string;
+  column_mapping?: unknown;
+  behaviors?: unknown;
+}
 
 const SUPPORTED_FORMATS = {
   extensions: ['.csv', '.tsv', '.txt'],
@@ -428,6 +435,7 @@ function buildColDefs(
   processedRows: ProcessedRow[],
   columnMapping: Record<string, ColumnMappingEntry>,
   onHeaderClick: (col: string) => void,
+  onPurposeChange: (index: number, type: string) => void,
 ): ColDef[] {
   if (rawData.length === 0) return [];
   const csvColumns = Object.keys(rawData[0]);
@@ -444,7 +452,7 @@ function buildColDefs(
       filter: false,
       resizable: false,
       tooltipValueGetter: (params: any) => {
-        const row = processedRows[params.rowIndex];
+        const row = processedRows[params.data?.__importIndex ?? -1];
         if (!row) return '';
         if (row.status === 'error' && row.errors.length > 0) {
           return row.errors.map((e) => `${e.field}: ${e.message}`).join('\n');
@@ -452,6 +460,27 @@ function buildColDefs(
         if (row.status === 'duplicate') return 'Looks like a duplicate';
         return '';
       },
+    },
+    {
+      headerName: 'Transaction type',
+      colId: '__purpose',
+      width: 210,
+      editable: true,
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: { values: [...TRANSACTION_TYPES] },
+      valueGetter: (params) => String(processedRows[params.data?.__importIndex ?? -1]?.data.type || 'expense'),
+      valueFormatter: (params) => transactionTypeOptions.find((option) => option.value === params.value)?.label ?? String(params.value ?? ''),
+      valueSetter: (params) => {
+        if (params.data?.__importIndex == null || !TRANSACTION_TYPES.includes(params.newValue)) return false;
+        onPurposeChange(params.data.__importIndex, params.newValue);
+        return true;
+      },
+    },
+    {
+      headerName: 'Import amount',
+      colId: '__normalizedAmount',
+      width: 140,
+      valueGetter: (params) => processedRows[params.data?.__importIndex ?? -1]?.data.amount,
     },
     ...csvColumns.map((col) => ({
       headerName: col,
@@ -471,10 +500,10 @@ function buildColDefs(
 
 function buildRowClassRules(processedRows: ProcessedRow[]): RowClassRules {
   return {
-    'row-valid': (params) => processedRows[params.rowIndex ?? -1]?.status === 'valid',
-    'row-duplicate': (params) => processedRows[params.rowIndex ?? -1]?.status === 'duplicate',
-    'row-error': (params) => processedRows[params.rowIndex ?? -1]?.status === 'error',
-    'row-skipped': (params) => processedRows[params.rowIndex ?? -1]?.status === 'skipped',
+    'row-valid': (params) => processedRows[params.data?.__importIndex ?? -1]?.status === 'valid',
+    'row-duplicate': (params) => processedRows[params.data?.__importIndex ?? -1]?.status === 'duplicate',
+    'row-error': (params) => processedRows[params.data?.__importIndex ?? -1]?.status === 'error',
+    'row-skipped': (params) => processedRows[params.data?.__importIndex ?? -1]?.status === 'skipped',
   };
 }
 
@@ -495,6 +524,10 @@ export default function ImportSpreadsheet({
   const [columnMapping, setColumnMapping] = useState<Record<string, ColumnMappingEntry>>({});
   const [behaviors, setBehaviors] = useState<Record<string, unknown>>({});
   const [processedRows, setProcessedRows] = useState<ProcessedRow[]>([]);
+  const [purposeOverrides, setPurposeOverrides] = useState<Record<number, string>>({});
+  const onPurposeChange = useCallback((index: number, type: string) => {
+    setPurposeOverrides((previous) => ({ ...previous, [index]: type }));
+  }, []);
   const [defaultAccountId, setDefaultAccountId] = useState<number | null>(null);
 
   const { toastSuccess, toastError } = useToast();
@@ -503,18 +536,21 @@ export default function ImportSpreadsheet({
   const [isImporting, setIsImporting] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [configName, setConfigName] = useState('');
-  const [savedConfigs, setSavedConfigs] = useState<{ id: number; name: string }[]>([]);
+  const [savedConfigs, setSavedConfigs] = useState<SavedImportConfig[]>([]);
   const [selectedConfigId, setSelectedConfigId] = useState<number | null>(null);
   const [configuringColumn, setConfiguringColumn] = useState<string | null>(null);
   const [selectedCount, setSelectedCount] = useState(0);
   const [showErrorDetail, setShowErrorDetail] = useState(false);
 
+  // Stable source IDs survive grid sorting/filtering and cell editing.
+  const gridData = useMemo(() => rawData.map((row, index) => ({ ...row, __importIndex: index })), [rawData]);
+
   // Derived data
   const summary = useMemo(() => summarizeRows(processedRows), [processedRows]);
   const errorGroups = useMemo(() => groupErrors(processedRows), [processedRows]);
   const colDefs = useMemo(
-    () => buildColDefs(rawData, processedRows, columnMapping, setConfiguringColumn),
-    [rawData, processedRows, columnMapping],
+    () => buildColDefs(rawData, processedRows, columnMapping, setConfiguringColumn, onPurposeChange),
+    [rawData, processedRows, columnMapping, onPurposeChange],
   );
   const rowClassRules = useMemo(() => buildRowClassRules(processedRows), [processedRows]);
 
@@ -525,18 +561,36 @@ export default function ImportSpreadsheet({
     const api = gridRef.current?.api;
     if (!api || processedRows.length === 0) return;
     api.forEachNode((node) => {
-      const row = processedRows[node.rowIndex ?? -1];
+      const row = processedRows[node.data?.__importIndex ?? -1];
       node.setSelected(row?.status === 'valid');
     });
     setSelectedCount(api.getSelectedNodes().length);
   }, [processedRows]);
 
+  useEffect(() => {
+    autoSelectRows();
+  }, [autoSelectRows]);
+
   // Load saved configurations
   useEffect(() => {
     getImportConfigurations().then((configs) => {
-      setSavedConfigs(configs.map((c) => ({ id: c.id, name: c.name })));
+      setSavedConfigs(configs);
     }).catch(() => {});
   }, []);
+
+  // Saved settings belong to the selected statement format, including its sign convention.
+  useEffect(() => {
+    const config = savedConfigs.find((entry) => entry.id === selectedConfigId);
+    if (!config || rawData.length === 0) return;
+    if (config.column_mapping && typeof config.column_mapping === 'object') {
+      setColumnMapping(config.column_mapping as Record<string, ColumnMappingEntry>);
+    }
+    const restored = config.behaviors && typeof config.behaviors === 'object'
+      ? config.behaviors as Record<string, unknown> : {};
+    setBehaviors(restored);
+    setDefaultAccountId(typeof restored.default_account_id === 'number' ? restored.default_account_id : null);
+    setPurposeOverrides({});
+  }, [selectedConfigId, savedConfigs, rawData.length]);
 
   // Auto-detect columns when initialData is provided
   useEffect(() => {
@@ -552,13 +606,14 @@ export default function ImportSpreadsheet({
   // Run pipeline when data or config changes
   useEffect(() => {
     if (rawData.length === 0 || Object.keys(columnMapping).length === 0) return;
-    const mapped = mapRawToPipelineRows(rawData, columnMapping);
+    const mapped = mapRawToPipelineRows(rawData, columnMapping).map((row, index) => purposeOverrides[index]
+      ? { ...row, data: { ...row.data, type: purposeOverrides[index] } } : row);
     const effectiveBehaviors = {
       ...behaviors,
       ...(defaultAccountId ? { default_account_id: defaultAccountId } : {}),
     };
     setProcessedRows(runPipeline(mapped, effectiveBehaviors, existingTransactions));
-  }, [rawData, columnMapping, behaviors, existingTransactions, defaultAccountId]);
+  }, [rawData, columnMapping, behaviors, existingTransactions, defaultAccountId, purposeOverrides]);
 
   // ── Handlers ─────────────────────────────────────────
 
@@ -568,12 +623,11 @@ export default function ImportSpreadsheet({
     setCurrentFilename(file.name);
     file.text().then((text) => {
       const result = Papa.parse<Record<string, string>>(text, { header: true, skipEmptyLines: true });
+      setPurposeOverrides({});
       setRawData(result.data);
       const detected = autoDetectColumns(result.data);
       setColumnMapping(detected.columns);
-      if (Object.keys(detected.detectedBehaviors).length > 0) {
-        setBehaviors((prev) => ({ ...prev, ...detected.detectedBehaviors }));
-      }
+      setBehaviors(detected.detectedBehaviors);
     });
   }, []);
 
@@ -586,7 +640,7 @@ export default function ImportSpreadsheet({
 
   const handleImport = useCallback(async () => {
     const selectedNodes = gridRef.current?.api?.getSelectedNodes() ?? [];
-    const selectedIndices = new Set(selectedNodes.map((n) => n.rowIndex));
+    const selectedIndices = new Set(selectedNodes.map((node) => node.data?.__importIndex));
     const rowsToImport = processedRows
       .filter((_, i) => selectedIndices.has(i))
       .filter((r) => r.status === 'valid' || r.status === 'duplicate')
@@ -632,18 +686,18 @@ export default function ImportSpreadsheet({
     });
     setConfigName('');
     const configs = await getImportConfigurations();
-    setSavedConfigs(configs.map((c) => ({ id: c.id, name: c.name })));
+    setSavedConfigs(configs);
   }, [configName, columnMapping, behaviors, defaultAccountId]);
 
   const handleDeleteConfig = useCallback(async (id: number) => {
     await deleteImportConfiguration(id);
     const configs = await getImportConfigurations();
-    setSavedConfigs(configs.map((c) => ({ id: c.id, name: c.name })));
+    setSavedConfigs(configs);
   }, []);
 
   const refreshConfigs = useCallback(async () => {
     const configs = await getImportConfigurations();
-    setSavedConfigs(configs.map((c) => ({ id: c.id, name: c.name })));
+    setSavedConfigs(configs);
   }, []);
 
   // ── Render ───────────────────────────────────────────
@@ -680,10 +734,29 @@ export default function ImportSpreadsheet({
             {summary.skipped > 0 && <Badge variant="secondary">{summary.skipped} skipped</Badge>}
           </Flex>
         </Flex>
-        <Flex align="center" gap={3}>
+        <Flex align="center" gap={3} wrap>
+          <Select
+            size="sm"
+            aria-label="Amount convention"
+            value={String(behaviors.amount_convention ?? '')}
+            onChange={(e) => setBehaviors((prev) => ({ ...prev, amount_convention: e.target.value }))}
+            options={[
+              { value: '', label: 'Keep statement amounts' },
+              { value: 'negative_is_debit', label: 'Negative amounts are spending' },
+              { value: 'positive_is_debit', label: 'Positive amounts are spending' },
+            ]}
+          />
+          <Select
+            size="sm"
+            aria-label="Default transaction type"
+            value={String(behaviors.default_type ?? '')}
+            onChange={(e) => setBehaviors((prev) => ({ ...prev, default_type: e.target.value }))}
+            options={[{ value: '', label: 'Infer transaction type' }, ...transactionTypeOptions]}
+          />
           {accounts.length > 0 && (
             <Select
               size="sm"
+              aria-label="Statement account"
               value={defaultAccountId ?? ''}
               onChange={(e) => setDefaultAccountId(e.target.value ? Number(e.target.value) : null)}
               options={[
@@ -706,7 +779,8 @@ export default function ImportSpreadsheet({
       <div className={`ag-theme-doom ${styles.gridContainer}`}>
         <AgGridReact
           ref={gridRef}
-          rowData={rawData}
+          rowData={gridData}
+          getRowId={(params) => String(params.data.__importIndex)}
           columnDefs={colDefs}
           rowSelection="multiple"
           rowClassRules={rowClassRules}
@@ -715,6 +789,12 @@ export default function ImportSpreadsheet({
           headerHeight={44}
           tooltipShowDelay={300}
           defaultColDef={{ sortable: true, filter: true, resizable: true }}
+          onCellValueChanged={(event) => {
+            const index = event.data?.__importIndex;
+            if (typeof index !== 'number') return;
+            const { __importIndex: _sourceIndex, ...changed } = event.data;
+            setRawData((previous) => previous.map((row, sourceIndex) => sourceIndex === index ? changed : row));
+          }}
           onFirstDataRendered={autoSelectRows}
           onRowDataUpdated={autoSelectRows}
           onSelectionChanged={(e) => setSelectedCount(e.api.getSelectedNodes().length)}

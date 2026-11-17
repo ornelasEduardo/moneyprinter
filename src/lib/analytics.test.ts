@@ -185,3 +185,37 @@ describe('monthKey / monthLabel', () => {
     expect(monthKey('2026-04-13')).toBe('2026-04');
   });
 });
+
+describe('refund and payment accounting', () => {
+  const transactions: Transaction[] = [
+    { id: 1, name: 'Clothes', amount: 100, date: '2026-03-01', type: 'expense', tags: 'clothing', accountId: 1 },
+    { id: 2, name: 'Clothes', amount: 30, date: '2026-03-02', type: 'refund', tags: 'clothing', accountId: 1 },
+    { id: 3, name: 'Payment', amount: 100, date: '2026-03-03', type: 'payment_out', tags: 'clothing', accountId: 2 },
+    { id: 4, name: 'Payment', amount: 100, date: '2026-03-04', type: 'payment_in', tags: 'clothing', accountId: 1 },
+    { id: 5, name: 'Salary', amount: 1000, date: '2026-03-01', type: 'income', tags: null, accountId: 2 },
+  ];
+
+  it('reduces category and merchant spending by refunds without counting payments', () => {
+    expect(spendingByCategory(transactions)).toEqual([{
+      category: 'clothing', amount: 70, percentage: 100,
+      merchants: [{ merchant: 'Clothes', amount: 70, count: 2 }],
+    }]);
+  });
+
+  it('refunds increase net cash flow without increasing income', () => {
+    expect(cashFlow(transactions)).toEqual([{ period: '2026-03', income: 1000, expenses: 70, net: 930 }]);
+  });
+
+  it('shows refunds in their posting period, including negative spending', () => {
+    const laterRefund = { ...transactions[1], date: '2026-04-01', amount: 120 };
+    expect(spendingTrend([transactions[0], laterRefund, transactions[2]])).toEqual([
+      { period: '2026-03', amount: 100 }, { period: '2026-04', amount: -120 },
+    ]);
+    expect(cashFlow([laterRefund])).toEqual([{ period: '2026-04', income: 0, expenses: -120, net: 120 }]);
+  });
+
+  it('retains legacy negative expense reversals and excludes payment-only periods', () => {
+    expect(spendingTrend([{ ...transactions[0], amount: -20 }])).toEqual([{ period: '2026-03', amount: -20 }]);
+    expect(cashFlow([transactions[2], transactions[3]])).toEqual([]);
+  });
+});

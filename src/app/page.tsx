@@ -19,6 +19,7 @@ import { listMovements } from "@/lib/movements";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Page } from 'doom-design-system';
+import { expenseContribution } from '@/lib/transaction-types';
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ timeframe?: string; year?: string; tab?: string }> }) {
@@ -90,6 +91,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       tags: m.tags,
       type: m.kind,
       accountId: m.account_id,
+      original_transaction_id: m.original_transaction_id,
       accountName: m.account_id ? accountNameById.get(m.account_id) : undefined,
     };
   });
@@ -129,8 +131,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const budget = 30_000;
 
   const yearlySpending = transactions
-    .filter((t) => t.kind === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + expenseContribution(t.kind, t.amount), 0);
 
   const spendingPercentage = Math.min((yearlySpending / budget) * 100, 100);
 

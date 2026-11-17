@@ -15,7 +15,10 @@ vi.mock('@/lib/prisma', () => ({
     },
     transactions: {
       update: vi.fn(),
+      findFirst: vi.fn(),
+      count: vi.fn(),
     },
+    transfers: { update: vi.fn() },
     net_worth_history: {
       update: vi.fn(),
     },
@@ -25,6 +28,50 @@ vi.mock('@/lib/prisma', () => ({
     $transaction: vi.fn((fn: any) => fn(prisma)),
   },
 }));
+
+describe('historical undo after payment matching', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.transactions.count).mockResolvedValue(0);
+  });
+
+  it('rejects undoing an old statement creation after it has been reconciled', async () => {
+    vi.mocked(prisma.audit_log.findUnique).mockResolvedValue({ id: 100, user_id: 7, entity_type: 'transactions', entity_id: 1, action: 'CREATE', new_value: { type: 'payment_out' }, undone_at: null } as never);
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 1, transfer_id: 20 } as never);
+    await expect(undoAuditEntry(100, 1)).rejects.toThrow(/unlink/i);
+    expect(prisma.transactions.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects undoing an old transfer edit when statement entries now link to it', async () => {
+    vi.mocked(prisma.audit_log.findUnique).mockResolvedValue({ id: 101, user_id: 7, entity_type: 'transfers', entity_id: 20, action: 'UPDATE', previous_value: { amount: 99 }, undone_at: null } as never);
+    vi.mocked(prisma.transactions.count).mockResolvedValue(1);
+    await expect(undoAuditEntry(101, 1)).rejects.toThrow(/unlink/i);
+    expect(prisma.transfers.update).not.toHaveBeenCalled();
+  });
+
+  it('checks all current links before starting any batch undo', async () => {
+    vi.mocked(prisma.audit_log.findMany).mockResolvedValue([
+      { id: 102, user_id: 7, entity_type: 'accounts', entity_id: 10, action: 'CREATE' },
+      { id: 103, user_id: 7, entity_type: 'transactions', entity_id: 1, action: 'CREATE' },
+    ] as never);
+    vi.mocked(prisma.transactions.findFirst).mockResolvedValue({ id: 1, transfer_id: 20 } as never);
+    await expect(undoBatch('550e8400-e29b-41d4-a716-446655440000', 1)).rejects.toThrow(/unlink/i);
+    expect(prisma.accounts.update).not.toHaveBeenCalled();
+    expect(prisma.transactions.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('relational operation undo safety', () => {
+  it('does not undo a single reconciliation write and strand its other side', async () => {
+    vi.mocked(prisma.audit_log.findUnique).mockResolvedValue({ id: 91, action: 'UPDATE', entity_type: 'transactions', entity_id: 1, new_value: { payment_reconciliation: true }, undone_at: null } as never);
+    await expect(undoAuditEntry(91, 1)).rejects.toThrow(/unlink/i);
+  });
+  it('does not partially undo a restore batch', async () => {
+    vi.mocked(prisma.audit_log.findMany).mockResolvedValue([{ id: 92, batch_id: 'restore:abc', action: 'CREATE', entity_type: 'accounts', entity_id: 1 }] as never);
+    await expect(undoBatch('restore:abc', 1)).rejects.toThrow(/restore/i);
+  });
+});
 
 describe('writeAuditLog', () => {
   beforeEach(() => {
@@ -89,10 +136,10 @@ describe('getAuditLog', () => {
     ];
     (prisma.audit_log.findMany as any).mockResolvedValue(mockEntries);
 
-    const result = await getAuditLog({});
+    const result = await getAuditLog({ userId: 1 });
 
     expect(prisma.audit_log.findMany).toHaveBeenCalledWith({
-      where: {},
+      where: { user_id: 1 },
       orderBy: { created_at: 'desc' },
       take: 50,
       skip: 0,
@@ -103,10 +150,10 @@ describe('getAuditLog', () => {
   it('should filter by entityType and entityId', async () => {
     (prisma.audit_log.findMany as any).mockResolvedValue([]);
 
-    await getAuditLog({ entityType: 'accounts', entityId: 5, limit: 10, offset: 20 });
+    await getAuditLog({ userId: 1, entityType: 'accounts', entityId: 5, limit: 10, offset: 20 });
 
     expect(prisma.audit_log.findMany).toHaveBeenCalledWith({
-      where: { entity_type: 'accounts', entity_id: 5 },
+      where: { user_id: 1, entity_type: 'accounts', entity_id: 5 },
       orderBy: { created_at: 'desc' },
       take: 10,
       skip: 20,
@@ -130,10 +177,10 @@ describe('undoAuditEntry', () => {
       new_value: { name: 'New Name', balance: 200 },
     });
 
-    await undoAuditEntry(1);
+    await undoAuditEntry(1, 1);
 
     expect(prisma.accounts.update).toHaveBeenCalledWith({
-      where: { id: 10 },
+      where: { id: 10, user_id: 1 },
       data: { name: 'Old Name', balance: 100 },
     });
   });
@@ -149,10 +196,10 @@ describe('undoAuditEntry', () => {
       new_value: { name: 'New Account' },
     });
 
-    await undoAuditEntry(2);
+    await undoAuditEntry(2, 1);
 
     expect(prisma.accounts.update).toHaveBeenCalledWith({
-      where: { id: 10 },
+      where: { id: 10, user_id: 1 },
       data: { deleted_at: expect.any(Date) },
     });
   });
@@ -168,10 +215,10 @@ describe('undoAuditEntry', () => {
       new_value: null,
     });
 
-    await undoAuditEntry(3);
+    await undoAuditEntry(3, 1);
 
     expect(prisma.accounts.update).toHaveBeenCalledWith({
-      where: { id: 10 },
+      where: { id: 10, user_id: 1 },
       data: { deleted_at: null },
     });
   });
@@ -179,7 +226,7 @@ describe('undoAuditEntry', () => {
   it('should throw if audit entry not found', async () => {
     (prisma.audit_log.findUnique as any).mockResolvedValue(null);
 
-    await expect(undoAuditEntry(999)).rejects.toThrow('Audit entry not found');
+    await expect(undoAuditEntry(999, 1)).rejects.toThrow('Audit entry not found');
   });
 
   it('should throw if audit entry already undone', async () => {
@@ -194,7 +241,7 @@ describe('undoAuditEntry', () => {
       undone_at: new Date(),
     });
 
-    await expect(undoAuditEntry(4)).rejects.toThrow('Audit entry already undone');
+    await expect(undoAuditEntry(4, 1)).rejects.toThrow('Audit entry already undone');
   });
 
   it('should mark entry as undone after undo', async () => {
@@ -209,10 +256,10 @@ describe('undoAuditEntry', () => {
       undone_at: null,
     });
 
-    await undoAuditEntry(1);
+    await undoAuditEntry(1, 1);
 
     expect(prisma.audit_log.update).toHaveBeenCalledWith({
-      where: { id: 1 },
+      where: { id: 1, user_id: 1 },
       data: { undone_at: expect.any(Date) },
     });
   });
@@ -232,10 +279,10 @@ describe('undoBatch', () => {
     ];
     (prisma.audit_log.findMany as any).mockResolvedValue(entries);
 
-    await undoBatch(batchId);
+    await undoBatch(batchId, 1);
 
     expect(prisma.audit_log.findMany).toHaveBeenCalledWith({
-      where: { batch_id: batchId },
+      where: { batch_id: batchId, user_id: 1 },
       orderBy: { created_at: 'desc' },
     });
   });

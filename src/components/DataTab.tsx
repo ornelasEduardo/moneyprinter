@@ -10,6 +10,7 @@ import { Download, Shield, X } from 'lucide-react';
 import { EXPORTABLE_ENTITIES, formatBytes, type BackupHistoryEntry } from '@/lib/constants';
 import { getBackupEstimate, recordBackup, dismissBackupReminder } from '@/app/actions/backup';
 import styles from './DataTab.module.scss';
+import RestoreBackupForm from './RestoreBackupForm';
 
 interface DataTabProps {
   backupHistory: BackupHistoryEntry[];
@@ -152,6 +153,8 @@ export default function DataTab({ backupHistory, showBackupReminder }: DataTabPr
                 <Shield size={16} strokeWidth={2.5} />
                 {isBackingUp ? 'Saving...' : 'Backup Now'}
               </Button>
+
+              <RestoreBackupForm />
 
               {backupHistory.length > 0 && (
                 <Stack gap={2}>

@@ -61,3 +61,12 @@ describe('autoDetectColumns', () => {
     expect(result.detectedBehaviors.amount_convention).toBe('negative_is_debit');
   });
 });
+
+
+it('recognizes canonical transaction purposes in a CSV Type column', () => {
+  const result = autoDetectColumns([
+    { Date: '2026-03-15', Amount: '30', Type: 'refund', Description: 'Return' },
+    { Date: '2026-03-16', Amount: '100', Type: 'payment_in', Description: 'Payment' },
+  ]);
+  expect(result.columns.Type.field).toBe('type');
+});
